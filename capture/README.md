@@ -1,4 +1,4 @@
 # MyCRT Capture
 
-This directory contains source code for the MyCRT Capture progrm.
+This directory contains source code for the MyCRT Capture program.
 
