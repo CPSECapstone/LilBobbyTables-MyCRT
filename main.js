@@ -1,1 +1,0 @@
-console.log("MyCRT: MySQL workload capture and replay tool for AWS");
