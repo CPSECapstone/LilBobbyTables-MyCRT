@@ -1,0 +1,53 @@
+{
+   "name": "lbt-mycrt",
+   "version": "1.0.0",
+   "description": "MySQL workload capture and replay tool for AWS",
+   "main": "main.js",
+   "directories": {
+      "example": "example"
+   },
+   "scripts": {
+      "test": "node main.js"
+   },
+   "repository": {
+      "type": "git",
+      "url": "git+https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
+   },
+   "contributors": [
+      {
+         "name": "Cameron Taylor",
+         "email": "axis7818@gmail.com",
+         "url": "http://cameroncode.com/"
+      },
+      {
+         "name": "Hilary Schulz",
+         "email": "",
+         "url": ""
+      },
+      {
+         "name": "Nishanth Dara",
+         "email": "",
+         "url": ""
+      },
+      {
+         "name": "Alexandra Deany",
+         "email": "",
+         "url": ""
+      },
+      {
+         "name": "Brandon Newby",
+         "email": "",
+         "url": ""
+      },
+      {
+         "name": "Christiana Ushana",
+         "email": "",
+         "url": ""
+      }
+   ],
+   "license": "MIT",
+   "bugs": {
+      "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT/issues"
+   },
+   "homepage": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT#readme"
+}
