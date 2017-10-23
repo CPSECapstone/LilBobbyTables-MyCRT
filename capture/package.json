@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "MyCRT capture program",
   "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "bin": "./main.js",
+  "scripts": {
+  },
+  "dependencies": {
+    "child_process": "^1.0.2"
+  }
 }
