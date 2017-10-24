@@ -2,9 +2,9 @@
   "name": "@lbt-mycrt/replay",
   "version": "1.0.0",
   "description": "MyCRT Replay Program",
-  "main": "main.js",
+  "main": "./dist/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+     "start": "node dist/main.js"
   },
   "author": "",
   "license": "MIT",
