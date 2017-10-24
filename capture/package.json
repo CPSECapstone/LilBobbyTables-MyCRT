@@ -5,10 +5,17 @@
   "main": "main.js",
   "author": "",
   "license": "MIT",
-  "bin": "./main.js",
+  "bin": "./dist/main.js",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "prepublishOnly": "tsc"
   },
   "dependencies": {
+    "@types/node": "^8.0.46",
     "child_process": "^1.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^2.5.3"
   }
 }

@@ -1,7 +1,7 @@
 var express = require('express');
 var http = require('http-status-codes');
 
-var captureProgram = require('@lbt-mycrt/capture/launch');
+var captureProgram = require('@lbt-mycrt/capture/dist/launch');
 
 var router = express.Router();
 router.urlPrefix = '/capture';
