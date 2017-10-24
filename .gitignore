@@ -57,3 +57,7 @@ typings/
 # dotenv environment variables file
 .env
 
+# typescript output
+*.js.map
+dist/**/*.js
+
