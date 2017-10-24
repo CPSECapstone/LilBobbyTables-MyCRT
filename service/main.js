@@ -9,9 +9,11 @@ app.use((request, response, then) => {
    then();
 });
 
-// Rest API Routes
-app.use('/capture', require('./routes/capture'));
-app.use('/replay', require('./routes/replay'));
+const captureRouter = require('./routes/capture');
+app.use(captureRouter.urlPrefix, captureRouter);
+
+const replayRouter = require('./routes/replay');
+app.use(replayRouter.urlPrefix, replayRouter);
 
 // home page
 app.get('/', (request, response) => {

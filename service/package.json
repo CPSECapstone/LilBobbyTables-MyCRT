@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@lbt-mycrt/capture": "file:../capture",
+    "@lbt-mycrt/replay": "file:../replay",
     "express": "^4.16.2",
     "http-status-codes": "^1.3.0",
     "typescript": "^2.5.3"

@@ -1,17 +1,32 @@
 var express = require('express');
 var http = require('http-status-codes');
 
-var Capture = require('@lbt-mycrt/capture/launch');
+var captureProgram = require('@lbt-mycrt/capture/launch');
 
 var router = express.Router();
+router.urlPrefix = '/capture';
 
 router.get('/', (request, response) => {
-   response.json(['capture1', 'capture2']);
+   response
+      .json(['capture1', 'capture2'])
+      .end();
+});
+
+router.get('/:id', (request, response) => {
+   const id = request.params.id;
+   response
+      .send('capture' + id)
+      .end();
 });
 
 router.post('/', (request, response) => {
-   Capture.launch();
-   response.sendStatus(http.OK);
+   captureProgram.launch();
+   const id = "[ID]";
+
+   response
+      .status(http.OK)
+      .location(router.urlPrefix + '/' + id)
+      .end();
 });
 
 module.exports = router;
