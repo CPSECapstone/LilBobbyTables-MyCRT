@@ -4,7 +4,7 @@
   "description": "MyCRT Replay Program",
   "main": "./dist/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tslint './src/**/*.ts' && tsc",
     "start": "node dist/main.js",
     "prepublishOnly": "tsc"
   },
@@ -12,6 +12,7 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
+    "tslint": "^5.8.0",
     "typescript": "^2.5.3"
   }
 }

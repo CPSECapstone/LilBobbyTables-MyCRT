@@ -1,16 +1,1 @@
-{
-   "compilerOptions": {
-      "target": "es6",
-      "alwaysStrict": true,
-      "sourceMap": true,
-      "outDir": "dist",
-      "declaration": true,
-      "declarationDir": "dist"
-   },
-   "include": [
-      "src/**/*"
-   ],
-   "exclude": [
-      "node_modules"
-   ]   
-}
+../common/tsconfig.json
