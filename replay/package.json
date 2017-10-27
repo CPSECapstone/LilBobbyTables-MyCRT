@@ -4,9 +4,9 @@
   "description": "MyCRT Replay Program",
   "main": "./dist/main.js",
   "scripts": {
-     "build": "tsc",
-     "start": "node dist/main.js",
-     "prepublishOnly": "tsc"
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "prepublishOnly": "tsc"
   },
   "author": "",
   "license": "MIT",

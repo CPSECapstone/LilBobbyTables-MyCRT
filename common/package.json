@@ -4,6 +4,5 @@
   "description": "MyCRT common functionality",
   "author": "",
   "license": "MIT",
-  "scripts": {
-  }
+  "scripts": {}
 }

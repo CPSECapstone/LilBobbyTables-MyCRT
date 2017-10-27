@@ -2,8 +2,7 @@
   "name": "@lbt-mycrt/cli",
   "version": "1.0.0",
   "description": "MyCRT Command Line Interface",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "",
   "license": "MIT"
 }
