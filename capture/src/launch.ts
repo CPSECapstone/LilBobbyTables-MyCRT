@@ -1,6 +1,6 @@
 import * as child_process from 'child_process';
 
-const launch = () => {
+export default () => {
    console.log("launching capture");
 
    child_process.spawn('capture')
@@ -18,8 +18,4 @@ const launch = () => {
       })
 
    ;
-};
-
-export {
-   launch,
 };
