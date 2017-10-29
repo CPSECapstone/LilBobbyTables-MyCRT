@@ -5,8 +5,7 @@
   "main": "./dist/main.js",
   "scripts": {
     "build": "tslint './src/**/*.ts' && tsc",
-    "start": "node dist/main.js",
-    "prepublishOnly": "tsc"
+    "start": "node dist/main.js"
   },
   "author": "",
   "license": "MIT",
