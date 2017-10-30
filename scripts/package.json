@@ -1,0 +1,19 @@
+{
+  "name": "@lbt-mycrt/scripts",
+  "version": "1.0.0",
+  "description": "devops for LilBobbyTables MyCRT",
+  "scripts": {
+    "start": "grunt build"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-ts": "^6.0.0-beta.16",
+    "grunt-tslint": "^5.0.1",
+    "tslint": "^5.8.0",
+    "typescript": "^2.5.3"
+  }
+}

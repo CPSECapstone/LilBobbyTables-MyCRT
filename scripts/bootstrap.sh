@@ -21,7 +21,7 @@ echo "Bootstrapper For Local Development Environment"
 # move to the root directory
 START_DIR="$(pwd)"
 REPOSITORY_ROOT_DIR=`git rev-parse --show-toplevel 2>/dev/null`
-if [ -z "$REPOSITORY_ROOT_DIR" ]; then 
+if [ -z "$REPOSITORY_ROOT_DIR" ]; then
    echo "Cannot determine LilBobbyTables-MyCRT root directory. Please run this script from within the repository."
    exit 1
 fi
@@ -72,10 +72,6 @@ echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for capture module${RESTORE}"; exit 1
 fi
-echo "building capture module"
-if ! npm run build 1>>$LOG_FILE 2>&1; then
-   echo -e "${RED}Failed to build capture module${RESTORE}"; exit 1
-fi
 echo -e "${GREEN}Successfully setup capture module${RESTORE}\n"
 cd ..
 
@@ -87,10 +83,6 @@ echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for replay module${RESTORE}"; exit 1
 fi
-echo "building replay module"
-if ! npm run build 1>>$LOG_FILE 2>&1; then
-   echo -e "${RED}failed to build replay module${RESTORE}"; exit 1
-fi
 echo -e "${GREEN}Successfully setup replay module${RESTORE}\n"
 cd ..
 
@@ -99,7 +91,7 @@ SERVICE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/service"
 echo -e "${BLUE}Setting up service (${SERVICE_MODULE_DIR})${RESTORE}"
 cd $SERVICE_MODULE_DIR
 echo "installing npm dependencies"
-if ! npm install 1>>$LOG_FILE 2>&1; then 
+if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm modules for service module${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup service module${RESTORE}\n"
@@ -110,10 +102,21 @@ CLI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/cli"
 echo -e "${BLUE}Setting up cli (${SERVICE_MODULE_DIR})${RESTORE}"
 cd $CLI_MODULE_DIR
 echo "installing npm dependencies"
-if ! npm install 1>>$LOG_FILE 2>&1; then 
+if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for cli module${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup cli module${RESTORE}\n"
+cd ..
+
+########################################################################################################################
+
+SCRIPTS_MODULE_DIR="${REPOSITORY_ROOT_DIR}/scripts"
+echo -e "${BLUE}Building MyCRT${RESTORE}"
+cd $SCRIPTS_MODULE_DIR
+if ! npm start 1>>$LOG_FILE 2>&1; then
+   echo -e "${RED}Failed to build MyCRT${RESTORE}"; exit 1
+fi
+echo -e "${GREEN}Successfully build MyCRT${RESTORE}\n"
 cd ..
 
 ########################################################################################################################
