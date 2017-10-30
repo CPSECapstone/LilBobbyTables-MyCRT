@@ -2,7 +2,8 @@ import * as http from 'http-status-codes';
 
 import SelfAwareRouter from './self-aware-router';
 
-import launchCapture from '@lbt-mycrt/capture/dist/launch';
+// import launchCapture from '@lbt-mycrt/capture/dist/launch';
+import { launch } from '@lbt-mycrt/capture';
 
 export default class CaptureRouter extends SelfAwareRouter {
    public name: string = 'capture';
@@ -27,7 +28,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          })
 
          .post('/', (request, response) => {
-            launchCapture();
+            launch();
             const id = "[ID]";
             response
                .status(http.OK)

@@ -37,19 +37,13 @@ const GLOBAL_TSLINT_CONFIGURATION = {
 
 function tsTaskConfig(modulePath, options) {
 
+   // build the options object
    options = options || {};
    options = Object.assign(options, {
       sourceRoot: modulePath,
       rootDir: modulePath,
    });
    options = Object.assign(options, GLOBAL_TYPESCRIPT_OPTIONS);
-
-   // build the options object components
-   // customOptions = options || {};
-   // const fixedOptions = Object.assign({
-   //    sourceRoot: modulePath,
-   //    rootDir: modulePath,
-   // }, GLOBAL_TYPESCRIPT_OPTIONS);
 
    // get the types to include
    const typesDir = path.resolve(modulePath, 'node_modules', '@types');
@@ -70,7 +64,10 @@ function tsTaskConfig(modulePath, options) {
 
    return {
       files: [{
-         src: [path.resolve(modulePath, 'src') + '/\*\*/\*.ts'],
+         src: [
+            path.resolve(modulePath, 'src') + '/\*\*/\*.ts',
+            '!' + path.resolve(modulePath, 'node_modules') + '/\*\*',
+         ],
          dest: path.resolve(modulePath, 'dist'),
       }],
       options: options,
