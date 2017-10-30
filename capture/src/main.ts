@@ -7,5 +7,5 @@ export {
 };
 
 if (typeof(require) !== 'undefined' && require.main === module) {
-   console.log("MyCRT Capture");
+   console.log("Running MyCRT Capture Program");
 }
