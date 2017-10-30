@@ -40,8 +40,8 @@ function tsTaskConfig(modulePath, options) {
    // build the options object
    options = options || {};
    options = Object.assign(options, {
-      sourceRoot: modulePath,
-      rootDir: modulePath,
+      sourceRoot: path.resolve(modulePath, 'src'),
+      rootDir: path.resolve(modulePath, 'src'),
    });
    options = Object.assign(options, GLOBAL_TYPESCRIPT_OPTIONS);
 

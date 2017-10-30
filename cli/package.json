@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "MyCRT Command Line Interface",
   "repository": {
-     "type": "git",
-     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
+    "type": "git",
+    "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
   },
   "scripts": {},
   "author": "",

@@ -2,7 +2,7 @@
   "name": "@lbt-mycrt/capture",
   "version": "1.0.0",
   "description": "MyCRT capture program",
-  "main": "main.js",
+  "main": "./dist/main.js",
   "author": "",
   "license": "MIT",
   "bin": "./dist/main.js",
