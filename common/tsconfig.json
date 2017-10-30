@@ -9,7 +9,8 @@
       "strictNullChecks": true,
       "newLine": "LF",
       "noImplicitAny": true,
-      "noImplicitReturns": true
+      "noImplicitReturns": true,
+      "traceResolution": true
    },
    "include": [
       "src/**/*"

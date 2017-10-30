@@ -54,6 +54,16 @@ echo ""
 
 echo -e "${CYAN}Setting up modules${RESTORE}"
 
+# setup the scripts module
+echo -e "${BLUE}Setting up scripts (${SCRIPTS_MODULE_DIR})${RESTORE}"
+cd $SCRIPTS_MODULE_DIR
+echo "installing npm dependencies"
+if ! npm install 1>>$LOG_FILE 2>&1; then
+   echo -e "${RED}Failed to install npm dependencies for scripts module${RESTORE}"; exit 1
+fi
+echo -e "${GREEN}Successfully setup scripts module${RESTORE}\n"
+cd ..
+
 # setup the common module
 COMMON_MODULE_DIR="${REPOSITORY_ROOT_DIR}/common"
 echo -e "${BLUE}Setting up common (${COMMON_MODULE_DIR})${RESTORE}"
