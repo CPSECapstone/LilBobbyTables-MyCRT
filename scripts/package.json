@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "devops for LilBobbyTables MyCRT",
   "repository": {
-     "type": "git",
-     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
+    "type": "git",
+    "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
   },
   "scripts": {
-    "start": "grunt build"
+    "start": "grunt",
+    "build-capture": "grunt build-capture",
+    "build-cli": "grunt build-cli",
+    "build-common": "grunt build-common",
+    "build-replay": "grunt build-replay",
+    "build-service": "grunt build-service"
   },
   "author": "",
   "license": "MIT",

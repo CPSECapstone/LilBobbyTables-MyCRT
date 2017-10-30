@@ -21,6 +21,7 @@ const GLOBAL_TYPESCRIPT_OPTIONS = {
    newLine: 'LF',
    noImpicitAny: true,
    noImplicitReturns: true,
+   traceResolution: true,
 };
 
 const GLOBAL_TSLINT_CONFIGURATION = {
@@ -33,6 +34,34 @@ const GLOBAL_TSLINT_CONFIGURATION = {
    typeDef: [true, 'call-signature', 'property-declaration'],
 };
 
+function tsTaskConfig(modulePath) {
+   return {
+      files: [{
+         src: [path.resolve(modulePath, 'src') + '/\*\*/\*.ts'],
+         dest: path.resolve(modulePath, 'dist'),
+      }],
+      options: Object.assign({
+         sourceRoot: modulePath,
+         rootDir: modulePath,
+      }, GLOBAL_TYPESCRIPT_OPTIONS),
+   };
+}
+
+function tslintTaskConfig(modulePath) {
+   return {
+      files: {
+         src: [path.resolve(modulePath, 'src') + '/\*\*/\*.ts'],
+      },
+   };
+}
+
+function watchTaskConfig(modulePath, name) {
+   return {
+      files: [path.resolve(modulePath, 'src') + '/\*\*/\*.ts'],
+      tasks: ['ts:' + name, 'tslint:' + name],
+   };
+}
+
 module.exports = function(grunt) {
 
    /* configure grunt */
@@ -40,15 +69,11 @@ module.exports = function(grunt) {
 
       /* typescript */
       ts: {
-         service: {
-            files: [{
-               src: [path.resolve(DIR.SERVICE, 'src') + '/\*\*/\*.ts'],
-               dest: path.resolve(DIR.SERVICE, 'dist'),
-            }],
-            options: Object.assign({
-               rootDir: DIR.SERVICE,
-            }, GLOBAL_TYPESCRIPT_OPTIONS),
-         },
+         capture: tsTaskConfig(DIR.CAPTURE),
+         cli: tsTaskConfig(DIR.CLI),
+         common: tsTaskConfig(DIR.COMMON),
+         replay: tsTaskConfig(DIR.REPLAY),
+         service: tsTaskConfig(DIR.SERVICE),
       },
 
       /* typescript linter */
@@ -58,19 +83,20 @@ module.exports = function(grunt) {
             force: false,
             fix: false
          },
-         service: {
-            files: {
-               src: [path.resolve(DIR.SERVICE, 'src') + '/\*\*/\*.ts'],
-            },
-         },
+         capture: tslintTaskConfig(DIR.CAPTURE),
+         cli: tslintTaskConfig(DIR.CLI),
+         common: tslintTaskConfig(DIR.COMMON),
+         replay: tslintTaskConfig(DIR.REPLAY),
+         service: tslintTaskConfig(DIR.SERVICE),
       },
 
       /* file watching */
       watch: {
-         service: {
-            files: [path.resolve(DIR.SERVICE, 'src') + '/\*\*/\*.ts'],
-            tasks: ['ts:service', 'tslint:service'],
-         }
+         capture: watchTaskConfig(DIR.CAPTURE, 'capture'),
+         cli: watchTaskConfig(DIR.CLI, 'cli'),
+         common: watchTaskConfig(DIR.COMMON, 'common'),
+         replay: watchTaskConfig(DIR.REPLAY, 'replay'),
+         service: watchTaskConfig(DIR.SERVICE, 'service'),
       },
 
    });
@@ -81,20 +107,24 @@ module.exports = function(grunt) {
    grunt.loadNpmTasks('grunt-tslint');
 
    /* common */
-   grunt.registerTask('common', []);
+   grunt.registerTask('build-common', ['ts:common', 'tslint:common']);
+   grunt.registerTask('common', ['build-common', 'watch:common']);
 
    /* capture */
-   grunt.registerTask('capture', []);
+   grunt.registerTask('build-capture', ['ts:capture', 'tslint:capture']);
+   grunt.registerTask('capture', ['build-capture', 'watch:capture']);
 
    /* replay */
-   grunt.registerTask('replay', []);
+   grunt.registerTask('build-replay', ['ts:replay', 'tslint:replay']);
+   grunt.registerTask('replay', ['build-replay', 'watch:replay']);
 
    /* service */
    grunt.registerTask('build-service', ['ts:service', 'tslint:service']);
    grunt.registerTask('service', ['build-service', 'watch:service']);
 
    /* cli */
-   grunt.registerTask('cli', []);
+   grunt.registerTask('build-cli', ['ts:cli', 'tslint:cli']);
+   grunt.registerTask('cli', ['build-cli', 'watch:cli']);
 
    /* Run the whole MyCRT project */
    grunt.registerTask('build', ['build-service']);

@@ -26,6 +26,7 @@ if [ -z "$REPOSITORY_ROOT_DIR" ]; then
    exit 1
 fi
 cd $REPOSITORY_ROOT_DIR
+SCRIPTS_MODULE_DIR="${REPOSITORY_ROOT_DIR}/scripts"
 
 # setup the logging dir
 LOG_FILE="${START_DIR}/bootstrap.log"
@@ -61,6 +62,11 @@ echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for common module${RESTORE}"; exit 1
 fi
+echo "building common"
+cd $SCRIPTS_MODULE_DIR
+if ! npm run build-common 1>>$LOG_FILE 2>&1; then
+   echo -e "${RED}Failed to build common${RESTORE}"; exit 1
+fi
 echo -e "${GREEN}Successfully setup common module${RESTORE}\n"
 cd ..
 
@@ -71,6 +77,11 @@ cd $CAPTURE_MODULE_DIR
 echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for capture module${RESTORE}"; exit 1
+fi
+echo "building capture"
+cd $SCRIPTS_MODULE_DIR
+if ! npm run build-capture 1>>$LOG_FILE 2>&1; then
+   echo -e "${RED}Failed to build capture${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup capture module${RESTORE}\n"
 cd ..
@@ -83,6 +94,11 @@ echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for replay module${RESTORE}"; exit 1
 fi
+echo "building replay"
+cd $SCRIPTS_MODULE_DIR
+if ! npm run build-replay 1>>$LOG_FILE 2>&1; then
+   echo -e "${RED}Failed to build replay${RESTORE}"; exit 1
+fi
 echo -e "${GREEN}Successfully setup replay module${RESTORE}\n"
 cd ..
 
@@ -93,6 +109,11 @@ cd $SERVICE_MODULE_DIR
 echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm modules for service module${RESTORE}"; exit 1
+fi
+echo "building service"
+cd $SCRIPTS_MODULE_DIR
+if ! npm run build-service 1>>$LOG_FILE 2>&1; then
+   echo -e "${RED}Failed to build service${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup service module${RESTORE}\n"
 cd ..
@@ -105,18 +126,12 @@ echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for cli module${RESTORE}"; exit 1
 fi
-echo -e "${GREEN}Successfully setup cli module${RESTORE}\n"
-cd ..
-
-########################################################################################################################
-
-SCRIPTS_MODULE_DIR="${REPOSITORY_ROOT_DIR}/scripts"
-echo -e "${BLUE}Building MyCRT${RESTORE}"
+echo "building cli"
 cd $SCRIPTS_MODULE_DIR
-if ! npm start 1>>$LOG_FILE 2>&1; then
-   echo -e "${RED}Failed to build MyCRT${RESTORE}"; exit 1
+if ! npm run build-cli 1>>$LOG_FILE 2>&1; then
+   echo -e "${RED}Failed to build cli${RESTORE}"; exit 1
 fi
-echo -e "${GREEN}Successfully build MyCRT${RESTORE}\n"
+echo -e "${GREEN}Successfully setup cli module${RESTORE}\n"
 cd ..
 
 ########################################################################################################################

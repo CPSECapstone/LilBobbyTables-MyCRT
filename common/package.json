@@ -5,8 +5,8 @@
   "author": "",
   "license": "MIT",
   "repository": {
-     "type": "git",
-     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
+    "type": "git",
+    "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
   },
   "scripts": {},
   "devDependencies": {
