@@ -1,0 +1,21 @@
+{
+   "compilerOptions": {
+      "target": "es5",
+      "alwaysStrict": true,
+      "sourceMap": true,
+      "outDir": "dist",
+      "declaration": true,
+      "declarationDir": "dist",
+      "strictNullChecks": true,
+      "newLine": "LF",
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "traceResolution": true
+   },
+   "include": [
+      "src/**/*"
+   ],
+   "exclude": [
+      "node_modules"
+   ]   
+}

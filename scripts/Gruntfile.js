@@ -22,17 +22,6 @@ const GLOBAL_TYPESCRIPT_OPTIONS = {
    newLine: 'LF',
    noImpicitAny: true,
    noImplicitReturns: true,
-   // traceResolution: true,
-};
-
-const GLOBAL_TSLINT_CONFIGURATION = {
-   defaultSeverity: 'error',
-   extends: ['tslint:recommended'],
-   rules: {
-      quotemark: [false],
-      'no-console': [false],
-   },
-   typeDef: [true, 'call-signature', 'property-declaration'],
 };
 
 function tsTaskConfig(modulePath, options) {
@@ -106,7 +95,7 @@ module.exports = function(grunt) {
       /* typescript linter */
       tslint: {
          options: {
-            configuration: GLOBAL_TSLINT_CONFIGURATION,
+            configuration: 'tslint.json',
             force: false,
             fix: false
          },
