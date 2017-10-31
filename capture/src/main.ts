@@ -2,7 +2,7 @@
 
 import launch from './launch';
 
-export {
+export default {
    launch,
 };
 

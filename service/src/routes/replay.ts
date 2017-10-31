@@ -5,11 +5,23 @@ export default class ReplayRouter extends SelfAwareRouter {
    public urlPrefix: string = '/replay';
 
    protected mountRoutes(): void {
-      this.router.get('/', (request, response) => {
-         response
-            .json(['replay1', 'replay2'])
-            .end()
-         ;
-      });
+      this.router
+
+         .get('/', (request, response) => {
+            response
+               .json(['replay1', 'replay2'])
+               .end()
+            ;
+         })
+
+         .get('/:id', (request, response) => {
+            const id = request.params.id;
+            response
+               .send(`capture${id}`)
+               .end()
+            ;
+         })
+
+      ;
    }
 }

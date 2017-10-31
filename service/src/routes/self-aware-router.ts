@@ -9,7 +9,6 @@ export default abstract class SelfAwareRouter {
    public constructor() {
       this.router = Router();
       this.mountRoutes();
-      console.log(`${this.name} routing at ${this.urlPrefix}`);
    }
 
    protected abstract mountRoutes(): void;

@@ -156,6 +156,34 @@ module.exports = function(grunt) {
             },
          },
 
+         'develop': {
+            tasks: ['concurrent:watch-all', 'nodemon:dev'],
+            options: {
+               logConcurrentOutput: true,
+            },
+         },
+
+      },
+
+      /* server reloading */
+      nodemon: {
+         dev: {
+            script: path.resolve(DIR.SERVICE, 'dist', 'main.js'),
+            options: {
+               args: [],
+               nodeArgs: [],
+               // callback: (nodemon) => {
+               // },
+               env: {
+                  PORT: '3000',
+               },
+               cwd: DIR.SERVICE,
+               ignore: ['node_modules/\*\*'],
+               ext: 'js',
+               watch: ['dist'],
+               delay: 500,
+            },
+         },
       },
 
    });
@@ -165,6 +193,7 @@ module.exports = function(grunt) {
    grunt.loadNpmTasks('grunt-tslint');
    grunt.loadNpmTasks('grunt-contrib-watch');
    grunt.loadNpmTasks('grunt-concurrent');
+   grunt.loadNpmTasks('grunt-nodemon');
 
    /* common */
    grunt.registerTask('build-common', ['concurrent:digest-common']);
@@ -193,6 +222,6 @@ module.exports = function(grunt) {
       grunt.log.writeln("\t||  Inital Digest Cycle Complete  ||");
       grunt.log.writeln("\t====================================\n");
    });
-   grunt.registerTask('default', ['concurrent:digest-all', 'digest-complete', 'concurrent:watch-all']);
+   grunt.registerTask('develop', ['concurrent:digest-all', 'digest-complete', 'concurrent:develop']);
 
 };
