@@ -47,6 +47,7 @@ check_installed() {
 echo -e "${CYAN}Checking for prerequisites${RESTORE}"
 check_installed node
 check_installed npm
+check_installed mysql
 echo -e "${GREEN}All prerequisites detected!${RESTORE}"
 echo ""
 
@@ -54,6 +55,7 @@ echo ""
 
 echo -e "${CYAN}Setting up modules${RESTORE}"
 
+########################################################################################################################
 # setup the scripts module
 echo -e "${BLUE}Setting up scripts (${SCRIPTS_MODULE_DIR})${RESTORE}"
 cd $SCRIPTS_MODULE_DIR
@@ -64,6 +66,7 @@ fi
 echo -e "${GREEN}Successfully setup scripts module${RESTORE}\n"
 cd ..
 
+########################################################################################################################
 # setup the common module
 COMMON_MODULE_DIR="${REPOSITORY_ROOT_DIR}/common"
 echo -e "${BLUE}Setting up common (${COMMON_MODULE_DIR})${RESTORE}"
@@ -80,6 +83,7 @@ fi
 echo -e "${GREEN}Successfully setup common module${RESTORE}\n"
 cd ..
 
+########################################################################################################################
 # setup the capture module
 CAPTURE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/capture"
 echo -e "${BLUE}Setting up capture (${CAPTURE_MODULE_DIR})${RESTORE}"
@@ -96,6 +100,7 @@ fi
 echo -e "${GREEN}Successfully setup capture module${RESTORE}\n"
 cd ..
 
+########################################################################################################################
 # setup the replay module
 REPLAY_MODULE_DIR="${REPOSITORY_ROOT_DIR}/replay"
 echo -e "${BLUE}Setting up replay (${REPLAY_MODULE_DIR})${RESTORE}"
@@ -112,22 +117,36 @@ fi
 echo -e "${GREEN}Successfully setup replay module${RESTORE}\n"
 cd ..
 
+########################################################################################################################
 # setup the service module
 SERVICE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/service"
-echo -e "${BLUE}Setting up service (${SERVICE_MODULE_DIR})${RESTORE}"
-cd $SERVICE_MODULE_DIR
-echo "installing npm dependencies"
-if ! npm install 1>>$LOG_FILE 2>&1; then
-   echo -e "${RED}Failed to install npm modules for service module${RESTORE}"; exit 1
-fi
-echo "building service"
-cd $SCRIPTS_MODULE_DIR
-if ! npm run build-service 1>>$LOG_FILE 2>&1; then
-   echo -e "${RED}Failed to build service${RESTORE}"; exit 1
-fi
+
+   echo -e "${BLUE}Setting up service (${SERVICE_MODULE_DIR})${RESTORE}"
+   cd $SERVICE_MODULE_DIR
+   echo "installing npm dependencies"
+   if ! npm install 1>>$LOG_FILE 2>&1; then
+      echo -e "${RED}Failed to install npm modules for service module${RESTORE}"; exit 1
+   fi
+
+   echo "building service"
+   cd $SCRIPTS_MODULE_DIR
+   if ! npm run build-service 1>>$LOG_FILE 2>&1; then
+      echo -e "${RED}Failed to build service${RESTORE}"; exit 1
+   fi
+
+   echo "bootstrapping the LBTMyCRT database"
+   cd $SERVICE_MODULE_DIR
+   bootstrap_sql="${SERVICE_MODULE_DIR}/db/bootstrap.sql"
+   if ! mysql < $bootstrap_sql 1>>$LOG_FILE 2>&1; then
+      echo -e "${RED}Failed to bootstrap the LBTMySQL database"
+      echo -e "Make sure MySQL server is running and ~/.my.cnf is set up correctly.${RESTORE}"
+      exit 1
+   fi
+
 echo -e "${GREEN}Successfully setup service module${RESTORE}\n"
 cd ..
 
+########################################################################################################################
 # setup the cli module
 CLI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/cli"
 echo -e "${BLUE}Setting up cli (${SERVICE_MODULE_DIR})${RESTORE}"
