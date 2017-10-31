@@ -21,6 +21,7 @@ function tsTaskConfig(modulePath, options) {
    options = Object.assign(options, {
       sourceRoot: path.resolve(modulePath, 'src'),
       rootDir: path.resolve(modulePath, 'src'),
+      declarationDir: path.resolve(modulePath, 'dist'),
    });
    let globalOptions = Object.assign({}, tsconfig.compilerOptions);
    options = Object.assign(globalOptions, options);
