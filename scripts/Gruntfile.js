@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var tsconfig = require('./tsconfig.json');
 
 const ROOT_DIR = path.resolve(__dirname, '../');
 const DIR = {
@@ -13,17 +14,6 @@ const DIR = {
 };
 delete ROOT_DIR;
 
-const GLOBAL_TYPESCRIPT_OPTIONS = {
-   target: 'es5',
-   alwaysStrict: true,
-   sourceMap: true,
-   declaration: true,
-   strictNullChecks: true,
-   newLine: 'LF',
-   noImpicitAny: true,
-   noImplicitReturns: true,
-};
-
 function tsTaskConfig(modulePath, options) {
 
    // build the options object
@@ -32,7 +22,8 @@ function tsTaskConfig(modulePath, options) {
       sourceRoot: path.resolve(modulePath, 'src'),
       rootDir: path.resolve(modulePath, 'src'),
    });
-   options = Object.assign(options, GLOBAL_TYPESCRIPT_OPTIONS);
+   let globalOptions = Object.assign({}, tsconfig.compilerOptions);
+   options = Object.assign(globalOptions, options);
 
    // get the types to include
    const typesDir = path.resolve(modulePath, 'node_modules', '@types');
@@ -183,6 +174,8 @@ module.exports = function(grunt) {
    grunt.loadNpmTasks('grunt-contrib-watch');
    grunt.loadNpmTasks('grunt-concurrent');
    grunt.loadNpmTasks('grunt-nodemon');
+
+   grunt.registerTask('noop', () => {});
 
    /* common */
    grunt.registerTask('build-common', ['concurrent:digest-common']);
