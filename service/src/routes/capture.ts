@@ -2,7 +2,7 @@ import * as http from 'http-status-codes';
 
 import SelfAwareRouter from './self-aware-router';
 
-import launch from '@lbt-mycrt/capture';
+import { launch } from '@lbt-mycrt/capture';
 
 export default class CaptureRouter extends SelfAwareRouter {
    public name: string = 'capture';
