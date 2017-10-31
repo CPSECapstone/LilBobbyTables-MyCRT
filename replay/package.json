@@ -7,15 +7,9 @@
     "type": "git",
     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
   },
-  "scripts": {
-    "build": "tslint './src/**/*.ts' && tsc",
-    "start": "node dist/main.js"
-  },
+  "scripts": {},
   "author": "",
   "license": "MIT",
   "dependencies": {},
-  "devDependencies": {
-    "tslint": "^5.8.0",
-    "typescript": "^2.5.3"
-  }
+  "devDependencies": {}
 }
