@@ -2,7 +2,7 @@
   "name": "@lbt-mycrt/service",
   "version": "1.0.0",
   "description": "MyCRT Service",
-  "main": "./dist/main.js",
+  "main": "./dist/main",
   "author": "",
   "license": "MIT",
   "repository": {

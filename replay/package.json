@@ -2,7 +2,8 @@
   "name": "@lbt-mycrt/replay",
   "version": "1.0.0",
   "description": "MyCRT Replay Program",
-  "main": "./dist/main.js",
+  "main": "./dist/main",
+  "types": "./dist/main",
   "repository": {
     "type": "git",
     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
