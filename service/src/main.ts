@@ -39,7 +39,7 @@ class MyCRTService {
             console.error(error);
          }
          console.log(`server is listening on ${this.port}`);
-         console.log(`  serving public files from ${this.publicPath}`);
+         console.log(`serving public files from ${this.publicPath}`);
       });
    }
 

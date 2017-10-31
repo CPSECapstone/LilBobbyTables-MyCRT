@@ -15,5 +15,8 @@
     "@types/node": "^8.0.46",
     "child_process": "^1.0.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "tslint": "^5.8.0",
+    "typescript": "^2.6.1"
+  }
 }
