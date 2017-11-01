@@ -40,7 +40,7 @@ function tsTaskConfig(modulePath, options) {
       }
    }
    if (types.length) {
-      options.types = types;
+      options.typeRoots = types;
    }
 
    return {

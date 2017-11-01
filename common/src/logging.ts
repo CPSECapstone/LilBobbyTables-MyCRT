@@ -13,23 +13,26 @@ const detailedFormatter = (args: any): string => {
 
 const getLogger = (logFile: string | undefined = undefined) => {
 
+   const transports: winston.TransportInstance[] = [];
+
+   if (process.env.NODE_ENV !== 'prod') {
+      transports.push(new winston.transports.Console({
+         colorize: true,
+         formatter: simpleFormatter,
+         level: 'silly',
+      }));
+   }
+
+   if (logFile) {
+      transports.push(new winston.transports.File({
+         filename: logFile,
+         formatter: detailedFormatter,
+         level: 'info',
+      }));
+   }
+
    const logger = new winston.Logger({
-      transports: [
-
-         // TODO: don't log to the console in production
-         new winston.transports.Console({
-            colorize: true,
-            formatter: simpleFormatter,
-            level: 'silly',
-         }),
-
-         new winston.transports.File({
-            filename: logFile,
-            formatter: detailedFormatter,
-            level: 'info',
-         }),
-
-      ],
+      transports,
    });
 
    return logger;

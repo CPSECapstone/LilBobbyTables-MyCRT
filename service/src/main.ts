@@ -51,7 +51,7 @@ class MyCRTService {
 
       // log each request to the console
       this.express.use((request, response, then) => {
-         logger.info(`\n----=[ ${request.method} ${request.path} ]=----`);
+         logger.info(`----=[ ${request.method} ${request.path} ]=----`);
          then();
       });
 
