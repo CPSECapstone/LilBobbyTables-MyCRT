@@ -19,3 +19,5 @@ echo "Removing all node_modules directories"
 find . -name "node_modules" -exec rm -rf '{}' +
 echo "Removing all dist directories"
 find . -name "dist" -exec rm -rf '{}' +
+echo "Removing bootstrap.log"
+find . -name "bootstrap.log" -exec rm -rf '{}' +
