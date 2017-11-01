@@ -1,20 +1,24 @@
 import * as child_process from 'child_process';
 
-export default () => {
-   console.log("launching capture");
+import { Logging } from '@lbt-mycrt/common';
+
+const logger = Logging.getLogger();
+
+export const launch = () => {
+   logger.info("launching capture");
 
    child_process.spawn('capture')
 
       .stdout.on('data', (data: string) => {
-         console.log("[capture stdout]  " + data);
+         logger.info("[capture stdout]  " + data);
       })
 
       .on('close', (code: any) => {
-         console.log("[capture]  exited with code " + code);
+         logger.info("[capture]  exited with code " + code);
       })
 
       .on('error', (error: string) => {
-         console.log(error);
+         logger.info(error);
       })
 
    ;

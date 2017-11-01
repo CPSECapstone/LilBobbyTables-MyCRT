@@ -11,7 +11,9 @@
   "scripts": {},
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "@lbt-mycrt/common": "file:../common"
+  },
   "devDependencies": {
     "tslint": "^5.8.0",
     "typescript": "^2.6.1"

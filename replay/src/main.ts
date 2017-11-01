@@ -1,3 +1,7 @@
 #!/usr/bin/env node
 
-console.log("MyCRT Replay Program");
+import { Logging } from '@lbt-mycrt/common';
+
+const logger = Logging.getLogger();
+
+logger.info("MyCRT Replay Program");

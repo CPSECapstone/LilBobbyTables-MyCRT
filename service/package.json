@@ -12,6 +12,7 @@
   "scripts": {},
   "dependencies": {
     "@lbt-mycrt/capture": "file:../capture",
+    "@lbt-mycrt/common": "file:../common",
     "@lbt-mycrt/replay": "file:../replay",
     "@types/express": "^4.0.39",
     "@types/node": "^8.0.47",

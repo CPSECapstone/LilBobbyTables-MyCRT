@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
-import launch from './launch';
+import * as path from 'path';
 
-export {
-   launch,
-};
+import { Logging } from '@lbt-mycrt/common';
 
 if (typeof(require) !== 'undefined' && require.main === module) {
-   console.log("Running MyCRT Capture Program");
+
+   const logger = Logging.getLogger();
+
+   logger.info("Running MyCRT Capture Program");
 }
+
+export { launch } from './launch';

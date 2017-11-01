@@ -65,7 +65,10 @@ function tslintTaskConfig(modulePath) {
 
 function watchTaskConfig(modulePath, name) {
    return {
-      files: [path.resolve(modulePath, 'src') + '/\*\*/\*.ts'],
+      files: [
+         path.resolve(modulePath, 'src') + '/\*\*/\*.ts',
+         path.resolve(modulePath, 'package.json'),
+      ],
       tasks: ['concurrent:digest-' + name],
    };
 }

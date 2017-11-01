@@ -3,9 +3,13 @@
 import * as express from 'express';
 import * as path from 'path';
 
+import { Logging } from '@lbt-mycrt/common';
+
 import CaptureRouter from './routes/capture';
 import ReplayRouter from './routes/replay';
 import SelfAwareRouter from './routes/self-aware-router';
+
+const logger = Logging.getLogger();
 
 class MyCRTService {
    public readonly DEFAULT_PORT: number = 3000;
@@ -36,10 +40,10 @@ class MyCRTService {
          if (error) {
             this.port = null;
             this.host = null;
-            console.error(error);
+            logger.error(error);
          }
-         console.log(`server is listening on ${this.port}`);
-         console.log(`serving public files from ${this.publicPath}`);
+         logger.info(`server is listening on ${this.port}`);
+         logger.info(`serving public files from ${this.publicPath}`);
       });
    }
 
@@ -47,7 +51,7 @@ class MyCRTService {
 
       // log each request to the console
       this.express.use((request, response, then) => {
-         console.log(`\n----=[ ${request.method} ${request.path} ]=----`);
+         logger.info(`\n----=[ ${request.method} ${request.path} ]=----`);
          then();
       });
 
