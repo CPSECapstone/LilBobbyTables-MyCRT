@@ -19,6 +19,7 @@
     "@types/node": "^8.0.47",
     "@types/winston": "^2.3.7",
     "fs": "0.0.1-security",
+    "path": "^0.12.7",
     "winston": "^2.4.0"
   }
 }

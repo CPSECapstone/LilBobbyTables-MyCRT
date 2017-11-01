@@ -164,7 +164,12 @@ module.exports = function(grunt) {
                cwd: DIR.SERVICE,
                ignore: ['node_modules/\*\*'],
                ext: 'js',
-               watch: ['dist'],
+               watch: [
+                  path.join(DIR.SERVICE, 'dist'),
+                  path.join(DIR.CAPTURE, 'dist'),
+                  path.join(DIR.REPLAY, 'dist'),
+                  path.join(DIR.COMMON, 'dist'),
+               ],
                delay: 500,
             },
          },

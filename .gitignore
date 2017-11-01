@@ -64,4 +64,5 @@ typings/
 # typescript output
 *.js.map
 **/dist/*
+tscommand-*.tmp.txt
 

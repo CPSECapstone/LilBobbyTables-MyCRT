@@ -19,5 +19,11 @@ echo "Removing all node_modules directories"
 find . -name "node_modules" -exec rm -rf '{}' +
 echo "Removing all dist directories"
 find . -name "dist" -exec rm -rf '{}' +
+echo "Removing all loggign directories"
+find . -name "logs" -exec rm -rf '{}' +
 echo "Removing bootstrap.log"
 find . -name "bootstrap.log" -exec rm -rf '{}' +
+echo "Removing .tscache folders"
+find . -name ".tscache" -exec rm -rf '{}' +
+echo "Removing stray tscommand tmp files"
+find . -name "tscommand-*.tmp.txt" -exec rm -rf '{}' +

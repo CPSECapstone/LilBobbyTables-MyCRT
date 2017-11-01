@@ -9,7 +9,7 @@ import CaptureRouter from './routes/capture';
 import ReplayRouter from './routes/replay';
 import SelfAwareRouter from './routes/self-aware-router';
 
-const logger = Logging.getLogger();
+const logger = Logging.defaultLogger(__dirname);
 
 class MyCRTService {
    public readonly DEFAULT_PORT: number = 3000;
