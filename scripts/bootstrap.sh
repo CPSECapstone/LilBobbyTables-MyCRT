@@ -25,7 +25,7 @@ if [ -z "$REPOSITORY_ROOT_DIR" ]; then
    echo "Cannot determine LilBobbyTables-MyCRT root directory. Please run this script from within the repository."
    exit 1
 fi
-cd $REPOSITORY_ROOT_DIR
+cd "$REPOSITORY_ROOT_DIR"
 SCRIPTS_MODULE_DIR="${REPOSITORY_ROOT_DIR}/scripts"
 
 # setup the logging dir
@@ -58,7 +58,7 @@ echo -e "${CYAN}Setting up modules${RESTORE}"
 ########################################################################################################################
 # setup the scripts module
 echo -e "${BLUE}Setting up scripts (${SCRIPTS_MODULE_DIR})${RESTORE}"
-cd $SCRIPTS_MODULE_DIR
+cd "$SCRIPTS_MODULE_DIR"
 echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for scripts module${RESTORE}"; exit 1
@@ -70,13 +70,13 @@ cd ..
 # setup the common module
 COMMON_MODULE_DIR="${REPOSITORY_ROOT_DIR}/common"
 echo -e "${BLUE}Setting up common (${COMMON_MODULE_DIR})${RESTORE}"
-cd $COMMON_MODULE_DIR
+cd "$COMMON_MODULE_DIR"
 echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for common module${RESTORE}"; exit 1
 fi
 echo "building common"
-cd $SCRIPTS_MODULE_DIR
+cd "$SCRIPTS_MODULE_DIR"
 if ! npm run build-common 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to build common${RESTORE}"; exit 1
 fi
@@ -87,13 +87,13 @@ cd ..
 # setup the capture module
 CAPTURE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/capture"
 echo -e "${BLUE}Setting up capture (${CAPTURE_MODULE_DIR})${RESTORE}"
-cd $CAPTURE_MODULE_DIR
+cd "$CAPTURE_MODULE_DIR"
 echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for capture module${RESTORE}"; exit 1
 fi
 echo "building capture"
-cd $SCRIPTS_MODULE_DIR
+cd "$SCRIPTS_MODULE_DIR"
 if ! npm run build-capture 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to build capture${RESTORE}"; exit 1
 fi
@@ -104,13 +104,13 @@ cd ..
 # setup the replay module
 REPLAY_MODULE_DIR="${REPOSITORY_ROOT_DIR}/replay"
 echo -e "${BLUE}Setting up replay (${REPLAY_MODULE_DIR})${RESTORE}"
-cd $REPLAY_MODULE_DIR
+cd "$REPLAY_MODULE_DIR"
 echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for replay module${RESTORE}"; exit 1
 fi
 echo "building replay"
-cd $SCRIPTS_MODULE_DIR
+cd "$SCRIPTS_MODULE_DIR"
 if ! npm run build-replay 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to build replay${RESTORE}"; exit 1
 fi
@@ -122,20 +122,20 @@ cd ..
 SERVICE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/service"
 
    echo -e "${BLUE}Setting up service (${SERVICE_MODULE_DIR})${RESTORE}"
-   cd $SERVICE_MODULE_DIR
+   cd "$SERVICE_MODULE_DIR"
    echo "installing npm dependencies"
    if ! npm install 1>>$LOG_FILE 2>&1; then
       echo -e "${RED}Failed to install npm modules for service module${RESTORE}"; exit 1
    fi
 
    echo "building service"
-   cd $SCRIPTS_MODULE_DIR
+   cd "$SCRIPTS_MODULE_DIR"
    if ! npm run build-service 1>>$LOG_FILE 2>&1; then
       echo -e "${RED}Failed to build service${RESTORE}"; exit 1
    fi
 
    echo "bootstrapping the LBTMyCRT database"
-   cd $SERVICE_MODULE_DIR
+   cd "$SERVICE_MODULE_DIR"
    bootstrap_sql="${SERVICE_MODULE_DIR}/db/bootstrap.sql"
    if ! mysql < $bootstrap_sql 1>>$LOG_FILE 2>&1; then
       echo -e "${RED}Failed to bootstrap the LBTMySQL database"
@@ -150,13 +150,13 @@ cd ..
 # setup the cli module
 CLI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/cli"
 echo -e "${BLUE}Setting up cli (${SERVICE_MODULE_DIR})${RESTORE}"
-cd $CLI_MODULE_DIR
+cd "$CLI_MODULE_DIR"
 echo "installing npm dependencies"
 if ! npm install 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for cli module${RESTORE}"; exit 1
 fi
 echo "building cli"
-cd $SCRIPTS_MODULE_DIR
+cd "$SCRIPTS_MODULE_DIR"
 if ! npm run build-cli 1>>$LOG_FILE 2>&1; then
    echo -e "${RED}Failed to build cli${RESTORE}"; exit 1
 fi
