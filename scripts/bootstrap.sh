@@ -20,7 +20,7 @@ echo "Bootstrapper For Local Development Environment"
 
 # move to the root directory
 START_DIR="$(pwd)"
-REPOSITORY_ROOT_DIR=`git rev-parse --show-toplevel 2>/dev/null`
+REPOSITORY_ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null)"
 if [ -z "$REPOSITORY_ROOT_DIR" ]; then
    echo "Cannot determine LilBobbyTables-MyCRT root directory. Please run this script from within the repository."
    exit 1
