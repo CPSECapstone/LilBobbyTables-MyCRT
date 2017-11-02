@@ -30,7 +30,7 @@ SCRIPTS_MODULE_DIR="${REPOSITORY_ROOT_DIR}/scripts"
 
 # setup the logging dir
 LOG_FILE="${START_DIR}/bootstrap.log"
-echo "" > $LOG_FILE
+echo "" > "$LOG_FILE"
 echo -e "subcommand output is logged to ${YELLOW}${LOG_FILE}${RESTORE}\n"
 
 ########################################################################################################################
