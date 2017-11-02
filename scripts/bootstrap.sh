@@ -60,7 +60,7 @@ echo -e "${CYAN}Setting up modules${RESTORE}"
 echo -e "${BLUE}Setting up scripts (${SCRIPTS_MODULE_DIR})${RESTORE}"
 cd "$SCRIPTS_MODULE_DIR"
 echo "installing npm dependencies"
-if ! npm install 1>>$LOG_FILE 2>&1; then
+if ! npm install 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for scripts module${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup scripts module${RESTORE}\n"
@@ -72,12 +72,12 @@ COMMON_MODULE_DIR="${REPOSITORY_ROOT_DIR}/common"
 echo -e "${BLUE}Setting up common (${COMMON_MODULE_DIR})${RESTORE}"
 cd "$COMMON_MODULE_DIR"
 echo "installing npm dependencies"
-if ! npm install 1>>$LOG_FILE 2>&1; then
+if ! npm install 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for common module${RESTORE}"; exit 1
 fi
 echo "building common"
 cd "$SCRIPTS_MODULE_DIR"
-if ! npm run build-common 1>>$LOG_FILE 2>&1; then
+if ! npm run build-common 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to build common${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup common module${RESTORE}\n"
@@ -89,12 +89,12 @@ CAPTURE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/capture"
 echo -e "${BLUE}Setting up capture (${CAPTURE_MODULE_DIR})${RESTORE}"
 cd "$CAPTURE_MODULE_DIR"
 echo "installing npm dependencies"
-if ! npm install 1>>$LOG_FILE 2>&1; then
+if ! npm install 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for capture module${RESTORE}"; exit 1
 fi
 echo "building capture"
 cd "$SCRIPTS_MODULE_DIR"
-if ! npm run build-capture 1>>$LOG_FILE 2>&1; then
+if ! npm run build-capture 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to build capture${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup capture module${RESTORE}\n"
@@ -106,12 +106,12 @@ REPLAY_MODULE_DIR="${REPOSITORY_ROOT_DIR}/replay"
 echo -e "${BLUE}Setting up replay (${REPLAY_MODULE_DIR})${RESTORE}"
 cd "$REPLAY_MODULE_DIR"
 echo "installing npm dependencies"
-if ! npm install 1>>$LOG_FILE 2>&1; then
+if ! npm install 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for replay module${RESTORE}"; exit 1
 fi
 echo "building replay"
 cd "$SCRIPTS_MODULE_DIR"
-if ! npm run build-replay 1>>$LOG_FILE 2>&1; then
+if ! npm run build-replay 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to build replay${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup replay module${RESTORE}\n"
@@ -124,20 +124,20 @@ SERVICE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/service"
    echo -e "${BLUE}Setting up service (${SERVICE_MODULE_DIR})${RESTORE}"
    cd "$SERVICE_MODULE_DIR"
    echo "installing npm dependencies"
-   if ! npm install 1>>$LOG_FILE 2>&1; then
+   if ! npm install 1>>"$LOG_FILE" 2>&1; then
       echo -e "${RED}Failed to install npm modules for service module${RESTORE}"; exit 1
    fi
 
    echo "building service"
    cd "$SCRIPTS_MODULE_DIR"
-   if ! npm run build-service 1>>$LOG_FILE 2>&1; then
+   if ! npm run build-service 1>>"$LOG_FILE" 2>&1; then
       echo -e "${RED}Failed to build service${RESTORE}"; exit 1
    fi
 
    echo "bootstrapping the LBTMyCRT database"
    cd "$SERVICE_MODULE_DIR"
    bootstrap_sql="${SERVICE_MODULE_DIR}/db/bootstrap.sql"
-   if ! mysql < $bootstrap_sql 1>>$LOG_FILE 2>&1; then
+   if ! mysql < $bootstrap_sql 1>>"$LOG_FILE" 2>&1; then
       echo -e "${RED}Failed to bootstrap the LBTMySQL database"
       echo -e "Make sure MySQL server is running and ~/.my.cnf is set up correctly.${RESTORE}"
       exit 1
@@ -152,12 +152,12 @@ CLI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/cli"
 echo -e "${BLUE}Setting up cli (${SERVICE_MODULE_DIR})${RESTORE}"
 cd "$CLI_MODULE_DIR"
 echo "installing npm dependencies"
-if ! npm install 1>>$LOG_FILE 2>&1; then
+if ! npm install 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to install npm dependencies for cli module${RESTORE}"; exit 1
 fi
 echo "building cli"
 cd "$SCRIPTS_MODULE_DIR"
-if ! npm run build-cli 1>>$LOG_FILE 2>&1; then
+if ! npm run build-cli 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to build cli${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup cli module${RESTORE}\n"
