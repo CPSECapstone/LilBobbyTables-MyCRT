@@ -4,7 +4,7 @@ node_js:
 cache:
    - "node_modules"
 before-script:
-   - cd scripts
+   - cd service
 script:
    - npm install
    - npm run build
