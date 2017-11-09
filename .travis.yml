@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+   - "stable"
+cache:
+   - "node_modules"
+before_script:
+   - cd frontend
+script:
+   - npm install
+   - npm run build
