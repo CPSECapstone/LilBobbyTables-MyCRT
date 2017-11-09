@@ -3,8 +3,5 @@ node_js:
    - "8"
 cache:
    - "node_modules"
-before-script:
-   - cd scripts
-deploy:
-   - provider: script
-   script: sh ci_script.sh
+
+script: sh scripts/ci_script.sh
