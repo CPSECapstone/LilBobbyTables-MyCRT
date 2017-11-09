@@ -1,4 +1,5 @@
 # setup for scripts directory
+cd scripts
 npm install
 cd ..
 # setup for common directory
