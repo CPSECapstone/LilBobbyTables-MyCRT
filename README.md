@@ -1,5 +1,5 @@
 ### Status
-[![Build Status](https://travis-ci.org/CPSECapstone/LilBobbyTables-CRT.png)](https://travis-ci.org/CPSECapstone/LilBobbyTables-CRT)
+[![Build Status](https://travis-ci.org/CPSECapstone/LilBobbyTables-MyCRT.png)](https://travis-ci.org/CPSECapstone/LilBobbyTables-MyCRT)
 
 # LilBobbyTables-MyCRT
 
