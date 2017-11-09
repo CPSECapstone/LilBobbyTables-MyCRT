@@ -7,4 +7,4 @@ before-script:
    - cd scripts
 deploy:
    - provider: script
-   script: /bin/sh ci_script.sh
+   script: sh ci_script.sh
