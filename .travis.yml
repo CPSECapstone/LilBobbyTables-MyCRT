@@ -6,4 +6,4 @@ cache:
 before-script:
    - cd scripts
 script:
-   - ci_script.sh
+   - sh ci_script.sh
