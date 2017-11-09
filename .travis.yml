@@ -3,6 +3,8 @@ node_js:
    - "stable"
 cache:
    - "node_modules"
+before-script:
+   - cd scripts
 script:
    - npm install
    - npm run build
