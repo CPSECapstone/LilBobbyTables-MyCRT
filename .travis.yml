@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+   - "stable"
+cache:
+   - "node_modules"
+before-script:
+   - cd service
+script:
+   - npm install
+   - npm run build
