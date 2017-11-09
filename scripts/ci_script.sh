@@ -1,24 +1,41 @@
+ROOT_DIR="$(pwd)"
+SCRIPTS_DIR="${ROOT_DIR}/scripts"
+COMMON_DIR="${ROOT_DIR}/common"
+CAPTURE_DIR="${ROOT_DIR}/capture"
+REPLAY_DIR="${ROOT_DIR}/replay"
+SERVICE_DIR="${ROOT_DIR}/service"
+CLI_DIR=="${ROOT_DIR}/cli"
+
 # setup for scripts directory
-cd scripts
+cd $SCRIPTS_DIR
 npm install
-cd ..
+
 # setup for common directory
-cd common
-npm install
-cd ..
+cd $COMMON_DIR
+npm install --production
+cd $SCRIPTS_DIR
+npm run build-common
+
 # setup for capture directory
-cd capture
-npm install
-cd ..
+cd $CAPTURE_DIR
+npm install --production
+cd $SCRIPTS_DIR
+npm run build-capture
+
 # setup for replay directory
-cd replay
-npm install
-cd ..
+cd $REPLAY_DIR
+npm install --production
+cd $SCRIPTS_DIR
+npm run build-replay
+
 # setup for service directory
-cd service
-npm install
-cd ..
+cd $SERVICE_DIR
+npm install --production
+cd $SCRIPTS_DIR
+npm run build-service
+
 # setup for cli directory
-cd cli
-npm install
-cd ..
+cd $CLI_DIR
+npm install --production
+cd $SCRIPTS_DIR
+npm run build-cli
