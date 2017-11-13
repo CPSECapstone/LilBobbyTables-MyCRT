@@ -5,3 +5,16 @@ cache:
    - "node_modules"
 
 script: sh scripts/ci_script.sh
+
+notifications:
+  email:
+    recipients:
+      - axis7818@gmail.com
+      - cdushana@gmail.com
+      - hilaryschulz@gmail.com
+      - nishanth.dara@gmail.com
+      - primenewby@gmail.com
+      - alexdeany@gmail.com
+
+    on_success: never
+    on_failure: always
