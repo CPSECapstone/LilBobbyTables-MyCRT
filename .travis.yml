@@ -1,8 +1,6 @@
 language: node_js
 node_js:
    - "8"
-cache:
-   - "node_modules"
 
 script: sh scripts/ci_script.sh
 
@@ -18,3 +16,4 @@ notifications:
 
     on_success: never
     on_failure: always
+
