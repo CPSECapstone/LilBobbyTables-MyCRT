@@ -40,7 +40,6 @@ const getLogger = (logFile: string | undefined = undefined) => {
    });
 
    return logger;
-
 };
 
 const defaultLogger = (appPath: string) => {

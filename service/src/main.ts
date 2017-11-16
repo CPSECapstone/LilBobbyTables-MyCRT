@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import * as express from 'express';
+import { Server } from 'http';
 import * as path from 'path';
 
 import { Logging } from '@lbt-mycrt/common';
@@ -19,11 +20,17 @@ class MyCRTService {
 
    private port: number | null = null;
    private host: string | null = null;
+   private server: Server | null = null;
+
    private publicPath: string = path.resolve(__dirname, '../public');
 
    constructor() {
       this.mountMiddlewares();
       this.mountRoutes();
+   }
+
+   public getServer(): Server | null {
+      return this.server;
    }
 
    public launch(): void {
@@ -36,7 +43,7 @@ class MyCRTService {
       this.host = process.env.host ? process.env.host as string : this.DEFAULT_HOST;
 
       // listen for requests
-      this.express.listen(this.port, this.host, (error: any) => {
+      this.server = this.express.listen(this.port, this.host, (error: any) => {
          if (error) {
             this.port = null;
             this.host = null;
@@ -45,6 +52,16 @@ class MyCRTService {
          logger.info(`server is listening on ${this.port}`);
          logger.info(`serving public files from ${this.publicPath}`);
       });
+   }
+
+   public close(): void {
+      if (this.server !== null) {
+         logger.info("Closing MyCRTServer");
+         this.server.close();
+         this.server = null;
+         this.port = null;
+         this.host = null;
+      }
    }
 
    private mountMiddlewares(): void {
@@ -74,5 +91,9 @@ class MyCRTService {
    }
 }
 
-const service = new MyCRTService();
-service.launch();
+if (typeof(require) !== 'undefined' && require.main === module) {
+   const service = new MyCRTService();
+   service.launch();
+}
+
+export default MyCRTService;
