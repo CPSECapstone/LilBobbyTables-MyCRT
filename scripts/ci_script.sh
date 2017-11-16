@@ -29,7 +29,7 @@ npm install
 install_module() {
    echo "Installing npm modules for $1"
    cd $1
-   npm install --production
+   npm install
    cd $SCRIPTS_DIR
    npm run $2
 }
