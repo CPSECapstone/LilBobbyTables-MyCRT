@@ -164,6 +164,13 @@ echo -e "${GREEN}Successfully setup cli module${RESTORE}\n"
 cd ..
 
 ########################################################################################################################
+# link modules to the scripts directory
+echo -e "${BLUE}Linking modules to the scripts directory${RESTORE}"
+cd "$SCRIPTS_MODULE_DIR"
+bash link_modules.sh 1>>"$LOG_FILE" 2>&1
+echo -e "${GREEN}Successfully linked modules${RESTORE}\n"
+
+########################################################################################################################
 
 echo -e "Bootstrapping complete!"
 echo -e "For more info, check the log file: ${YELLOW}${LOG_FILE}${RESTORE}"

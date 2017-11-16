@@ -41,5 +41,8 @@ install_module $SERVICE_DIR build-service
 install_module $CLI_DIR build-cli
 
 cd $SCRIPTS_DIR
-echo "------==[ Testing  ]==------"
+echo "------==[ Linking Modules ]==------"
+bash link_modules.sh
+
+echo "------==[ Testing         ]==------"
 npm run test
