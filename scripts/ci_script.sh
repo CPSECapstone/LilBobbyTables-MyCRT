@@ -34,11 +34,11 @@ install_module() {
    npm run $2
 }
 
-install_module $COMMON_DIR build-common
-install_module $CAPTURE_DIR build-capture
-install_module $REPLAY_DIR build-replay
-install_module $SERVICE_DIR build-service
-install_module $CLI_DIR build-cli
+install_module $COMMON_DIR build-common-test
+install_module $CAPTURE_DIR build-capture-test
+install_module $REPLAY_DIR build-replay-test
+install_module $SERVICE_DIR build-service-test
+install_module $CLI_DIR build-cli-test
 
 cd $SCRIPTS_DIR
 echo "------==[ Testing  ]==------"
