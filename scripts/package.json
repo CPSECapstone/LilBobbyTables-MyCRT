@@ -8,12 +8,12 @@
   },
   "scripts": {
     "start": "grunt",
-    "build-capture": "grunt build-capture",
-    "build-cli": "grunt build-cli",
-    "build-common": "grunt build-common",
-    "build-replay": "grunt build-replay",
-    "build-scripts": "grunt build-scripts",
-    "build-service": "grunt build-service",
+    "build-capture": "grunt build-capture-test",
+    "build-cli": "grunt build-cli-test",
+    "build-common": "grunt build-common-test",
+    "build-replay": "grunt build-replay-test",
+    "build-scripts": "grunt build-scripts-test",
+    "build-service": "grunt build-service-test",
     "build": "grunt build",
     "test": "grunt test"
   },
