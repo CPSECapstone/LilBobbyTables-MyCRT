@@ -30,16 +30,16 @@ install_module() {
    echo "Installing npm modules for $1"
    cd $1
    npm install --production
+   cd $SCRIPTS_DIR
+   npm run $2
 }
 
-install_module $COMMON_DIR
-install_module $CAPTURE_DIR
-install_module $REPLAY_DIR
-install_module $SERVICE_DIR
-install_module $CLI_DIR
+install_module $COMMON_DIR build-common
+install_module $CAPTURE_DIR build-capture
+install_module $REPLAY_DIR build-replay
+install_module $SERVICE_DIR build-service
+install_module $CLI_DIR build-cli
 
 cd $SCRIPTS_DIR
-echo "------==[ Building ]==------"
-npm run build
 echo "------==[ Testing  ]==------"
 npm run test
