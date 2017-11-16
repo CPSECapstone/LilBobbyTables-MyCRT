@@ -4,12 +4,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-export default (): string => {
+export default (givenPath: string | undefined = undefined): string => {
 
    let rootDir: string | null = null;
 
    const NODE_MODULES = `${path.sep}node_modules${path.sep}`;
-   const cwd = process.cwd();
+   const cwd = givenPath ? givenPath as string : process.cwd();
    let pos = cwd.indexOf(NODE_MODULES);
    if (pos !== -1) {
       rootDir = cwd.substring(0, pos);

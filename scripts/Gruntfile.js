@@ -14,7 +14,7 @@ const DIR = {
 };
 delete ROOT_DIR;
 
-function tsTaskConfig(modulePath, options) {
+function tsTaskConfig(modulePath, options, testing) {
 
    // build the options object
    options = options || {};
@@ -43,23 +43,40 @@ function tsTaskConfig(modulePath, options) {
       options.typeRoots = types;
    }
 
+   const src = [
+      path.resolve(modulePath, 'src') + '/\*\*/\*.ts',
+      '!' + path.resolve(modulePath, 'node_modules') + '/\*\*',
+   ];
+   if (!testing) {
+      src.push('!' + path.resolve(modulePath, 'src', 'test') + '/\*\*/\*.test.ts');
+   }
+
    return {
       files: [{
-         src: [
-            path.resolve(modulePath, 'src') + '/\*\*/\*.ts',
-            '!' + path.resolve(modulePath, 'node_modules') + '/\*\*',
-         ],
+         src: src,
          dest: path.resolve(modulePath, 'dist'),
       }],
       options: options,
    };
 }
 
-function tslintTaskConfig(modulePath) {
+function tslintTaskConfig(modulePath, testing) {
+   const src = [path.resolve(modulePath, 'src') + '/\*\*/\*.ts'];
+   if (!testing) {
+      src.push('!' + path.resolve(modulePath, 'src', 'test') + '/\*\*/\*.test.ts');
+   }
+
    return {
       files: {
-         src: [path.resolve(modulePath, 'src') + '/\*\*/\*.ts'],
+         src: src,
       },
+   };
+}
+
+function mochaTestTaskConfig(modulePath) {
+   const testDir = path.resolve(modulePath, 'dist', 'test') + '/\*\*/\*.test.js';
+   return {
+      src: [testDir],
    };
 }
 
@@ -73,7 +90,19 @@ function watchTaskConfig(modulePath, name) {
    };
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////// ACTUAL GRUNT CONFIGURATION HAPPENS BELOW ///////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 module.exports = function(grunt) {
+
+   /* load npm tasks */
+   grunt.loadNpmTasks('grunt-ts');
+   grunt.loadNpmTasks('grunt-tslint');
+   grunt.loadNpmTasks('grunt-contrib-watch');
+   grunt.loadNpmTasks('grunt-concurrent');
+   grunt.loadNpmTasks('grunt-nodemon');
+   grunt.loadNpmTasks('grunt-mocha-test');
 
    /* configure grunt */
    grunt.initConfig({
@@ -83,6 +112,7 @@ module.exports = function(grunt) {
          capture: tsTaskConfig(DIR.CAPTURE),
          cli: tsTaskConfig(DIR.CLI),
          common: tsTaskConfig(DIR.COMMON),
+         'common-test': tsTaskConfig(DIR.COMMON, null, true),
          replay: tsTaskConfig(DIR.REPLAY),
          service: tsTaskConfig(DIR.SERVICE),
       },
@@ -97,8 +127,14 @@ module.exports = function(grunt) {
          capture: tslintTaskConfig(DIR.CAPTURE),
          cli: tslintTaskConfig(DIR.CLI),
          common: tslintTaskConfig(DIR.COMMON),
+         'common-test': tslintTaskConfig(DIR.COMMON, true),
          replay: tslintTaskConfig(DIR.REPLAY),
          service: tslintTaskConfig(DIR.SERVICE),
+      },
+
+      /* mocha testing */
+      mochaTest: {
+         common: mochaTestTaskConfig(DIR.COMMON),
       },
 
       /* file watching */
@@ -116,6 +152,9 @@ module.exports = function(grunt) {
          /* Digest TypeScript: compiling and linting */
          'digest-common': {
             tasks: ['ts:common', 'tslint:common'],
+         },
+         'digest-common-test': {
+            tasks: ['ts:common-test', 'tslint:common-test'],
          },
          'digest-capture': {
             tasks: ['ts:capture', 'tslint:capture'],
@@ -177,17 +216,11 @@ module.exports = function(grunt) {
 
    });
 
-   /* load npm tasks */
-   grunt.loadNpmTasks('grunt-ts');
-   grunt.loadNpmTasks('grunt-tslint');
-   grunt.loadNpmTasks('grunt-contrib-watch');
-   grunt.loadNpmTasks('grunt-concurrent');
-   grunt.loadNpmTasks('grunt-nodemon');
-
    grunt.registerTask('noop', () => {});
 
    /* common */
    grunt.registerTask('build-common', ['concurrent:digest-common']);
+   grunt.registerTask('test-common', ['concurrent:digest-common-test', 'mochaTest:common']);
    grunt.registerTask('common', ['build-common', 'watch:common']);
 
    /* capture */
