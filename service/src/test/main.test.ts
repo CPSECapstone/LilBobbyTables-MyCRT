@@ -1,5 +1,6 @@
 import * as chai from 'chai';
 import chaiHttp = require('chai-http');
+import * as http from 'http-status-codes';
 import 'mocha';
 
 import MyCRTService from '../main';
@@ -21,9 +22,10 @@ describe("MyCRTService index", () => {
       mycrt.close();
    });
 
-   it("should return 200", () => {
+   it("should return 200", (done) => {
       chai.request(mycrt.getServer()).get('/').then((response) => {
-         expect(response).to.have.status(200);
+         expect(response).to.have.status(http.OK);
+         done();
       });
    });
 
