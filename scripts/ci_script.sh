@@ -21,6 +21,7 @@ for mod_dir in $ROOT_DIR $SCRIPTS_DIR $COMMON_DIR $CAPTURE_DIR $REPLAY_DIR $SERV
 done
 
 # setup for scripts directory
+npm config set package-lock false
 echo "Preparing Script Environment"
 cd $SCRIPTS_DIR
 npm install
