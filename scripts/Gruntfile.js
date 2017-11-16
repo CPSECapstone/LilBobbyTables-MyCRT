@@ -192,24 +192,6 @@ module.exports = function(grunt) {
          'digest-cli-test': {
             tasks: ['ts:cli-test', 'tslint:cli-test'],
          },
-         'digest-all': {
-            tasks: [
-               'concurrent:digest-common',
-               'concurrent:digest-capture',
-               'concurrent:digest-replay',
-               'concurrent:digest-service',
-               'concurrent:digest-cli',
-            ],
-         },
-         'digest-all-test': {
-            tasks: [
-               'concurrent:digest-common-test',
-               'concurrent:digest-capture-test',
-               'concurrent:digest-replay-test',
-               'concurrent:digest-service-test',
-               'concurrent:digest-cli-test',
-            ],
-         },
 
          'watch-all': {
             tasks: ['watch:common', 'watch:capture', 'watch:replay', 'watch:service', 'watch:cli'],
@@ -295,8 +277,9 @@ module.exports = function(grunt) {
 
    /* Primary Operations */
    grunt.registerTask('build', ['build-common', 'build-capture', 'build-replay', 'build-service', 'build-cli']);
+   grunt.registerTask('build-test', ['build-common-test', 'build-capture-test', 'build-replay-test', 'build-service-test', 'build-cli-test']);
    grunt.registerTask('test', ['test-common', 'test-capture', 'test-replay', 'test-service', 'test-cli']);
-   grunt.registerTask('build_and_test', ['concurrent:digest-all-test', 'test']);
-   grunt.registerTask('develop', ['concurrent:digest-all', 'digest-complete', 'concurrent:develop']);
+   grunt.registerTask('build_and_test', ['build-test', 'test']);
+   grunt.registerTask('develop', ['build', 'digest-complete', 'concurrent:develop']);
 
 };
