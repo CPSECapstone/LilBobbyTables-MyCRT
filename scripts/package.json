@@ -8,11 +8,8 @@
   },
   "scripts": {
     "start": "grunt",
-    "build-capture": "grunt build-capture",
-    "build-cli": "grunt build-cli",
-    "build-common": "grunt build-common",
-    "build-replay": "grunt build-replay",
-    "build-service": "grunt build-service"
+    "build": "grunt build",
+    "test": "grunt test"
   },
   "author": "",
   "license": "MIT",

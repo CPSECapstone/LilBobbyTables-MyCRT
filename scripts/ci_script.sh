@@ -21,20 +21,25 @@ for mod_dir in $ROOT_DIR $SCRIPTS_DIR $COMMON_DIR $CAPTURE_DIR $REPLAY_DIR $SERV
 done
 
 # setup for scripts directory
+echo "Preparing Script Environment"
 cd $SCRIPTS_DIR
 npm install
 
 # install and build all modules
-install_and_build() {
+install_module() {
+   echo "Installing npm modules for $1"
    cd $1
    npm install --production
-   cd $SCRIPTS_DIR
-   npm run $2
 }
 
-install_and_build $COMMON_DIR build-common
-install_and_build $CAPTURE_DIR build-capture
-install_and_build $REPLAY_DIR build-replay
-install_and_build $SERVICE_DIR build-service
-install_and_build $CLI_DIR build-cli
+install_module $COMMON_DIR
+install_module $CAPTURE_DIR
+install_module $REPLAY_DIR
+install_module $SERVICE_DIR
+install_module $CLI_DIR
 
+cd $SCRIPTS_DIR
+echo "------==[ Building ]==------"
+npm run build
+echo "------==[ Testing  ]==------"
+npm run test
