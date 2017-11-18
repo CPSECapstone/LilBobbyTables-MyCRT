@@ -74,7 +74,7 @@ class MyCRTService {
    public close(): void {
 
       // only if already launched!
-      if (!this.isLaunched()) {
+      if (this.isLaunched()) {
          logger.info("Closing MyCRTServer");
          this.server!.close();
          this.server = null;
