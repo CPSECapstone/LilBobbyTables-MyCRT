@@ -29,9 +29,6 @@ class MyCRTService {
    private host: string | null = null;
    private server: Server | null = null;
 
-   constructor() {
-   }
-
    public getServer(): Server | null {
       return this.server;
    }

@@ -24,10 +24,6 @@ describe("MyCRTService", () => {
       mycrt.close();
    });
 
-   it("should launch without crashing", () => {
-      mycrt.launch();
-   });
-
    it("should have a Server instance after launching, but not after closing", () => {
       mycrt.launch();
       expect(mycrt.getServer()).to.be.instanceOf(Server);
