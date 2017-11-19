@@ -23,17 +23,13 @@ class MyCRTService {
    public readonly DEFAULT_PORT: number = 3000;
    public readonly DEFAULT_HOST: string = 'localhost';
 
-   public express: express.Express = express();
+   public express: express.Express | null = null;
 
    private port: number | null = null;
    private host: string | null = null;
    private server: Server | null = null;
 
    constructor() {
-      this.mountMiddlewares();
-      this.mountApiRoutes();
-      this.mountStaticFileRoutes();
-      this.mountPageRoutes();
    }
 
    public getServer(): Server | null {
@@ -50,6 +46,10 @@ class MyCRTService {
       if (this.isLaunched()) {
          throw new Error(`MyCRT Service has already launched on port ${this.port}`);
       }
+
+      // make express
+      this.express = express();
+      this.mountEverything();
 
       // set the port and host
       this.port = process.env.port ? parseInt(process.env.port as string, 10) : this.DEFAULT_PORT;
@@ -72,23 +72,31 @@ class MyCRTService {
 
    }
 
-   public close(): void {
+   public close(callback?: () => void | undefined): void {
 
       // only if already launched!
       if (this.isLaunched()) {
          logger.info("Closing MyCRTServer");
-         this.server!.close();
+         this.server!.close(callback);
          this.server = null;
          this.port = null;
          this.host = null;
+         this.express = null;
       }
 
+   }
+
+   private mountEverything(): void {
+      this.mountMiddlewares();
+      this.mountApiRoutes();
+      this.mountStaticFileRoutes();
+      this.mountPageRoutes();
    }
 
    private mountMiddlewares(): void {
 
       // log each request to the console
-      this.express.use((request, response, then) => {
+      this.express!.use((request, response, then) => {
          logger.info(`----=[ ${request.method} ${request.path} ]=----`);
          then();
       });
@@ -98,24 +106,24 @@ class MyCRTService {
    private mountApiRoutes(): void {
 
       const apiRouter = new ApiRouter();
-      this.express.use(apiRouter.urlPrefix, apiRouter.router);
+      this.express!.use(apiRouter.urlPrefix, apiRouter.router);
 
    }
 
    private mountStaticFileRoutes(): void {
 
       logger.info(`CSS being served from ${StaticFileDirs.css}`);
-      this.express.use('/css', express.static(StaticFileDirs.css));
+      this.express!.use('/css', express.static(StaticFileDirs.css));
 
       logger.info(`JS being served from ${StaticFileDirs.js}`);
-      this.express.use('/js', express.static(StaticFileDirs.js));
+      this.express!.use('/js', express.static(StaticFileDirs.js));
 
    }
 
    private mountPageRoutes(): void {
 
       const routePage = (urlPattern: RegExp, page: Template) => {
-         this.express.get(urlPattern, (request, response) => {
+         this.express!.get(urlPattern, (request, response) => {
             response.send(page.getText()).end();
          });
       };

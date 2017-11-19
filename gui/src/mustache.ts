@@ -81,8 +81,9 @@ export class Template {
 }
 
 const baseHeader = new Template('base-header', 'html/pages/partials/base-header.mustache');
+const baseNeck = new Template('base-neck', 'html/pages/partials/base-neck.mustache');
 const baseFooter = new Template('base-footer', 'html/pages/partials/base-footer.mustache');
-const basePartials = [baseHeader, baseFooter];
+const basePartials = [baseHeader, baseNeck, baseFooter];
 
 // pages
 const index = new Template('index', 'html/pages/index.mustache', {}, basePartials, true);
