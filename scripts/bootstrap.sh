@@ -48,6 +48,7 @@ echo -e "${CYAN}Checking for prerequisites${RESTORE}"
 check_installed node
 check_installed npm
 check_installed mysql
+check_installed sass
 echo -e "${GREEN}All prerequisites detected!${RESTORE}"
 echo ""
 

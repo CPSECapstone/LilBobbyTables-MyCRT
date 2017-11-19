@@ -105,7 +105,7 @@ class MyCRTService {
 
       const routePage = (urlPattern: RegExp, page: Template) => {
          this.express.get(urlPattern, (request, response) => {
-            response.send(page.getText()).send();
+            response.send(page.getText()).end();
          });
       };
 

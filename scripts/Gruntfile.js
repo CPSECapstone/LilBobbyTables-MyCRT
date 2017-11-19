@@ -74,6 +74,26 @@ function tslintTaskConfig(modulePath, testing) {
    };
 }
 
+function sassTaskConfig(modulePath) {
+
+   const GuiStaticDir = path.resolve(modulePath, 'static');
+   const GuiSassDir = path.resolve(GuiStaticDir, 'scss');
+   const GuiCssDir = path.resolve(GuiStaticDir, 'css');
+
+   return {
+      files: [
+         {
+            expand: true,
+            cwd: GuiStaticDir,
+            src: ['./scss/**/*.scss'],
+            dest: GuiCssDir,
+            ext: '.css',
+         },
+      ],
+   };
+
+}
+
 function mochaTestTaskConfig(modulePath) {
    const testDir = path.resolve(modulePath, 'dist', 'test') + '/\*\*/\*.test.js';
    return {
@@ -91,6 +111,13 @@ function watchTaskConfig(modulePath, name) {
    };
 }
 
+function watchTaskConfigWithSass(modulePath, name) {
+   const conf = watchTaskConfig(modulePath, name);
+   conf.files.push(path.resolve(modulePath, 'static', 'scss') + '/\*\*/\*.scss');
+   conf.tasks.push('sass:' + name);
+   return conf;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// ACTUAL GRUNT CONFIGURATION HAPPENS BELOW ///////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,6 +127,7 @@ module.exports = function(grunt) {
    /* load npm tasks */
    grunt.loadNpmTasks('grunt-ts');
    grunt.loadNpmTasks('grunt-tslint');
+   grunt.loadNpmTasks('grunt-contrib-sass');
    grunt.loadNpmTasks('grunt-contrib-watch');
    grunt.loadNpmTasks('grunt-concurrent');
    grunt.loadNpmTasks('grunt-nodemon');
@@ -145,6 +173,11 @@ module.exports = function(grunt) {
          'gui-test': tslintTaskConfig(DIR.GUI, true),
       },
 
+      /* SASS */
+      sass: {
+         'gui': sassTaskConfig(DIR.GUI),
+      },
+
       /* mocha testing */
       mochaTest: {
          'capture': mochaTestTaskConfig(DIR.CAPTURE),
@@ -162,7 +195,7 @@ module.exports = function(grunt) {
          common: watchTaskConfig(DIR.COMMON, 'common'),
          replay: watchTaskConfig(DIR.REPLAY, 'replay'),
          service: watchTaskConfig(DIR.SERVICE, 'service'),
-         gui: watchTaskConfig(DIR.GUI, 'gui'),
+         gui: watchTaskConfigWithSass(DIR.GUI, 'gui'),
       },
 
       /* concurrent tasks */
@@ -200,10 +233,10 @@ module.exports = function(grunt) {
             tasks: ['ts:cli-test', 'tslint:cli-test'],
          },
          'digest-gui': {
-            tasks: ['ts:gui', 'tslint:gui'],
+            tasks: ['ts:gui', 'tslint:gui', 'sass:gui'],
          },
          'digest-gui-test': {
-            tasks: ['ts:gui-test', 'tslint:gui-test'],
+            tasks: ['ts:gui-test', 'tslint:gui-test', 'sass:gui'],
          },
 
          'watch-all': {
