@@ -94,6 +94,12 @@ function sassTaskConfig(modulePath) {
 
 }
 
+function webpackTaskConfig(modulePath) {
+   const configPath = path.resolve(modulePath, 'webpack.config.js');
+   const config = require(configPath);
+   return config;
+}
+
 function mochaTestTaskConfig(modulePath) {
    const testDir = path.resolve(modulePath, 'dist', 'test') + '/\*\*/\*.test.js';
    return {
@@ -107,16 +113,16 @@ function watchTaskConfig(modulePath, name) {
          path.resolve(modulePath, 'src') + '/\*\*/\*.ts',
          path.resolve(modulePath, 'package.json'),
       ],
-      tasks: ['concurrent:digest-' + name],
+      tasks: ['digest-' + name],
    };
 }
 
-function watchTaskConfigWithSass(modulePath, name) {
-   const conf = watchTaskConfig(modulePath, name);
-   conf.files.push(path.resolve(modulePath, 'static', 'scss') + '/\*\*/\*.scss');
-   conf.tasks.push('sass:' + name);
-   return conf;
-}
+// function watchTaskConfigWithSass(modulePath, name) {
+//    const conf = watchTaskConfig(modulePath, name);
+//    conf.files.push(path.resolve(modulePath, 'static', 'scss') + '/\*\*/\*.scss');
+//    conf.tasks.push('sass:' + name);
+//    return conf;
+// }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// ACTUAL GRUNT CONFIGURATION HAPPENS BELOW ///////////////////////////////////////////////////
@@ -132,6 +138,7 @@ module.exports = function(grunt) {
    grunt.loadNpmTasks('grunt-concurrent');
    grunt.loadNpmTasks('grunt-nodemon');
    grunt.loadNpmTasks('grunt-mocha-test');
+   grunt.loadNpmTasks('grunt-webpack');
 
    /* configure grunt */
    grunt.initConfig({
@@ -178,6 +185,10 @@ module.exports = function(grunt) {
          'gui': sassTaskConfig(DIR.GUI),
       },
 
+      webpack: {
+         'gui': webpackTaskConfig(DIR.GUI),
+      },
+
       /* mocha testing */
       mochaTest: {
          'capture': mochaTestTaskConfig(DIR.CAPTURE),
@@ -190,12 +201,24 @@ module.exports = function(grunt) {
 
       /* file watching */
       watch: {
-         capture: watchTaskConfig(DIR.CAPTURE, 'capture'),
-         cli: watchTaskConfig(DIR.CLI, 'cli'),
-         common: watchTaskConfig(DIR.COMMON, 'common'),
-         replay: watchTaskConfig(DIR.REPLAY, 'replay'),
-         service: watchTaskConfig(DIR.SERVICE, 'service'),
-         gui: watchTaskConfigWithSass(DIR.GUI, 'gui'),
+         'capture': watchTaskConfig(DIR.CAPTURE, 'capture'),
+         'cli': watchTaskConfig(DIR.CLI, 'cli'),
+         'common': watchTaskConfig(DIR.COMMON, 'common'),
+         'replay': watchTaskConfig(DIR.REPLAY, 'replay'),
+         'service': watchTaskConfig(DIR.SERVICE, 'service'),
+         // 'gui': watchTaskConfig(DIR.GUI, 'gui'),
+         'gui': {
+            files: [path.resolve(DIR.GUI, 'src') + '/\*\*/\*.ts'],
+            tasks: ['concurrent:digest-gui-noserve'],
+         },
+         'gui-sass': {
+            files: [path.resolve(DIR.GUI, 'static', 'scss') + '/\*\*/\*.scss'],
+            tasks: ['sass:gui'],
+         },
+         'gui-webpack': {
+            files: [path.resolve(DIR.GUI, 'dist') + '/\*\*/\*.js'],
+            tasks: ['webpack:gui'],
+         },
       },
 
       /* concurrent tasks */
@@ -232,15 +255,21 @@ module.exports = function(grunt) {
          'digest-cli-test': {
             tasks: ['ts:cli-test', 'tslint:cli-test'],
          },
-         'digest-gui': {
-            tasks: ['ts:gui', 'tslint:gui', 'sass:gui'],
+         'digest-gui-noserve': {
+            tasks: ['ts:gui', 'tslint:gui'],
          },
-         'digest-gui-test': {
-            tasks: ['ts:gui-test', 'tslint:gui-test', 'sass:gui'],
+         'digest-gui-test-noserve': {
+            tasks: ['ts:gui-test', 'tslint:gui-test'],
          },
 
+         'watch-gui': {
+            tasks: ['watch:gui', 'watch:gui-sass', 'watch:gui-webpack'],
+            options: {
+               logConcurrentOutput: true,
+            },
+         },
          'watch-all': {
-            tasks: ['watch:common', 'watch:capture', 'watch:replay', 'watch:service', 'watch:cli', 'watch:gui'],
+            tasks: ['watch:common', 'watch:capture', 'watch:replay', 'watch:service', 'watch:cli', 'watch:gui', 'watch:gui-sass', 'watch:gui-webpack'],
             options: {
                logConcurrentOutput: true,
             },
@@ -275,7 +304,7 @@ module.exports = function(grunt) {
                   path.join(DIR.CAPTURE, 'dist'),
                   path.join(DIR.REPLAY, 'dist'),
                   path.join(DIR.COMMON, 'dist'),
-                  path.join(DIR.GUI, 'gui'),
+                  path.join(DIR.GUI, 'dist'),
                ],
                delay: 500,
             },
@@ -293,13 +322,24 @@ module.exports = function(grunt) {
    });
 
    /* Module specific tasks */
-   for (const m of ['common', 'capture', 'replay', 'gui', 'service', 'cli']) {
+   for (const m of ['common', 'capture', 'replay', 'service', 'cli']) {
+      grunt.registerTask('digest-' + m, ['concurrent:digest-' + m]);
+      grunt.registerTask('digest-' + m + '-test', ['concurrent:digest-' + m + '-test']);
       grunt.registerTask('build-' + m, ['concurrent:digest-' + m]);                       // build-MODULE
       grunt.registerTask('build-' + m + '-test', ['concurrent:digest-' + m + '-test']);   // build-MODULE-test
       grunt.registerTask('test-' + m, ['mochaTest:' + m]);                                // test-MODULE
       grunt.registerTask('build_and_test-' + m, ['build-' + m + '-test', 'test-' + m]);   // build_and_test-MODULE
       grunt.registerTask(m, ['build-' + m, 'watch:' + m]);                                // MODULE
    }
+
+   /* Special Case for GUI */
+   grunt.registerTask('digest-gui', ['concurrent:digest-gui-noserve', 'sass:gui', 'webpack:gui']);
+   grunt.registerTask('digest-gui-test', ['concurrent:digest-gui-test-noserve', 'sass:gui', 'webpack:gui']);
+   grunt.registerTask('build-gui', ['digest-gui']);
+   grunt.registerTask('build-gui-test', ['digest-gui-test']);
+   grunt.registerTask('test-gui', ['mochaTest:gui']);
+   grunt.registerTask('build_and_test-gui', ['build-gui-test', 'test-gui']);
+   grunt.registerTask('gui', ['build-gui', 'concurrent:watch-gui']);
 
    /* Primary Operations */
    grunt.registerTask('build', ['build-common', 'build-capture', 'build-replay', 'build-gui', 'build-service', 'build-cli']);

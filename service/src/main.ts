@@ -7,7 +7,7 @@ import * as mustache from 'mustache';
 import * as path from 'path';
 
 import { Logging } from '@lbt-mycrt/common';
-import { Pages, Template } from '@lbt-mycrt/gui';
+import { Pages, StaticFileDirs, Template } from '@lbt-mycrt/gui';
 
 import ApiRouter from './routes/api';
 import SelfAwareRouter from './routes/self-aware-router';
@@ -32,6 +32,7 @@ class MyCRTService {
    constructor() {
       this.mountMiddlewares();
       this.mountApiRoutes();
+      this.mountStaticFileRoutes();
       this.mountPageRoutes();
    }
 
@@ -98,6 +99,16 @@ class MyCRTService {
 
       const apiRouter = new ApiRouter();
       this.express.use(apiRouter.urlPrefix, apiRouter.router);
+
+   }
+
+   private mountStaticFileRoutes(): void {
+
+      logger.info(`CSS being served from ${StaticFileDirs.css}`);
+      this.express.use('/css', express.static(StaticFileDirs.css));
+
+      logger.info(`JS being served from ${StaticFileDirs.js}`);
+      this.express.use('/js', express.static(StaticFileDirs.js));
 
    }
 
