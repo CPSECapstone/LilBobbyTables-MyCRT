@@ -216,7 +216,10 @@ module.exports = function(grunt) {
             tasks: ['sass:gui'],
          },
          'gui-webpack': {
-            files: [path.resolve(DIR.GUI, 'dist') + '/\*\*/\*.js'],
+            files: [
+               path.resolve(DIR.GUI, 'dist') + '/\*\*/\*.js',
+               path.resolve(DIR.GUI, 'static', 'css') + '/\*\*/\*.css',
+            ],
             tasks: ['webpack:gui'],
          },
       },

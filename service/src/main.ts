@@ -109,8 +109,8 @@ class MyCRTService {
 
    private mountStaticFileRoutes(): void {
 
-      logger.info(`CSS being served from ${StaticFileDirs.css}`);
-      this.express!.use('/css', express.static(StaticFileDirs.css));
+      // logger.info(`CSS being served from ${StaticFileDirs.css}`);
+      // this.express!.use('/css', express.static(StaticFileDirs.css));
 
       logger.info(`JS being served from ${StaticFileDirs.js}`);
       this.express!.use('/js', express.static(StaticFileDirs.js));

@@ -13,6 +13,14 @@ const config = {
       path: path.resolve(__dirname, 'static', 'js'),
       filename: '[name]-bundle.js',
    },
+   module: {
+      rules: [
+         {
+            test: /\.css$/,
+            use: ['style-loader', 'css-loader'],
+         },
+      ],
+   },
 };
 
 module.exports = config;

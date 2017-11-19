@@ -6,7 +6,7 @@ const logger = Logging.defaultLogger(__dirname);
 
 const guiRootDir = path.resolve(__dirname, '..');
 export const StaticFileDirs = {
-   css: path.resolve(guiRootDir, 'static', 'css'),
+   // css: path.resolve(guiRootDir, 'static', 'css'),
    js: path.resolve(guiRootDir, 'static', 'js'),
 };
 
