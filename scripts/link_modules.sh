@@ -7,3 +7,4 @@ npm install --no-save ../capture
 npm install --no-save ../replay
 npm install --no-save ../service
 npm install --no-save ../cli
+npm insatll --no-save ../gui

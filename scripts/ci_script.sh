@@ -11,8 +11,9 @@ CAPTURE_DIR="${ROOT_DIR}/capture"
 REPLAY_DIR="${ROOT_DIR}/replay"
 SERVICE_DIR="${ROOT_DIR}/service"
 CLI_DIR="${ROOT_DIR}/cli"
+GUI_DIR="${ROOT_DIR}/gui"
 
-for mod_dir in $ROOT_DIR $SCRIPTS_DIR $COMMON_DIR $CAPTURE_DIR $REPLAY_DIR $SERVICE_DIR $CLI_DIR; do
+for mod_dir in $ROOT_DIR $SCRIPTS_DIR $COMMON_DIR $CAPTURE_DIR $REPLAY_DIR $SERVICE_DIR $CLI_DIR $GUI_DIR; do
    if [ ! -d "$mod_dir" ]; then
       echo "Could not find directory for the $(basename $mod_dir) module."
       echo "Make sure this script is being executed from the root of the repository"
@@ -37,6 +38,7 @@ install_module() {
 install_module $COMMON_DIR build-common
 install_module $CAPTURE_DIR build-capture
 install_module $REPLAY_DIR build-replay
+install_module $GUI_DIR build-gui
 install_module $SERVICE_DIR build-service
 install_module $CLI_DIR build-cli
 

@@ -14,6 +14,7 @@
     "build-replay": "grunt build-replay-test",
     "build-scripts": "grunt build-scripts-test",
     "build-service": "grunt build-service-test",
+    "build-gui": "grunt build-gui-test",
     "build": "grunt build",
     "test": "grunt test"
   },

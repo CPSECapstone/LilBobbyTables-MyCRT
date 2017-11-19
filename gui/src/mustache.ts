@@ -9,8 +9,8 @@ const logger = Logging.defaultLogger(__dirname);
 // when true, the rendered html will be written to the log whenever a Template's getText() function is called
 const PRINT_RENDERS: boolean = false;
 
-const publicPath: string = path.resolve(__dirname, '../public');
-logger.info(`MyCRT public path is ${publicPath}`);
+const staticPath: string = path.resolve(__dirname, '../static');
+logger.info(`Mustache Templating static path is ${staticPath}`);
 
 export class Template {
 
@@ -28,7 +28,7 @@ export class Template {
 
       this.name = name;
       this.view = view;
-      this.mustacheFile = path.resolve(publicPath, file);
+      this.mustacheFile = path.resolve(staticPath, file);
       this.parsed = false;
       this.partials = partials;
       this.topLevel = topLevel;
@@ -92,11 +92,11 @@ const capture = new Template('capture', 'html/pages/capture.mustache', {}, baseP
 const replay = new Template('replay', 'html/pages/replay.mustache', {}, basePartials, true);
 const metrics = new Template('metrics', 'html/pages/metrics.mustache', {}, basePartials, true);
 
-export {
-   index,
-   environment,
-   captures,
+export const Pages = {
    capture,
-   replay,
+   captures,
+   environment,
+   index,
    metrics,
+   replay,
 };

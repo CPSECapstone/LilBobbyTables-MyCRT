@@ -7,8 +7,8 @@ import * as mustache from 'mustache';
 import * as path from 'path';
 
 import { Logging } from '@lbt-mycrt/common';
+import { Pages, Template } from '@lbt-mycrt/gui';
 
-import * as pages from './mustache';
 import ApiRouter from './routes/api';
 import SelfAwareRouter from './routes/self-aware-router';
 
@@ -103,18 +103,18 @@ class MyCRTService {
 
    private mountPageRoutes(): void {
 
-      const routePage = (urlPattern: RegExp, page: pages.Template) => {
+      const routePage = (urlPattern: RegExp, page: Template) => {
          this.express.get(urlPattern, (request, response) => {
             response.send(page.getText()).send();
          });
       };
 
-      routePage(/^\/?$/, pages.index);
-      routePage(/^\/environment\/?$/, pages.environment);
-      routePage(/^\/captures\/?$/, pages.captures);
-      routePage(/^\/capture\/?$/, pages.capture);
-      routePage(/^\/replay\/?$/, pages.replay);
-      routePage(/^\/metrics\/?$/, pages.metrics);
+      routePage(/^\/?$/, Pages.index);
+      routePage(/^\/environment\/?$/, Pages.environment);
+      routePage(/^\/captures\/?$/, Pages.captures);
+      routePage(/^\/capture\/?$/, Pages.capture);
+      routePage(/^\/replay\/?$/, Pages.replay);
+      routePage(/^\/metrics\/?$/, Pages.metrics);
 
    }
 
