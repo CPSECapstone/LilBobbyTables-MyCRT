@@ -76,17 +76,17 @@ function tslintTaskConfig(modulePath, testing) {
 
 function sassTaskConfig(modulePath) {
 
-   const GuiStaticDir = path.resolve(modulePath, 'static');
-   const GuiSassDir = path.resolve(GuiStaticDir, 'scss');
-   const GuiCssDir = path.resolve(GuiStaticDir, 'css');
+   const ScssDir = path.resolve(modulePath, 'static', 'scss');
+   const CssDir = path.resolve(modulePath, 'static', 'css');
+
 
    return {
       files: [
          {
             expand: true,
-            cwd: GuiStaticDir,
-            src: ['./scss/**/*.scss'],
-            dest: GuiCssDir,
+            cwd: ScssDir,
+            src: ['./**/*.scss'],
+            dest: CssDir,
             ext: '.css',
          },
       ],
