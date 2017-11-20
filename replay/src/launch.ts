@@ -6,16 +6,16 @@ const logger = Logging.getLogger();
 
 export const launch = () => {
 
-   logger.info("launching capture");
+   logger.info("launching replay");
 
-   child_process.spawn('mycrt-capture')
+   child_process.spawn('mycrt-replay')
 
       .stdout.on('data', (data: string) => {
-         logger.info("[capture stdout]  " + data);
+         logger.info("[replay stdout] " + data);
       })
 
       .on('close', (code: any) => {
-         logger.info("[capture]  exited with code " + code);
+         logger.info("[replay]  exited with code " + code);
       })
 
       .on('error', (error: string) => {

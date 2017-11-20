@@ -18,7 +18,7 @@ const logger = Logging.defaultLogger(__dirname);
 const config = require('../mycrt.config.json');
 /* tslint:enable no-var-requires */
 
-class MyCRTService {
+class MyCrtService {
 
    public readonly DEFAULT_PORT: number = 3000;
    public readonly DEFAULT_HOST: string = 'localhost';
@@ -138,9 +138,9 @@ class MyCRTService {
 
 if (typeof(require) !== 'undefined' && require.main === module) {
 
-   const service = new MyCRTService();
+   const service = new MyCrtService();
    service.launch();
 
 }
 
-export default MyCRTService;
+export default MyCrtService;

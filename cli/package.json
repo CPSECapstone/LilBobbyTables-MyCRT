@@ -2,11 +2,23 @@
   "name": "@lbt-mycrt/cli",
   "version": "1.0.0",
   "description": "MyCRT Command Line Interface",
+  "author": "",
+  "license": "MIT",
+  "main": "./dist/main",
+  "types": "./dist/main",
+  "bin": {
+    "mycrt": "./dist/main.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
   },
   "scripts": {},
-  "author": "",
-  "license": "MIT"
+  "dependencies": {
+    "@lbt-mycrt/common": "file:../common"
+  },
+  "devDependencies": {
+    "tslint": "^5.8.0",
+    "typescript": "^2.6.1"
+  }
 }

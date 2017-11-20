@@ -6,7 +6,9 @@
   "types": "./dist/main",
   "author": "",
   "license": "MIT",
-  "bin": "./dist/main.js",
+  "bin": {
+    "mycrt-capture": "./dist/main.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
