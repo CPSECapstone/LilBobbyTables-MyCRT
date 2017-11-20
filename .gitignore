@@ -1,5 +1,8 @@
 *.swp
 
+# File storing database connector information
+config.json
+
 # Logs
 logs
 *.log
