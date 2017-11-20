@@ -6,7 +6,6 @@ export default class ReplayRouter extends SelfAwareRouter {
 
    protected mountRoutes(): void {
       this.router
-
          .get('/', (request, response) => {
             response
                .json(['replay1', 'replay2'])
@@ -21,7 +20,6 @@ export default class ReplayRouter extends SelfAwareRouter {
                .end()
             ;
          })
-
       ;
    }
 }
