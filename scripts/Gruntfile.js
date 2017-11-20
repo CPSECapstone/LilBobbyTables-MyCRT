@@ -131,6 +131,7 @@ function watchTaskConfig(modulePath, name) {
 module.exports = function(grunt) {
 
    /* load npm tasks */
+   grunt.loadNpmTasks('grunt-env');
    grunt.loadNpmTasks('grunt-ts');
    grunt.loadNpmTasks('grunt-tslint');
    grunt.loadNpmTasks('grunt-contrib-sass');
@@ -142,6 +143,12 @@ module.exports = function(grunt) {
 
    /* configure grunt */
    grunt.initConfig({
+
+      env: {
+         test: {
+            NODE_ENV: 'test',
+         },
+      },
 
       /* typescript */
       ts: {
@@ -330,7 +337,7 @@ module.exports = function(grunt) {
       grunt.registerTask('digest-' + m + '-test', ['concurrent:digest-' + m + '-test']);
       grunt.registerTask('build-' + m, ['concurrent:digest-' + m]);                       // build-MODULE
       grunt.registerTask('build-' + m + '-test', ['concurrent:digest-' + m + '-test']);   // build-MODULE-test
-      grunt.registerTask('test-' + m, ['mochaTest:' + m]);                                // test-MODULE
+      grunt.registerTask('test-' + m, ['env:test', 'mochaTest:' + m]);                                // test-MODULE
       grunt.registerTask('build_and_test-' + m, ['build-' + m + '-test', 'test-' + m]);   // build_and_test-MODULE
       grunt.registerTask(m, ['build-' + m, 'watch:' + m]);                                // MODULE
    }
@@ -340,7 +347,7 @@ module.exports = function(grunt) {
    grunt.registerTask('digest-gui-test', ['concurrent:digest-gui-test-noserve', 'sass:gui', 'webpack:gui']);
    grunt.registerTask('build-gui', ['digest-gui']);
    grunt.registerTask('build-gui-test', ['digest-gui-test']);
-   grunt.registerTask('test-gui', ['mochaTest:gui']);
+   grunt.registerTask('test-gui', ['env:test', 'mochaTest:gui']);
    grunt.registerTask('build_and_test-gui', ['build-gui-test', 'test-gui']);
    grunt.registerTask('gui', ['build-gui', 'concurrent:watch-gui']);
 

@@ -6,8 +6,6 @@ import 'mocha';
 
 import MyCRTService from '../main';
 
-process.env.NODE_ENV = 'test';
-
 const expect = chai.expect;
 chai.use(chaiHttp);
 
@@ -16,11 +14,11 @@ chai.use(chaiHttp);
 describe("MyCRTService", () => {
    let mycrt: MyCRTService;
 
-   beforeEach(() => {
+   before(() => {
       mycrt = new MyCRTService();
    });
 
-   afterEach(() => {
+   after(() => {
       mycrt.close();
    });
 
