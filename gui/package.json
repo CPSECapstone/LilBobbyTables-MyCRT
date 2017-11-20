@@ -28,6 +28,7 @@
     "typescript": "^2.6.1"
   },
   "dependencies": {
+    "@lbt-mycrt/cli": "file:../cli",
     "@lbt-mycrt/common": "file:../common",
     "mustache": "^2.3.0"
   }
