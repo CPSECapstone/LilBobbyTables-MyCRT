@@ -161,6 +161,14 @@ SERVICE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/service"
       exit 1
    fi
 
+   sample_config="${SERVICE_MODULE_DIR}/db/config.sample.json"
+   actual_config="${SERVICE_MODULE_DIR}/db/config.json"
+   if [ ! -e "$actual_config" ]; then
+      echo "creating ${actual_config}"
+      cp "${sample_config}" "${actual_config}"
+      echo -e "${YELLOW}YOU MUST UPDATE THE PASSWORD IN ${actual_config}!!!${RESTORE}"
+   fi
+
 echo -e "${GREEN}Successfully setup service module${RESTORE}\n"
 cd ..
 
