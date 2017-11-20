@@ -14,24 +14,31 @@
     "build-replay": "grunt build-replay-test",
     "build-scripts": "grunt build-scripts-test",
     "build-service": "grunt build-service-test",
+    "build-gui": "grunt build-gui-test",
     "build": "grunt build",
     "test": "grunt test"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "css-loader": "^0.28.7",
     "fs": "0.0.1-security",
     "grunt": "^1.0.1",
     "grunt-cli": "^1.2.0",
     "grunt-concurrent": "^2.3.1",
+    "grunt-contrib-sass": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
+    "grunt-env": "^0.4.4",
     "grunt-mocha-test": "^0.13.3",
     "grunt-nodemon": "^0.4.2",
     "grunt-ts": "^6.0.0-beta.16",
     "grunt-tslint": "^5.0.1",
+    "grunt-webpack": "^3.0.2",
     "mocha": "^4.0.1",
+    "style-loader": "^0.19.0",
     "tslint": "^5.8.0",
-    "typescript": "^2.5.3"
+    "typescript": "^2.5.3",
+    "webpack": "^3.8.1"
   },
   "dependencies": {}
 }

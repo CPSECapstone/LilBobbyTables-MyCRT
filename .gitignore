@@ -68,3 +68,7 @@ typings/
 **/dist/*
 tscommand-*.tmp.txt
 
+# front-end static assets
+css/
+js/
+.sass-cache/

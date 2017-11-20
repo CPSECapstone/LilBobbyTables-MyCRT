@@ -11,6 +11,7 @@ const DIR = {
    REPLAY: path.resolve(ROOT_DIR, 'replay'),
    SCRIPTS: path.resolve(ROOT_DIR, 'scripts'),
    SERVICE: path.resolve(ROOT_DIR, 'service'),
+   GUI: path.resolve(ROOT_DIR, 'gui'),
 };
 delete ROOT_DIR;
 
@@ -73,6 +74,32 @@ function tslintTaskConfig(modulePath, testing) {
    };
 }
 
+function sassTaskConfig(modulePath) {
+
+   const ScssDir = path.resolve(modulePath, 'static', 'scss');
+   const CssDir = path.resolve(modulePath, 'static', 'css');
+
+
+   return {
+      files: [
+         {
+            expand: true,
+            cwd: ScssDir,
+            src: ['./**/*.scss'],
+            dest: CssDir,
+            ext: '.css',
+         },
+      ],
+   };
+
+}
+
+function webpackTaskConfig(modulePath) {
+   const configPath = path.resolve(modulePath, 'webpack.config.js');
+   const config = require(configPath);
+   return config;
+}
+
 function mochaTestTaskConfig(modulePath) {
    const testDir = path.resolve(modulePath, 'dist', 'test') + '/\*\*/\*.test.js';
    return {
@@ -86,9 +113,16 @@ function watchTaskConfig(modulePath, name) {
          path.resolve(modulePath, 'src') + '/\*\*/\*.ts',
          path.resolve(modulePath, 'package.json'),
       ],
-      tasks: ['concurrent:digest-' + name],
+      tasks: ['digest-' + name],
    };
 }
+
+// function watchTaskConfigWithSass(modulePath, name) {
+//    const conf = watchTaskConfig(modulePath, name);
+//    conf.files.push(path.resolve(modulePath, 'static', 'scss') + '/\*\*/\*.scss');
+//    conf.tasks.push('sass:' + name);
+//    return conf;
+// }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// ACTUAL GRUNT CONFIGURATION HAPPENS BELOW ///////////////////////////////////////////////////
@@ -97,15 +131,24 @@ function watchTaskConfig(modulePath, name) {
 module.exports = function(grunt) {
 
    /* load npm tasks */
+   grunt.loadNpmTasks('grunt-env');
    grunt.loadNpmTasks('grunt-ts');
    grunt.loadNpmTasks('grunt-tslint');
+   grunt.loadNpmTasks('grunt-contrib-sass');
    grunt.loadNpmTasks('grunt-contrib-watch');
    grunt.loadNpmTasks('grunt-concurrent');
    grunt.loadNpmTasks('grunt-nodemon');
    grunt.loadNpmTasks('grunt-mocha-test');
+   grunt.loadNpmTasks('grunt-webpack');
 
    /* configure grunt */
    grunt.initConfig({
+
+      env: {
+         test: {
+            NODE_ENV: 'test',
+         },
+      },
 
       /* typescript */
       ts: {
@@ -119,6 +162,8 @@ module.exports = function(grunt) {
          'replay-test': tsTaskConfig(DIR.REPLAY, null, true),
          'service': tsTaskConfig(DIR.SERVICE),
          'service-test': tsTaskConfig(DIR.SERVICE, null, true),
+         'gui': tsTaskConfig(DIR.GUI),
+         'gui-test': tsTaskConfig(DIR.GUI, null, true),
       },
 
       /* typescript linter */
@@ -138,6 +183,17 @@ module.exports = function(grunt) {
          'replay-test': tslintTaskConfig(DIR.REPLAY, true),
          'service': tslintTaskConfig(DIR.SERVICE),
          'service-test': tslintTaskConfig(DIR.SERVICE, true),
+         'gui': tslintTaskConfig(DIR.GUI),
+         'gui-test': tslintTaskConfig(DIR.GUI, true),
+      },
+
+      /* SASS */
+      sass: {
+         'gui': sassTaskConfig(DIR.GUI),
+      },
+
+      webpack: {
+         'gui': webpackTaskConfig(DIR.GUI),
       },
 
       /* mocha testing */
@@ -147,15 +203,32 @@ module.exports = function(grunt) {
          'common': mochaTestTaskConfig(DIR.COMMON),
          'replay': mochaTestTaskConfig(DIR.REPLAY),
          'service': mochaTestTaskConfig(DIR.SERVICE),
+         'gui': mochaTestTaskConfig(DIR.GUI),
       },
 
       /* file watching */
       watch: {
-         capture: watchTaskConfig(DIR.CAPTURE, 'capture'),
-         cli: watchTaskConfig(DIR.CLI, 'cli'),
-         common: watchTaskConfig(DIR.COMMON, 'common'),
-         replay: watchTaskConfig(DIR.REPLAY, 'replay'),
-         service: watchTaskConfig(DIR.SERVICE, 'service'),
+         'capture': watchTaskConfig(DIR.CAPTURE, 'capture'),
+         'cli': watchTaskConfig(DIR.CLI, 'cli'),
+         'common': watchTaskConfig(DIR.COMMON, 'common'),
+         'replay': watchTaskConfig(DIR.REPLAY, 'replay'),
+         'service': watchTaskConfig(DIR.SERVICE, 'service'),
+         // 'gui': watchTaskConfig(DIR.GUI, 'gui'),
+         'gui': {
+            files: [path.resolve(DIR.GUI, 'src') + '/\*\*/\*.ts'],
+            tasks: ['concurrent:digest-gui-noserve'],
+         },
+         'gui-sass': {
+            files: [path.resolve(DIR.GUI, 'static', 'scss') + '/\*\*/\*.scss'],
+            tasks: ['sass:gui'],
+         },
+         'gui-webpack': {
+            files: [
+               path.resolve(DIR.GUI, 'dist') + '/\*\*/\*.js',
+               path.resolve(DIR.GUI, 'static', 'css') + '/\*\*/\*.css',
+            ],
+            tasks: ['webpack:gui'],
+         },
       },
 
       /* concurrent tasks */
@@ -192,9 +265,21 @@ module.exports = function(grunt) {
          'digest-cli-test': {
             tasks: ['ts:cli-test', 'tslint:cli-test'],
          },
+         'digest-gui-noserve': {
+            tasks: ['ts:gui', 'tslint:gui'],
+         },
+         'digest-gui-test-noserve': {
+            tasks: ['ts:gui-test', 'tslint:gui-test'],
+         },
 
+         'watch-gui': {
+            tasks: ['watch:gui', 'watch:gui-sass', 'watch:gui-webpack'],
+            options: {
+               logConcurrentOutput: true,
+            },
+         },
          'watch-all': {
-            tasks: ['watch:common', 'watch:capture', 'watch:replay', 'watch:service', 'watch:cli'],
+            tasks: ['watch:common', 'watch:capture', 'watch:replay', 'watch:service', 'watch:cli', 'watch:gui', 'watch:gui-sass', 'watch:gui-webpack'],
             options: {
                logConcurrentOutput: true,
             },
@@ -229,6 +314,7 @@ module.exports = function(grunt) {
                   path.join(DIR.CAPTURE, 'dist'),
                   path.join(DIR.REPLAY, 'dist'),
                   path.join(DIR.COMMON, 'dist'),
+                  path.join(DIR.GUI, 'dist'),
                ],
                delay: 500,
             },
@@ -245,45 +331,30 @@ module.exports = function(grunt) {
       grunt.log.writeln("\t====================================\n");
    });
 
-   /* common */
-   grunt.registerTask('build-common', ['concurrent:digest-common']);
-   grunt.registerTask('build-common-test', ['concurrent:digest-common-test']);
-   grunt.registerTask('test-common', ['mochaTest:common']);
-   grunt.registerTask('build_and_test-common', ['build-common-test', 'test-common']);
-   grunt.registerTask('common', ['build-common', 'watch:common']);
+   /* Module specific tasks */
+   for (const m of ['common', 'capture', 'replay', 'service', 'cli']) {
+      grunt.registerTask('digest-' + m, ['concurrent:digest-' + m]);
+      grunt.registerTask('digest-' + m + '-test', ['concurrent:digest-' + m + '-test']);
+      grunt.registerTask('build-' + m, ['concurrent:digest-' + m]);                       // build-MODULE
+      grunt.registerTask('build-' + m + '-test', ['concurrent:digest-' + m + '-test']);   // build-MODULE-test
+      grunt.registerTask('test-' + m, ['env:test', 'mochaTest:' + m]);                                // test-MODULE
+      grunt.registerTask('build_and_test-' + m, ['build-' + m + '-test', 'test-' + m]);   // build_and_test-MODULE
+      grunt.registerTask(m, ['build-' + m, 'watch:' + m]);                                // MODULE
+   }
 
-   /* capture */
-   grunt.registerTask('build-capture', ['concurrent:digest-capture']);
-   grunt.registerTask('build-capture-test', ['concurrent:digest-capture-test']);
-   grunt.registerTask('test-capture', ['mochaTest:capture']);
-   grunt.registerTask('build_and_test-capture', ['build-capture-test', 'test-capture']);
-   grunt.registerTask('capture', ['build-capture', 'watch:capture']);
-
-   /* replay */
-   grunt.registerTask('build-replay', ['concurrent:digest-replay']);
-   grunt.registerTask('build-replay-test', ['concurrent:digest-replay-test']);
-   grunt.registerTask('test-replay', ['mochaTest:replay']);
-   grunt.registerTask('build_and_test-replay', ['build-replay-test', 'test-replay']);
-   grunt.registerTask('replay', ['build-replay', 'watch:replay']);
-
-   /* service */
-   grunt.registerTask('build-service', ['concurrent:digest-service']);
-   grunt.registerTask('build-service-test', ['concurrent:digest-service-test']);
-   grunt.registerTask('test-service', ['mochaTest:service']);
-   grunt.registerTask('build_and_test-service', ['build-service-test', 'test-service']);
-   grunt.registerTask('service', ['build-service', 'watch:service']);
-
-   /* cli */
-   grunt.registerTask('build-cli', ['concurrent:digest-cli']);
-   grunt.registerTask('build-cli-test', ['concurrent:digest-cli-test']);
-   grunt.registerTask('test-cli', ['mochaTest:cli']);
-   grunt.registerTask('build_and_test-cli', ['build-cli-test', 'test-cli']);
-   grunt.registerTask('cli', ['build-cli', 'watch:cli']);
+   /* Special Case for GUI */
+   grunt.registerTask('digest-gui', ['concurrent:digest-gui-noserve', 'sass:gui', 'webpack:gui']);
+   grunt.registerTask('digest-gui-test', ['concurrent:digest-gui-test-noserve', 'sass:gui', 'webpack:gui']);
+   grunt.registerTask('build-gui', ['digest-gui']);
+   grunt.registerTask('build-gui-test', ['digest-gui-test']);
+   grunt.registerTask('test-gui', ['env:test', 'mochaTest:gui']);
+   grunt.registerTask('build_and_test-gui', ['build-gui-test', 'test-gui']);
+   grunt.registerTask('gui', ['build-gui', 'concurrent:watch-gui']);
 
    /* Primary Operations */
-   grunt.registerTask('build', ['build-common', 'build-capture', 'build-replay', 'build-service', 'build-cli']);
-   grunt.registerTask('build-test', ['build-common-test', 'build-capture-test', 'build-replay-test', 'build-service-test', 'build-cli-test']);
-   grunt.registerTask('test', ['test-common', 'test-capture', 'test-replay', 'test-service', 'test-cli']);
+   grunt.registerTask('build', ['build-common', 'build-capture', 'build-replay', 'build-gui', 'build-service', 'build-cli']);
+   grunt.registerTask('build-test', ['build-common-test', 'build-capture-test', 'build-replay-test', 'build-gui-test', 'build-service-test', 'build-cli-test']);
+   grunt.registerTask('test', ['test-common', 'test-capture', 'test-replay', 'test-gui', 'test-service', 'test-cli']);
    grunt.registerTask('build_and_test', ['build-test', 'test']);
    grunt.registerTask('develop', ['build', 'digest-complete', 'concurrent:develop']);
 

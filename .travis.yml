@@ -4,3 +4,5 @@ node_js:
 
 script: sh scripts/ci_script.sh
 
+before_install: gem install sass
+
