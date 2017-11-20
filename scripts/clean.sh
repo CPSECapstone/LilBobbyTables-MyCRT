@@ -27,3 +27,6 @@ echo "Removing .tscache folders"
 find . -name ".tscache" -exec rm -rf '{}' +
 echo "Removing stray tscommand tmp files"
 find . -name "tscommand-*.tmp.txt" -exec rm -rf '{}' +
+echo "Removing all compiled css"
+find . -name "css" -exec rm -rf '{}' +
+

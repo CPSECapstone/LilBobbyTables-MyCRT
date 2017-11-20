@@ -18,13 +18,12 @@ const getLogger = (logFile: string | undefined = undefined) => {
 
    const transports: winston.TransportInstance[] = [];
 
-   if (process.env.NODE_ENV !== 'prod') {
-      transports.push(new winston.transports.Console({
-         colorize: true,
-         formatter: simpleFormatter,
-         level: 'silly',
-      }));
-   }
+   transports.push(new winston.transports.Console({
+      colorize: true,
+      formatter: simpleFormatter,
+      level: 'silly',
+      silent: process.env.NODE_ENV === 'test',
+   }));
 
    if (logFile) {
       transports.push(new winston.transports.File({
@@ -32,6 +31,7 @@ const getLogger = (logFile: string | undefined = undefined) => {
          formatter: detailedFormatter,
          json: false,
          level: 'info',
+         silent: process.env.NODE_ENV === 'test',
       }));
    }
 

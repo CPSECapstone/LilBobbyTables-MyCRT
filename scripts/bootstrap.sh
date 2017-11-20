@@ -48,6 +48,7 @@ echo -e "${CYAN}Checking for prerequisites${RESTORE}"
 check_installed node
 check_installed npm
 check_installed mysql
+check_installed sass
 echo -e "${GREEN}All prerequisites detected!${RESTORE}"
 echo ""
 
@@ -118,6 +119,23 @@ echo -e "${GREEN}Successfully setup replay module${RESTORE}\n"
 cd ..
 
 ########################################################################################################################
+# setup the gui module
+GUI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/gui"
+echo -e "${BLUE}Setting up gui (${GUI_MODULE_DIR})${RESTORE}"
+cd "$GUI_MODULE_DIR"
+echo "installing npm dependencies"
+if ! npm install 1>>"$LOG_FILE" 2>&1; then
+   echo -e "${RED}Failed to install npm dependencies for gui module${RESTORE}"; exit 1
+fi
+echo "building gui"
+cd "$SCRIPTS_MODULE_DIR"
+if ! npm run build-gui 1>>"$LOG_FILE" 2>&1; then
+   echo -e "${RED}Failed to build gui${RESTORE}"; exit 1
+fi
+echo -e "${GREEN}Successfully setup gui module${RESTORE}\n"
+cd ..
+
+########################################################################################################################
 # setup the service module
 SERVICE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/service"
 
@@ -149,7 +167,7 @@ cd ..
 ########################################################################################################################
 # setup the cli module
 CLI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/cli"
-echo -e "${BLUE}Setting up cli (${SERVICE_MODULE_DIR})${RESTORE}"
+echo -e "${BLUE}Setting up cli (${CLI_MODULE_DIR})${RESTORE}"
 cd "$CLI_MODULE_DIR"
 echo "installing npm dependencies"
 if ! npm install 1>>"$LOG_FILE" 2>&1; then
