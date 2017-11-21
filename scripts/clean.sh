@@ -29,4 +29,6 @@ echo "Removing stray tscommand tmp files"
 find . -name "tscommand-*.tmp.txt" -exec rm -rf '{}' +
 echo "Removing all compiled css"
 find . -name "css" -exec rm -rf '{}' +
+echo "Removing all bundled js"
+find . -name "js" -exec rm -rf '{}' +
 
