@@ -1,15 +1,20 @@
 import { Logging } from '@lbt-mycrt/common';
 
-const logger = Logging.getLogger(__dirname);
-
 export default class MyCrtCli {
 
-   constructor() {
+   private logger = Logging.getLogger(true, Logging.rawFormatter, undefined, undefined);
 
-   }
+   constructor() {}
 
    public run() {
-      logger.info("Running the MyCrtCli");
+      this.print("Running CLI!!!");
+   }
+
+   private print(msg: string, level?: Logging.LogLevel): void {
+
+      const logFunc = Logging.getLoggingFunction(this.logger, level);
+      logFunc(msg);
+
    }
 
 }

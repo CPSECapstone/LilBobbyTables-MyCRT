@@ -2,7 +2,7 @@ import * as child_process from 'child_process';
 
 import { Logging } from '@lbt-mycrt/common';
 
-const logger = Logging.getLogger();
+const logger = Logging.getLogger(true, Logging.simpleFormatter);
 
 export const launch = () => {
 
