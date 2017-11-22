@@ -9,6 +9,4 @@ if (typeof(require) !== 'undefined' && require.main === module) {
 
 }
 
-export {
-   MyCrtCli,
-};
+export * from './mycrt-client/client';

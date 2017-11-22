@@ -6,9 +6,10 @@ import { IRequestOptions } from 'typed-rest-client/Interfaces';
 
 const logger = Logging.defaultLogger(__dirname);
 
-enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELETE' }
+export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELETE' }
 
-export default class MyCrtClient {
+/** General Client class for accessing the MyCRT service */
+export class MyCrtClient {
 
    // TODO: handle the production case
    public static host: string = process.env.NODE_ENV === 'prod' ? '' : 'http://localhost:3000';
@@ -16,7 +17,12 @@ export default class MyCrtClient {
    private mycrt: RestClient;
 
    constructor() {
-      this.mycrt = new RestClient('rest-samples', `${MyCrtClient.host}/api`);
+      this.mycrt = new RestClient('rest-samples', `${MyCrtClient.host}`);
+   }
+
+   /** Create a new Capture */
+   public async postCapture(capture: ICapture): Promise<ICapture | null> {
+      return this.makeRequest<ICapture>(HttpMethod.POST, '/capture', capture);
    }
 
    /** Retrieve all of the captures */
@@ -42,6 +48,10 @@ export default class MyCrtClient {
    // TODO: support IRequestOptions
    private async makeRequest<T>(method: HttpMethod, url: string, body?: any): Promise<T | null> {
 
+      const fullUrl = `/api${url}`;
+
+      logger.info(`Performing ${method} on ${fullUrl}`);
+
       let response: IRestResponse<T>;
       let delResponse: IRestResponse<{}>;
       let deleting: boolean = false;
@@ -50,23 +60,23 @@ export default class MyCrtClient {
 
          case HttpMethod.DELETE:
             deleting = true;
-            delResponse = await this.mycrt.del(url);
+            delResponse = await this.mycrt.del(fullUrl);
             break;
 
          case HttpMethod.GET:
-            response = await this.mycrt.get<T>(url);
+            response = await this.mycrt.get<T>(fullUrl);
             break;
 
          case HttpMethod.POST:
          case HttpMethod.PUT:
             if (!body) {
-               logger.error(`No body provided for ${method} to ${url}`);
+               logger.error(`No body provided for ${method} to ${fullUrl}`);
                return null;
             }
             if (method === HttpMethod.POST) {
-               response = await this.mycrt.create<T>(url, body);
+               response = await this.mycrt.create<T>(fullUrl, body);
             } else {
-               response = await this.mycrt.update<T>(url, body);
+               response = await this.mycrt.update<T>(fullUrl, body);
             }
             break;
 
@@ -75,7 +85,7 @@ export default class MyCrtClient {
       const status = deleting ? delResponse!.statusCode : response!.statusCode;
 
       if (status !== http.OK) {
-         logger.warn(`${method} to ${url} has response status ${status}`);
+         logger.warn(`${method} to ${fullUrl} has response status ${status}`);
          return null;
 
       } else if (deleting) {

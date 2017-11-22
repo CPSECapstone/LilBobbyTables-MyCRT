@@ -356,6 +356,7 @@ module.exports = function(grunt) {
    grunt.registerTask('build-test', ['build-common-test', 'build-capture-test', 'build-replay-test', 'build-cli-test', 'build-gui-test', 'build-service-test']);
    grunt.registerTask('test', ['test-common', 'test-capture', 'test-replay', 'test-cli', 'test-gui', 'test-service']);
    grunt.registerTask('build_and_test', ['build-test', 'test']);
-   grunt.registerTask('develop', ['build', 'digest-complete', 'concurrent:develop']);
+   grunt.registerTask('build_and_develop', ['build', 'digest-complete', 'concurrent:develop']);
+   grunt.registerTask('develop', ['concurrent:develop']);
 
 };
