@@ -1,7 +1,8 @@
 import { launch } from '@lbt-mycrt/capture';
 import { Logging } from '@lbt-mycrt/common';
+import * as aws from 'aws-sdk';
 import * as http from 'http-status-codes';
-import mysql = require('mysql');
+import * as mysql from 'mysql';
 import SelfAwareRouter from './self-aware-router';
 
 export default class CaptureRouter extends SelfAwareRouter {
@@ -9,18 +10,19 @@ export default class CaptureRouter extends SelfAwareRouter {
    public urlPrefix: string = '/capture';
 
    protected mountRoutes(): void {
-      const logger = Logging.getLogger();
+      const logger = Logging.defaultLogger(__dirname);
       const config = require('../../db/config.json');
-      const conn = mysql.createConnection(config);
 
       this.router
          .get('/', (request, response) => {
-            conn.connect((err) => {
-               if (err) {
-                  throw err;
+            const conn = mysql.createConnection(config);
+
+            conn.connect((connErr) => {
+               if (connErr) {
+                  throw connErr;
                } else {
                   const query = mysql.format("SELECT * FROM Capture", []);
-                  conn.query(query, (rows) => {
+                  conn.query(query, (queryErr, rows) => {
                      response.json(rows);
                      conn.end();
                   });
@@ -30,12 +32,14 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          .get('/:id', (request, response) => {
             const id = request.params.id;
-            conn.connect((err) => {
-               if (err) {
-                  throw err;
+            const conn = mysql.createConnection(config);
+
+            conn.connect((connErr) => {
+               if (connErr) {
+                  throw connErr;
                } else {
                   const query = mysql.format("SELECT * FROM Capture WHERE id = ?", [id]);
-                  conn.query(query, (rows) => {
+                  conn.query(query, (queryErr, rows) => {
                      response.json(rows);
                      conn.end();
                   });
@@ -44,8 +48,12 @@ export default class CaptureRouter extends SelfAwareRouter {
          })
 
          .post('/', (request, response) => {
-            /* Add error checking for insert */
+            /* Add validation for insert */
             const capture = request.body;
+            const conn = mysql.createConnection(config);
+            aws.config.update({region: 'us-east-2'});
+            const rds = new aws.RDS();
+
             conn.connect((connErr) => {
                if (connErr) {
                   throw connErr;
@@ -55,7 +63,29 @@ export default class CaptureRouter extends SelfAwareRouter {
                      if (queryErr) {
                         throw queryErr;
                      } else {
-                        response.json(result.insertId);
+                        /* TODO get the aws credentials from the environment */
+                        /*    aws.config(...)  */
+                        /* TODO get the parameterGroup from the environment */
+                        const parameterGroup: string = "supergroup";
+                        const params = {
+                           DBParameterGroupName : parameterGroup,
+                           Parameters: [
+                              {
+                                 ApplyMethod: "immediate",
+                                 ParameterName: "general_log",
+                                 ParameterValue: '1',
+                              },
+                           ],
+                        };
+                        logger.info("About to send the aws request");
+                        rds.modifyDBParameterGroup(params, (awsErr, data) => {
+                           if (awsErr) {
+                              throw awsErr;
+                           } else {
+                              response.json(result.insertId);
+                              conn.end();
+                           }
+                        });
                      }
                   });
                }

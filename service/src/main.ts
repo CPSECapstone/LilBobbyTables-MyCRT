@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as fs from 'fs';
 import { Server } from 'http';
@@ -84,10 +85,15 @@ class MyCrtService {
    }
 
    private mountEverything(): void {
+      this.mountBodyParser();
       this.mountMiddlewares();
       this.mountApiRoutes();
       this.mountStaticFileRoutes();
       this.mountPageRoutes();
+   }
+
+   private mountBodyParser(): void {
+      this.express!.use(bodyParser.json());
    }
 
    private mountMiddlewares(): void {
@@ -95,6 +101,7 @@ class MyCrtService {
       // log each request to the console
       this.express!.use((request, response, then) => {
          logger.info(`----=[ ${request.method} ${request.path} ]=----`);
+         /* TODO: Add MySQL connection here */
          then();
       });
 
@@ -133,7 +140,6 @@ class MyCrtService {
       routePage(/^\/metrics\/?$/, Pages.metrics);
 
    }
-
 }
 
 if (typeof(require) !== 'undefined' && require.main === module) {
