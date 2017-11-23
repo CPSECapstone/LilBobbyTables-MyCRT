@@ -2,6 +2,12 @@
 
 import { Logging } from '@lbt-mycrt/common';
 
-const logger = Logging.getLogger();
+if (typeof(require) !== 'undefined' && require.main === module) {
 
-logger.info("MyCRT Replay Program");
+   const logger = Logging.getLogger(true, Logging.simpleFormatter);
+
+   logger.info("MyCRT Replay Program");
+
+}
+
+export { launch } from './launch';

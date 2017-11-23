@@ -1,3 +1,9 @@
 
+/* Utilities */
 export { default as appRootDir } from './app-root-dir';
-export * from './logging';
+
+/* Logging */
+export import Logging = require('./logging');
+
+/* Common Data Structures */
+export * from './data';

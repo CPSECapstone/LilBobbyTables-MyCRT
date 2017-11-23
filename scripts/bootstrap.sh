@@ -119,6 +119,23 @@ echo -e "${GREEN}Successfully setup replay module${RESTORE}\n"
 cd ..
 
 ########################################################################################################################
+# setup the cli module
+CLI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/cli"
+echo -e "${BLUE}Setting up cli (${CLI_MODULE_DIR})${RESTORE}"
+cd "$CLI_MODULE_DIR"
+echo "installing npm dependencies"
+if ! npm install 1>>"$LOG_FILE" 2>&1; then
+   echo -e "${RED}Failed to install npm dependencies for cli module${RESTORE}"; exit 1
+fi
+echo "building cli"
+cd "$SCRIPTS_MODULE_DIR"
+if ! npm run build-cli 1>>"$LOG_FILE" 2>&1; then
+   echo -e "${RED}Failed to build cli${RESTORE}"; exit 1
+fi
+echo -e "${GREEN}Successfully setup cli module${RESTORE}\n"
+cd ..
+
+########################################################################################################################
 # setup the gui module
 GUI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/gui"
 echo -e "${BLUE}Setting up gui (${GUI_MODULE_DIR})${RESTORE}"
@@ -170,23 +187,6 @@ SERVICE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/service"
    fi
 
 echo -e "${GREEN}Successfully setup service module${RESTORE}\n"
-cd ..
-
-########################################################################################################################
-# setup the cli module
-CLI_MODULE_DIR="${REPOSITORY_ROOT_DIR}/cli"
-echo -e "${BLUE}Setting up cli (${CLI_MODULE_DIR})${RESTORE}"
-cd "$CLI_MODULE_DIR"
-echo "installing npm dependencies"
-if ! npm install 1>>"$LOG_FILE" 2>&1; then
-   echo -e "${RED}Failed to install npm dependencies for cli module${RESTORE}"; exit 1
-fi
-echo "building cli"
-cd "$SCRIPTS_MODULE_DIR"
-if ! npm run build-cli 1>>"$LOG_FILE" 2>&1; then
-   echo -e "${RED}Failed to build cli${RESTORE}"; exit 1
-fi
-echo -e "${GREEN}Successfully setup cli module${RESTORE}\n"
 cd ..
 
 ########################################################################################################################

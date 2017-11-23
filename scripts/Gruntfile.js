@@ -279,7 +279,7 @@ module.exports = function(grunt) {
             },
          },
          'watch-all': {
-            tasks: ['watch:common', 'watch:capture', 'watch:replay', 'watch:service', 'watch:cli', 'watch:gui', 'watch:gui-sass', 'watch:gui-webpack'],
+            tasks: ['watch:common', 'watch:capture', 'watch:replay', 'watch:cli', 'watch:gui', 'watch:gui-sass', 'watch:gui-webpack', 'watch:service'],
             options: {
                logConcurrentOutput: true,
             },
@@ -332,7 +332,7 @@ module.exports = function(grunt) {
    });
 
    /* Module specific tasks */
-   for (const m of ['common', 'capture', 'replay', 'service', 'cli']) {
+   for (const m of ['common', 'capture', 'replay', 'cli', 'service']) {
       grunt.registerTask('digest-' + m, ['concurrent:digest-' + m]);
       grunt.registerTask('digest-' + m + '-test', ['concurrent:digest-' + m + '-test']);
       grunt.registerTask('build-' + m, ['concurrent:digest-' + m]);                       // build-MODULE
@@ -352,10 +352,11 @@ module.exports = function(grunt) {
    grunt.registerTask('gui', ['build-gui', 'concurrent:watch-gui']);
 
    /* Primary Operations */
-   grunt.registerTask('build', ['build-common', 'build-capture', 'build-replay', 'build-gui', 'build-service', 'build-cli']);
-   grunt.registerTask('build-test', ['build-common-test', 'build-capture-test', 'build-replay-test', 'build-gui-test', 'build-service-test', 'build-cli-test']);
-   grunt.registerTask('test', ['test-common', 'test-capture', 'test-replay', 'test-gui', 'test-service', 'test-cli']);
+   grunt.registerTask('build', ['build-common', 'build-capture', 'build-replay', 'build-cli', 'build-gui', 'build-service']);
+   grunt.registerTask('build-test', ['build-common-test', 'build-capture-test', 'build-replay-test', 'build-cli-test', 'build-gui-test', 'build-service-test']);
+   grunt.registerTask('test', ['test-common', 'test-capture', 'test-replay', 'test-cli', 'test-gui', 'test-service']);
    grunt.registerTask('build_and_test', ['build-test', 'test']);
-   grunt.registerTask('develop', ['build', 'digest-complete', 'concurrent:develop']);
+   grunt.registerTask('build_and_develop', ['build', 'digest-complete', 'concurrent:develop']);
+   grunt.registerTask('develop', ['concurrent:develop']);
 
 };

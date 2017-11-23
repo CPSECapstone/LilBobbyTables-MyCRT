@@ -1,7 +1,7 @@
 import 'mocha';
 import { LoggerInstance } from 'winston';
 
-import { Logging } from '../logging';
+import Logging = require('../logging');
 
 const logAtAllLevels = (logger: LoggerInstance) => {
    logger.silly("This is silly");
