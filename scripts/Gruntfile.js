@@ -222,7 +222,10 @@ module.exports = function(grunt) {
          'service': watchTaskConfig(DIR.SERVICE, 'service'),
          // 'gui': watchTaskConfig(DIR.GUI, 'gui'),
          'gui': {
-            files: [path.resolve(DIR.GUI, 'src') + '/\*\*/\*.{ts,tsx}'],
+            files: [
+               path.resolve(DIR.GUI, 'src') + '/\*\*/\*.{ts,tsx}',
+               path.resolve(DIR.GUI, 'static', 'html') + '/\*\*/\*.mustache',
+            ],
             tasks: ['concurrent:digest-gui-noserve'],
          },
          'gui-sass': {

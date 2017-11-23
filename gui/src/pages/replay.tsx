@@ -1,12 +1,12 @@
-import '../../static/css/index.css';
+import '../../static/css/replay.css';
 
 import React = require('react');
 import ReactDom = require('react-dom');
 
-const IndexApp = () => {
+const ReplayApp = () => {
    return (
-      <div className="index-style-test">
-         <p>Hello from index.tsx</p>
+      <div className="replay-style-test">
+         <p>Hello from replay.tsx</p>
 
          <ul>
             <li>and</li>
@@ -19,4 +19,4 @@ const IndexApp = () => {
    );
 };
 
-ReactDom.render(<IndexApp />, document.getElementById('index-app'));
+ReactDom.render(<ReplayApp />, document.getElementById('replay-app'));

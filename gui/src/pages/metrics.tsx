@@ -1,12 +1,12 @@
-import '../../static/css/index.css';
+import '../../static/css/metrics.css';
 
 import React = require('react');
 import ReactDom = require('react-dom');
 
-const IndexApp = () => {
+const MetricsApp = () => {
    return (
-      <div className="index-style-test">
-         <p>Hello from index.tsx</p>
+      <div className="metrics-style-test">
+         <p>Hello from metrics.tsx</p>
 
          <ul>
             <li>and</li>
@@ -19,4 +19,4 @@ const IndexApp = () => {
    );
 };
 
-ReactDom.render(<IndexApp />, document.getElementById('index-app'));
+ReactDom.render(<MetricsApp />, document.getElementById('metrics-app'));
