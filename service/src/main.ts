@@ -133,11 +133,11 @@ class MyCrtService {
       };
 
       routePage(/^\/?$/, Pages.index);
-      routePage(/^\/environment\/?$/, Pages.environment);
-      routePage(/^\/captures\/?$/, Pages.captures);
-      routePage(/^\/capture\/?$/, Pages.capture);
-      routePage(/^\/replay\/?$/, Pages.replay);
-      routePage(/^\/metrics\/?$/, Pages.metrics);
+      // routePage(/^\/environment\/?$/, Pages.environment);
+      // routePage(/^\/captures\/?$/, Pages.captures);
+      // routePage(/^\/capture\/?$/, Pages.capture);
+      // routePage(/^\/replay\/?$/, Pages.replay);
+      // routePage(/^\/metrics\/?$/, Pages.metrics);
 
    }
 }
