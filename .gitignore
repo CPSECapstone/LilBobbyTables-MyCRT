@@ -1,5 +1,8 @@
 *.swp
 
+# Mac finder's cache for view settings for directory. Unnecessary for the git repository
+.DS_Store
+
 # Files storing database connector information
 config.json
 remoteConfig.json
