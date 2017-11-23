@@ -1,7 +1,8 @@
 *.swp
 
-# File storing database connector information
+# Files storing database connector information
 config.json
+remoteConfig.json
 
 # Logs
 logs
