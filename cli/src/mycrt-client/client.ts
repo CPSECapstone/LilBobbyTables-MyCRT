@@ -17,7 +17,9 @@ export class MyCrtClient {
    private mycrt: RestClient;
 
    constructor() {
+
       this.mycrt = new RestClient('rest-samples', `${MyCrtClient.host}`);
+
    }
 
    /** Create a new Capture */
