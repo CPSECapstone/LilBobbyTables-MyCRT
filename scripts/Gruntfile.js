@@ -45,7 +45,7 @@ function tsTaskConfig(modulePath, options, testing) {
    }
 
    const src = [
-      path.resolve(modulePath, 'src') + '/\*\*/\*.ts',
+      path.resolve(modulePath, 'src') + '/\*\*/\*.{ts,tsx}',
       '!' + path.resolve(modulePath, 'node_modules') + '/\*\*',
    ];
    if (!testing) {
@@ -62,7 +62,9 @@ function tsTaskConfig(modulePath, options, testing) {
 }
 
 function tslintTaskConfig(modulePath, testing) {
-   const src = [path.resolve(modulePath, 'src') + '/\*\*/\*.ts'];
+   const src = [
+      path.resolve(modulePath, 'src') + '/\*\*/\*.{ts,tsx}',
+   ];
    if (!testing) {
       src.push('!' + path.resolve(modulePath, 'src', 'test') + '/\*\*/\*.test.ts');
    }
@@ -141,6 +143,11 @@ module.exports = function(grunt) {
    grunt.loadNpmTasks('grunt-mocha-test');
    grunt.loadNpmTasks('grunt-webpack');
 
+   const guiTsOptions = {
+      inlineSourceMap: true,
+      sourceMap: false,
+   };
+
    /* configure grunt */
    grunt.initConfig({
 
@@ -162,8 +169,8 @@ module.exports = function(grunt) {
          'replay-test': tsTaskConfig(DIR.REPLAY, null, true),
          'service': tsTaskConfig(DIR.SERVICE),
          'service-test': tsTaskConfig(DIR.SERVICE, null, true),
-         'gui': tsTaskConfig(DIR.GUI),
-         'gui-test': tsTaskConfig(DIR.GUI, null, true),
+         'gui': tsTaskConfig(DIR.GUI, guiTsOptions),
+         'gui-test': tsTaskConfig(DIR.GUI, guiTsOptions, true),
       },
 
       /* typescript linter */
@@ -215,7 +222,10 @@ module.exports = function(grunt) {
          'service': watchTaskConfig(DIR.SERVICE, 'service'),
          // 'gui': watchTaskConfig(DIR.GUI, 'gui'),
          'gui': {
-            files: [path.resolve(DIR.GUI, 'src') + '/\*\*/\*.ts'],
+            files: [
+               path.resolve(DIR.GUI, 'src') + '/\*\*/\*.{ts,tsx}',
+               path.resolve(DIR.GUI, 'static', 'html') + '/\*\*/\*.mustache',
+            ],
             tasks: ['concurrent:digest-gui-noserve'],
          },
          'gui-sass': {

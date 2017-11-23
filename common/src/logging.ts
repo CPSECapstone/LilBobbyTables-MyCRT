@@ -92,3 +92,7 @@ export const defaultLogger = (appPath: string) => {
    const logPath = path.join(logDir, `${Date.now()}.log`);
    return getLogger(true, simpleFormatter, logPath, detailedFormatter);
 };
+
+export const consoleLogger = () => {
+   return getLogger(true, simpleFormatter);
+};
