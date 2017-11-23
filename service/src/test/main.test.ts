@@ -4,7 +4,7 @@ import { Server } from 'http';
 import * as http from 'http-status-codes';
 import 'mocha';
 
-import MyCRTService from '../main';
+import MyCrtService from '../main';
 
 const expect = chai.expect;
 chai.use(chaiHttp);
