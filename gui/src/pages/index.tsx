@@ -3,6 +3,9 @@ import '../../static/css/index.css';
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { BrowserLogger as logger } from '../logging';
+import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
+
 const Title = () => {
    return (
       <div className="title-block">
@@ -17,7 +20,7 @@ class ButtonComponent extends React.Component<any, any> {
             super(props);
             this.state = { name: "Start", active: false };
         }
-        public handleChange(event: any): void {
+        public async handleChange(event: any) {
             this.setState({ active: !this.state.active });
         }
         public render() {

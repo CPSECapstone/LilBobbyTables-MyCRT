@@ -1,14 +1,23 @@
+import fetch from 'node-fetch';
+
 import { ICapture, IEnvironment, IReplay, Logging } from '@lbt-mycrt/common';
 
 import { MyCrtClient } from './mycrt-client/client';
+import { IMyCrtClientDelegate } from './mycrt-client/client-delegate';
 
 export default class MyCrtCli {
 
    private logger = Logging.getLogger(true, Logging.rawFormatter, undefined, undefined);
 
-   private mycrt: MyCrtClient = new MyCrtClient();
+   private mycrt: MyCrtClient;
 
-   constructor() {}
+   constructor() {
+      this.mycrt = new MyCrtClient('localhost:3000', {
+         fetch,
+         logger: this.logger,
+         onError: this.clientError,
+      });
+   }
 
    public async run() {
 
@@ -47,6 +56,10 @@ export default class MyCrtCli {
       const logFunc = Logging.getLoggingFunction(this.logger, level);
       logFunc(msg);
 
+   }
+
+   private clientError(reason: any): void {
+      this.print(JSON.stringify(reason), Logging.LogLevel.ERROR);
    }
 
 }

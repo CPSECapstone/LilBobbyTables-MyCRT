@@ -1,25 +1,20 @@
 import * as http from 'http-status-codes';
-import { IRestResponse, RestClient } from 'typed-rest-client/RestClient';
 
-import { ICapture, IReplay, Logging } from '@lbt-mycrt/common';
-import { IRequestOptions } from 'typed-rest-client/Interfaces';
+import { ICapture, IReplay } from '@lbt-mycrt/common/dist/data';
 
-const logger = Logging.defaultLogger(__dirname);
+import { IMyCrtClientDelegate } from './client-delegate';
 
 export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELETE' }
 
 /** General Client class for accessing the MyCRT service */
 export class MyCrtClient {
 
-   // TODO: handle the production case
-   public static host: string = process.env.NODE_ENV === 'prod' ? '' : 'http://localhost:3000';
+   private readonly host: string;
+   private delegate: IMyCrtClientDelegate;
 
-   private mycrt: RestClient;
-
-   constructor() {
-
-      this.mycrt = new RestClient('rest-samples', `${MyCrtClient.host}`);
-
+   constructor(host: string, delegate: IMyCrtClientDelegate) {
+      this.host = `http://${host}`;
+      this.delegate = delegate;
    }
 
    /** Create a new Capture */
@@ -47,55 +42,29 @@ export class MyCrtClient {
       return this.makeRequest<IReplay>(HttpMethod.GET, `/replay/${id}`);
    }
 
-   // TODO: support IRequestOptions
    private async makeRequest<T>(method: HttpMethod, url: string, body?: any): Promise<T | null> {
 
-      const fullUrl = `/api${url}`;
+      const fullUrl = `${this.host}/api${url}`;
+      this.delegate.logger.info(`Performing ${method} on ${fullUrl}`);
 
-      logger.info(`Performing ${method} on ${fullUrl}`);
+      const options = {
+         body: body || undefined,
+         method,
+      };
 
-      let response: IRestResponse<T>;
-      let delResponse: IRestResponse<{}>;
-      let deleting: boolean = false;
+      const response = await this.delegate.fetch(fullUrl, options).catch(this.delegate.onError);
 
-      switch (method) {
-
-         case HttpMethod.DELETE:
-            deleting = true;
-            delResponse = await this.mycrt.del(fullUrl);
-            break;
-
-         case HttpMethod.GET:
-            response = await this.mycrt.get<T>(fullUrl);
-            break;
-
-         case HttpMethod.POST:
-         case HttpMethod.PUT:
-            if (!body) {
-               logger.error(`No body provided for ${method} to ${fullUrl}`);
-               return null;
+      if (response) {
+         this.delegate.logger.info(`MyCRT responded with status ${response.status}`);
+         if (response.ok) {
+            const json = await response.json();
+            if (json) {
+               return json as T;
             }
-            if (method === HttpMethod.POST) {
-               response = await this.mycrt.create<T>(fullUrl, body);
-            } else {
-               response = await this.mycrt.update<T>(fullUrl, body);
-            }
-            break;
-
+         }
       }
 
-      const status = deleting ? delResponse!.statusCode : response!.statusCode;
-
-      if (status !== http.OK) {
-         logger.warn(`${method} to ${fullUrl} has response status ${status}`);
-         return null;
-
-      } else if (deleting) {
-         return null;
-
-      }  else {
-         return response!.result;
-      }
+      return null;
 
    }
 

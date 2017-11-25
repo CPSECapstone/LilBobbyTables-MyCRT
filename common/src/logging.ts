@@ -4,7 +4,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as winston from 'winston';
 
-import { LoggerInstance } from 'winston';
 import appRootDir from './app-root-dir';
 
 /** The possible levels for logging */
@@ -25,7 +24,7 @@ export const detailedFormatter: FormatFunction = (args: any): string => {
 };
 
 /** Retrieves a logger's logging function at the specified level. */
-export const getLoggingFunction = (logger: LoggerInstance, level?: LogLevel): (msg: string) => void => {
+export const getLoggingFunction = (logger: winston.LoggerInstance, level?: LogLevel): (msg: string) => void => {
 
    if (level !== undefined) {
       switch (level) {

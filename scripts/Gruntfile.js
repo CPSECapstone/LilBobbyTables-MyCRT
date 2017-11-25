@@ -109,13 +109,13 @@ function mochaTestTaskConfig(modulePath) {
    };
 }
 
-function watchTaskConfig(modulePath, name) {
+function watchTaskConfig(modulePath, tasks) {
    return {
       files: [
          path.resolve(modulePath, 'src') + '/\*\*/\*.ts',
          path.resolve(modulePath, 'package.json'),
       ],
-      tasks: ['digest-' + name],
+      tasks: tasks,
    };
 }
 
@@ -143,11 +143,6 @@ module.exports = function(grunt) {
    grunt.loadNpmTasks('grunt-mocha-test');
    grunt.loadNpmTasks('grunt-webpack');
 
-   const guiTsOptions = {
-      inlineSourceMap: true,
-      sourceMap: false,
-   };
-
    /* configure grunt */
    grunt.initConfig({
 
@@ -169,8 +164,8 @@ module.exports = function(grunt) {
          'replay-test': tsTaskConfig(DIR.REPLAY, null, true),
          'service': tsTaskConfig(DIR.SERVICE),
          'service-test': tsTaskConfig(DIR.SERVICE, null, true),
-         'gui': tsTaskConfig(DIR.GUI, guiTsOptions),
-         'gui-test': tsTaskConfig(DIR.GUI, guiTsOptions, true),
+         'gui': tsTaskConfig(DIR.GUI),
+         'gui-test': tsTaskConfig(DIR.GUI, null, true),
       },
 
       /* typescript linter */
@@ -215,12 +210,11 @@ module.exports = function(grunt) {
 
       /* file watching */
       watch: {
-         'capture': watchTaskConfig(DIR.CAPTURE, 'capture'),
-         'cli': watchTaskConfig(DIR.CLI, 'cli'),
-         'common': watchTaskConfig(DIR.COMMON, 'common'),
-         'replay': watchTaskConfig(DIR.REPLAY, 'replay'),
-         'service': watchTaskConfig(DIR.SERVICE, 'service'),
-         // 'gui': watchTaskConfig(DIR.GUI, 'gui'),
+         'capture': watchTaskConfig(DIR.CAPTURE, ['digest-capture']),
+         'cli': watchTaskConfig(DIR.CLI, ['digest-cli']),
+         'common': watchTaskConfig(DIR.COMMON, ['digest-common']),
+         'replay': watchTaskConfig(DIR.REPLAY, ['digest-replay']),
+         'service': watchTaskConfig(DIR.SERVICE, ['digest-service']),
          'gui': {
             files: [
                path.resolve(DIR.GUI, 'src') + '/\*\*/\*.{ts,tsx}',
