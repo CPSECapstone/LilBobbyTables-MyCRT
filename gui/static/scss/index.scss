@@ -1,10 +1,22 @@
 
 body {
-   background-color: pink;
+   background-color: #F2F2F2;
 }
 
-.index-style-test {
-   background-color: lightgreen;
+.title-block {
+   padding-top: 45px;
+   text-align: center;
+}
+
+.my-crt-title {
+    color: #3366FF;
+    font-size: 4em;
+    margin-bottom: 5px;
+}
+
+.amazon-subtitle {
+    color: #797979;
+    font-style: italic;
 }
 
 .nav-header {
@@ -13,18 +25,74 @@ body {
     font-size: 2em;
     margin: 0;
     padding: 6px 15px;
-  }
+}
+
+#capture-button {
+    padding-top: 30px;
+    text-align: center;
+}
+
+.start-capture {
+    background-color:#44c767;
+    border:1px solid #18ab29;
+    text-shadow:0px 1px 0px #2f6627;
+}
+
+.start-capture:hover {
+    background-color:#5cbf2a;
+}
+
+.stop-capture {
+    background-color:#ed473b;
+    border: 1px solid #8a1d1d;
+}
+
+.stop-capture:hover {
+    background-color: #e83515;
+}
+
+.start-capture, .stop-capture {
+    border-radius:28px;
+    color: white;
+    cursor: pointer;
+    font-size: 1em;
+    height: 35px;
+    -moz-border-radius:28px;
+    -webkit-border-radius:28px;
+    width: 85px;
+}
+
+.start-capture:focus, .stop-capture:focus {
+    outline: none;
+}
+
+.capture-name {
+    display: inline-block;
+    font-size: 1.5em;
+    padding-right: 15px;
+}
+
+.result-textfield {
+    border: 1px solid #3366FF;
+    height: 300px;
+    margin-top: 30px;
+    width: 600px;
+}
+
+#capture-results {
+    text-align: center;
+}
   
-  .nav-text {
+.nav-text {
     color: #D7D7D7;
     display: inline-block;
     font-style: italic;
     margin: 0;
     padding-bottom: 10px;
     vertical-align: middle;
-  }
-  
-  nav {
+}
+
+nav {
     background-color: #3366FF;
     height: 50px;
-  }
+}
