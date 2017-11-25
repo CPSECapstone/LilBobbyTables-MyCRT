@@ -3,7 +3,6 @@ import '../../static/css/index.css';
 import React = require('react');
 import ReactDom = require('react-dom');
 
-import { BrowserLogger as logger } from '../logging';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 const Title = () => {
@@ -20,7 +19,7 @@ class ButtonComponent extends React.Component<any, any> {
             super(props);
             this.state = { name: "Start", active: false };
         }
-        public async handleChange(event: any) {
+        public handleChange(event: any) {
             this.setState({ active: !this.state.active });
         }
         public render() {

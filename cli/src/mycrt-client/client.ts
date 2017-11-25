@@ -10,6 +10,13 @@ export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELE
 export class MyCrtClient {
 
    private readonly host: string;
+
+   /**
+    * Using a delegate allows the client to work in both the Node runtime (cli) and in browsers (gui).
+    * This is because the Node runtime should use the file system (not available in the browser),
+    * and, the browser has a native 'fetch' function that we want to use. Providing a delegate
+    * allows the user of MyCrtClient to define these behaviors specific to their runtime environments.
+    */
    private delegate: IMyCrtClientDelegate;
 
    constructor(host: string, delegate: IMyCrtClientDelegate) {
