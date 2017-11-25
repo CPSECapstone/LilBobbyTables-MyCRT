@@ -56,6 +56,9 @@ export default class CaptureRouter extends SelfAwareRouter {
          })
 
          .post('/:id/stop', (request, response) => {
+
+            // Nish: this is where we'd send the signal to the capture program to stop.
+
             /* TODO get the aws credentials from the environment in MyCRT database */
             const myConn = mysql.createConnection(config);
             aws.config.update({region: 'us-east-2'});
@@ -121,6 +124,9 @@ export default class CaptureRouter extends SelfAwareRouter {
          })
 
          .post('/', (request, response) => {
+
+            // Nish: this is where we would launch the capture program
+
             /* Add validation for insert */
             const capture = request.body;
             const conn = mysql.createConnection(config);
