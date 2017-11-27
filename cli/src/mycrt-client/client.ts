@@ -10,7 +10,6 @@ export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELE
 export class MyCrtClient {
 
    private readonly host: string;
-
    /**
     * Using a delegate allows the client to work in both the Node runtime (cli) and in browsers (gui).
     * This is because the Node runtime should use the file system (not available in the browser),
@@ -26,6 +25,7 @@ export class MyCrtClient {
 
    /** Create a new Capture */
    public async postCapture(capture: ICapture): Promise<number | null> {
+      this.delegate.logger.info(`Within post capture` + JSON.stringify(capture));
       return this.makeRequest<number>(HttpMethod.POST, '/capture', capture);
    }
 
@@ -58,6 +58,7 @@ export class MyCrtClient {
 
       const fullUrl = `${this.host}/api${url}`;
       this.delegate.logger.info(`Performing ${method} on ${fullUrl}`);
+      this.delegate.logger.info(`Within make request` + JSON.stringify(body));
 
       const options = {
          body: body || undefined,

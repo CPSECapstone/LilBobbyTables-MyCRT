@@ -24,7 +24,8 @@ class ButtonComponent extends React.Component<any, any> {
         public async handleChange(event: any) {
             this.setState({ active: !this.state.active });
             if (!this.state.active) {
-                const captureId = await mycrt.postCapture({ name: 'lbt-capture' });
+                const captureId = await mycrt.postCapture({ end: null, name: 'lbt-capture',
+                    start: "2017-11-02 12:00:00" });
                 logger.info(`Got capture id: ${captureId}`);
                 if (captureId) {
                     this.setState({ id: captureId });
