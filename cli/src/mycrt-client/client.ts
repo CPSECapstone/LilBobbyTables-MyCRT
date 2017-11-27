@@ -25,8 +25,13 @@ export class MyCrtClient {
    }
 
    /** Create a new Capture */
-   public async postCapture(capture: ICapture): Promise<ICapture | null> {
-      return this.makeRequest<ICapture>(HttpMethod.POST, '/capture', capture);
+   public async postCapture(capture: ICapture): Promise<number | null> {
+      return this.makeRequest<number>(HttpMethod.POST, '/capture', capture);
+   }
+
+   /** Stop a specific capture */
+   public async stopCapture(id: number): Promise<any> {
+      return this.makeRequest<ICapture>(HttpMethod.POST, `/capture/${id}/stop`);
    }
 
    /** Retrieve all of the captures */

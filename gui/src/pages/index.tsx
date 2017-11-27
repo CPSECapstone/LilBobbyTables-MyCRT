@@ -1,5 +1,7 @@
 import '../../static/css/index.css';
 
+import { BrowserLogger as logger } from '../logging';
+
 import React = require('react');
 import ReactDom = require('react-dom');
 
@@ -17,10 +19,24 @@ const Title = () => {
 class ButtonComponent extends React.Component<any, any> {
         constructor(props: any) {
             super(props);
-            this.state = { name: "Start", active: false };
+            this.state = { name: "Start", active: false, id: null, result: null };
         }
-        public handleChange(event: any) {
+        public async handleChange(event: any) {
             this.setState({ active: !this.state.active });
+            if (!this.state.active) {
+                const captureId = await mycrt.postCapture({ name: 'lbt-capture' });
+                logger.info(`Got capture id: ${captureId}`);
+                if (captureId) {
+                    this.setState({ id: captureId });
+                }
+            } else {
+                let result = await mycrt.stopCapture(this.state.id);
+                logger.info(`${result}`);
+                if (!result) {
+                    result = `Capture ${this.state.id}: Failed to get capture result.`;
+                }
+                this.setState({ result });
+            }
         }
         public render() {
             return (
@@ -29,17 +45,12 @@ class ButtonComponent extends React.Component<any, any> {
                     <button className={this.state.active ? 'stop-capture' : 'start-capture'}
                             onClick = { (e) => this.handleChange(e) }
                     >{ this.state.active ? 'Stop' : 'Start'}</button>
+                    <br/>
+                    <textarea className="result-textfield" value={this.state.result || ''}></textarea>
                 </div>
             );
         }
 }
 
-const TextField = () => {
-    return (
-        <textarea className="result-textfield"></textarea>
-    );
-};
-
 ReactDom.render(<Title />, document.getElementById('title-block'));
 ReactDom.render(<ButtonComponent />, document.getElementById('capture-button'));
-ReactDom.render(<TextField />, document.getElementById('capture-results'));
