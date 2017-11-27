@@ -47,7 +47,8 @@ class ButtonComponent extends React.Component<any, any> {
                             onClick = { (e) => this.handleChange(e) }
                     >{ this.state.active ? 'Stop' : 'Start'}</button>
                     <br/>
-                    <textarea className="result-textfield" value={this.state.result || ''}></textarea>
+                    <textarea className="result-textfield"
+                        value={this.state.result ? JSON.stringify(this.state.result, null, "\t") : ''}></textarea>
                 </div>
             );
         }

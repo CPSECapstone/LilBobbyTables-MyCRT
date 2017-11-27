@@ -25,7 +25,6 @@ export class MyCrtClient {
 
    /** Create a new Capture */
    public async postCapture(capture: ICapture): Promise<number | null> {
-      this.delegate.logger.info(`Within post capture` + JSON.stringify(capture));
       return this.makeRequest<number>(HttpMethod.POST, '/capture', capture);
    }
 
@@ -58,10 +57,13 @@ export class MyCrtClient {
 
       const fullUrl = `${this.host}/api${url}`;
       this.delegate.logger.info(`Performing ${method} on ${fullUrl}`);
-      this.delegate.logger.info(`Within make request` + JSON.stringify(body));
 
       const options = {
-         body: body || undefined,
+         body: JSON.stringify(body) || undefined,
+         headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
          method,
       };
 
