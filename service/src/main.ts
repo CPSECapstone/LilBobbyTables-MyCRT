@@ -7,7 +7,7 @@ import { Server } from 'http';
 import * as mustache from 'mustache';
 import * as path from 'path';
 
-import { Logging } from '@lbt-mycrt/common';
+import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import { Pages, StaticFileDirs, Template } from '@lbt-mycrt/gui';
 
 import ApiRouter from './routes/api';
@@ -29,6 +29,8 @@ class MyCrtService {
    private port: number | null = null;
    private host: string | null = null;
    private server: Server | null = null;
+
+   private ipcNode = new ServerIpcNode(logger);
 
    public getServer(): Server | null {
       return this.server;
@@ -68,6 +70,9 @@ class MyCrtService {
          logger.info("-----------------------------------------------------------");
       });
 
+      // start the IpcNode
+      this.ipcNode.start();
+
    }
 
    public close(callback?: () => void | undefined): void {
@@ -80,6 +85,7 @@ class MyCrtService {
          this.port = null;
          this.host = null;
          this.express = null;
+         this.ipcNode.stop();
       }
 
    }
