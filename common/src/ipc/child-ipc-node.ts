@@ -1,6 +1,6 @@
 import winston = require('winston');
 
-// import { TestMessage } from '../ipc/test-message';
+// import { TestMessage } from './messages/test-message';
 import { IpcNode } from './ipc-node';
 import { ServerIpcNodePath } from './server-ipc-node';
 
@@ -10,7 +10,7 @@ import { ServerIpcNodePath } from './server-ipc-node';
 export class ChildIpcNode extends IpcNode {
 
    /** The socket reference to the mycrt service */
-   private mycrt: any;
+   protected mycrt: any;
 
    constructor(id: string, logger: winston.LoggerInstance) {
       super(id, logger);
@@ -31,20 +31,20 @@ export class ChildIpcNode extends IpcNode {
       super.stop();
 
       this.logger.info(`Disconnecting from ${ServerIpcNodePath}`);
-      // TODO
+      this.disconnect('mycrt');
       this.logger.info(`Successfully disconnected from ${ServerIpcNodePath}`);
+   }
+
+   /** register messages to receive */
+   protected setReceivers(): void {
+      const getMycrt = () => this.mycrt;
+
+      // this.receive(getMycrt, TestMessage, this.receiveTest);
    }
 
    // public sendTestMessage() {
    //    this.sendMessage(this.mycrt, TestMessage, "THIS IS THE TEST MESSAGE");
    // }
-
-   /** register messages to receive */
-   private setReceivers(): void {
-      const getMycrt = () => this.mycrt;
-
-      // this.receive(getMycrt, TestMessage, this.receiveTest);
-   }
 
    // private receiveTest(str: string) {
    //    this.logger.info(`Got response: ${str}`);

@@ -115,7 +115,7 @@ class MyCrtService {
 
    private mountApiRoutes(): void {
 
-      const apiRouter = new ApiRouter();
+      const apiRouter = new ApiRouter(this.ipcNode);
       this.express!.use(apiRouter.urlPrefix, apiRouter.router);
 
    }

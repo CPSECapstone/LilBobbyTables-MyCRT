@@ -1,61 +1,57 @@
-import { Logging } from '@lbt-mycrt/common';
+import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
 
 const logger = Logging.defaultLogger(__dirname);
 
 export interface ICaptureConfig {
-   id: number;
-   interval: number;
+   readonly id: number;
+   readonly interval?: number;
 
    // other config stuff can be here...
 
 }
 
-export class Capture {
-
-   /** Once set to true, the capture will wrap up */
+export class Capture implements ICaptureIpcNodeDelegate {
    private done: boolean = false;
 
-   constructor(public config: ICaptureConfig) {}
+   private ipcNode: CaptureIpcNode;
 
-   /**
-    * Run the capture, setup is performed, then logs are periodically processed.
-    * Once `done` is set to true, teardown will be performed.
-    */
+   constructor(public config: ICaptureConfig) {
+      this.ipcNode = new CaptureIpcNode(this.id, logger, this);
+   }
+
+   public get id(): number {
+      return this.config.id;
+   }
+
    public run(): void {
-
       this.setup();
-
-      while (!this.done) {
-
-         // TODO: sleep for this.config.interval (still have to figure this out)
-         // TODO: set `done` to true by waiting for a signal from the service.
-
-         this.processLogs();
-      }
-
-      this.teardown();
-
+      this.loop();
    }
 
-   /**
-    * Perform setup for the Capture. (turning on logging for the RDS instance, etc.)
-    */
+   public async onStop(): Promise<number> {
+      logger.info(`Capture ${this.id} received stop signal!`);
+      this.done = true;
+      return this.id;
+   }
+
    private setup(): void {
-      logger.info(`Performing setup for Capture ${this.config.id}`);
+      logger.info(`Performing setup for Capture ${this.id}`);
+      this.ipcNode.start();
    }
 
-   /**
-    * Called once every `this.config.interval` milliseconds
-    */
-   private processLogs(): void {
-      logger.info(`Capture ${this.config.id}: processing logs...`);
+   private loop(): void {
+      logger.info(`Capture ${this.id}: loop start`);
+
+      if (this.done) {
+         this.teardown();
+      } else {
+         setTimeout(() => { this.loop(); }, this.config.interval);
+      }
    }
 
-   /**
-    * Perform the teardown. For now, this'll be just scraping logs from RDS and putting them into S3.
-    */
    private teardown(): void {
-      logger.info(`Performing teardown for Capture ${this.config.id}`);
+      logger.info(`Performing teardown for Capture ${this.id}`);
+      this.ipcNode.stop();
    }
 
 }

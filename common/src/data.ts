@@ -1,4 +1,6 @@
 
+export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
+
 /** Interface for Capture objects sent/received from the MyCRT service. */
 export interface ICapture {
    id?: number;

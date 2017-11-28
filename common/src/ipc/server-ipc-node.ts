@@ -1,7 +1,9 @@
 import winston = require('winston');
 
+import { ChildProgramType } from '../data';
 import { IpcNode, IpcNodeAppspace, IpcNodeSocketRoot } from './ipc-node';
-// import { TestMessage } from './test-message';
+import { CaptureStopMessage } from './messages/capture-messages';
+// import { TestMessage } from './messages/test-message';
 
 export const ServerIpcNodeId: string = 'server.ipcnode';
 export const ServerIpcNodePath: string = `${IpcNodeSocketRoot}${IpcNodeAppspace}${ServerIpcNodeId}`;
@@ -12,18 +14,30 @@ export const ServerIpcNodePath: string = `${IpcNodeSocketRoot}${IpcNodeAppspace}
 export class ServerIpcNode extends IpcNode {
 
    /** all of the IpcNodes for the Capture programs */
-   private captures: { [id: string]: any } = {};
+   protected captures: { [id: string]: any } = {};
 
    /** all of the IpcNodes for the Replay programs */
-   private replays: { [id: string]: any } = {};
+   protected replays: { [id: string]: any } = {};
 
    constructor(logger: winston.LoggerInstance) {
       super(ServerIpcNodeId, logger);
       this.setHandlers();
    }
 
+   /** Get the path to a child's socket */
+   public getChildSocketPath(type: ChildProgramType, id: number): string {
+      const typeName = type === ChildProgramType.CAPTURE ? 'capture' : 'replay';
+      return `${IpcNodeSocketRoot}${IpcNodeAppspace}${typeName}${id}`;
+   }
+
+   /** Send the 'stop' signal to a capture */
+   public async stopCapture(id: number) {
+      const path = this.getChildSocketPath(ChildProgramType.CAPTURE, id);
+      const result: number | null = await this.connectSendDisconnect<null, number>(path, CaptureStopMessage, null);
+   }
+
    /** register messages to handle */
-   private setHandlers(): void {
+   protected setHandlers(): void {
       // this.handle(TestMessage, this.handleTestMessage);
    }
 

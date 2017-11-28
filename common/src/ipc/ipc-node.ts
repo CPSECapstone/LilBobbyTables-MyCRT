@@ -1,7 +1,8 @@
 import nodeIpc = require('node-ipc');
+import uuid = require('uuid/v1');
 import winston = require('winston');
 
-import { IIpcMessage } from './ipc-message';
+import { IIpcMessage } from './messages/ipc-message';
 
 export const IpcNodeSocketRoot: string = '/tmp/';
 export const IpcNodeAppspace: string = 'mycrt.';
@@ -131,8 +132,32 @@ export class IpcNode {
     */
    public sendMessage<T, U>(ipcNode: any, ipcMessage: string | IIpcMessage<T, U>, request: T) {
       const name = typeof(ipcMessage) === 'string' ? ipcMessage : ipcMessage.name;
-      // TODO: warn when no receiver
+      if (!this.receivableIpcMessages[name]) {
+         this.logger.warn(`${this.id} has no receiver for message ${name}`);
+      }
       ipcNode.emit(name, request);
+   }
+
+   /** Connect to a socket, make a request, wait for the response, disconnect from the socket, return the result */
+   public async connectSendDisconnect<T, U>(path: string, ipcMessage: string | IIpcMessage<T, U>,
+                                            request: T): Promise<U | null> {
+
+      const requestName = typeof(ipcMessage) === 'string' ? ipcMessage : ipcMessage.name;
+      const responseName = `${requestName}${IpcNode.RESPONSE_SUFFIX}`;
+      const socketUuid = uuid();
+      const socket = await this.connectTo(socketUuid, path);
+
+      return new Promise<U | null>((resolve, reject) => {
+         // wait for the response
+         socket.on(responseName, (data: U) => {
+            this.disconnect(socketUuid);
+            resolve(data);
+         });
+
+         // make the request
+         socket.emit(requestName, request);
+      });
+
    }
 
    /** wrapper for this.ipc.connectTo */
@@ -143,6 +168,11 @@ export class IpcNode {
             resolve(this.ipc.of[nodeId]);
          });
       });
+   }
+
+   /** wrapper for this.ipc.disconnect */
+   protected disconnect(nodeId: string) {
+      this.ipc.disconnect(nodeId);
    }
 
    /** start listening for incoming requests */

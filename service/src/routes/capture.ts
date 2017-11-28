@@ -57,7 +57,9 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          .post('/:id/stop', (request, response) => {
 
-            // Nish: this is where we'd send the signal to the capture program to stop.
+            // STOP THE CAPTURE
+            const captureId = request.params.id;
+            this.ipcNode.stopCapture(captureId);
 
             /* TODO get the aws credentials from the environment in MyCRT database */
             const myConn = mysql.createConnection(config);
@@ -125,8 +127,6 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          .post('/', (request, response) => {
 
-            // Nish: this is where we would launch the capture program
-
             /* Add validation for insert */
             const capture = request.body;
             const conn = mysql.createConnection(config);
@@ -142,6 +142,10 @@ export default class CaptureRouter extends SelfAwareRouter {
                      if (queryErr) {
                         throw queryErr;
                      } else {
+
+                        // LAUNCH THE CAPTURE
+                        launch({ id: result.insertId });
+
                         /* TODO get the aws credentials from the environment in MyCRT database*/
                         /*    aws.config(...)  */
                         /* TODO get the parameterGroup from the environment in MyCRT database*/
