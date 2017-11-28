@@ -12,6 +12,7 @@ if (typeof(require) !== 'undefined' && require.main === module) {
    const config = {
       id: +process.argv[2],
       interval: 2000, // 2 seconds
+      supervised: true,
    };
 
    const capture = new Capture(config);
