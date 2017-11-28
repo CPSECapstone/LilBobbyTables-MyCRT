@@ -1,6 +1,5 @@
 import { launch } from '@lbt-mycrt/capture';
 import { Logging } from '@lbt-mycrt/common';
-import * as aws from 'aws-sdk';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 import SelfAwareRouter from './self-aware-router';
@@ -55,84 +54,21 @@ export default class CaptureRouter extends SelfAwareRouter {
             });
          })
 
-         .post('/:id/stop', (request, response) => {
+         .post('/:id/stop', async (request, response) => {
 
-            // STOP THE CAPTURE
             const captureId = request.params.id;
-            this.ipcNode.stopCapture(captureId);
+            const s3res: any = await this.ipcNode.stopCapture(captureId);
+            response.json(s3res).end();
 
-            /* TODO get the aws credentials from the environment in MyCRT database */
-            const myConn = mysql.createConnection(config);
-            aws.config.update({region: 'us-east-2'});
-            const rds = new aws.RDS();
-            const s3 = new aws.S3();
-            /* TODO get the parameterGroup from the environment in MyCRT database */
-            const parameterGroup: string = "supergroup";
-            const params = {
-                DBParameterGroupName : parameterGroup,
-                Parameters: [
-                    {
-                        ApplyMethod: "immediate",
-                        ParameterName: "general_log",
-                        ParameterValue: '0',
-                    },
-                ],
-            };
-            /* TODO send an API request to disable general log in the parameterGroup */
-            rds.modifyDBParameterGroup(params, (awsErr, data) => {
-               if (awsErr) {
-                  throw awsErr;
-               } else {
-                  /* TODO connect to the database held by the environment */
-                  const remoteConfig = require('../../db/remoteConfig.json');
-                  const remoteConn = mysql.createConnection(remoteConfig);
-                  remoteConn.connect((remoteConnErr) => {
-                     if (remoteConnErr) {
-                        throw remoteConnErr;
-                     } else {
-                        /* TODO run a query to select the general_log */
-                        const queryStr = mysql.format("SELECT * FROM mysql.general_log " +
-                           "where user_host = ?", ["nfl2015user[nfl2015user] @  [172.31.35.19]"]);
-                        remoteConn.query(queryStr, (queryErr, rows) => {
-                           if (queryErr) {
-                              throw queryErr;
-                           } else {
-                              /* STOP REVERTING */
-                              /* Get s3 bucket from environment */
-                              /* TODO connect to an S3 bucket using aws credentials */
-                              /* TODO intelligently name the key filename */
-                              /* TODO update the MyCRT database */
-                              const s3Params = {
-                                 Body: JSON.stringify(rows),
-                                 Bucket : "nfllogbucket",
-                                 Key: "mylog.json",
-                              };
-                              s3.upload(s3Params, (s3Err: any, s3res: any) => {
-                                 if (s3Err) {
-                                    throw s3Err;
-                                 } else {
-                                    response.json(s3res);
-                                    remoteConn.end();
-                                    myConn.end();
-                                 }
-                              });
-                           }
-                        });
-                     }
-                  });
-               }
-            });
-            /* TODO dump the general_log on the S3 bucket */
          })
 
          .post('/', (request, response) => {
 
             /* Add validation for insert */
             const capture = request.body;
-            const conn = mysql.createConnection(config);
-            aws.config.update({region: 'us-east-2'});
-            const rds = new aws.RDS();
 
+            logger.info('Creating Capture');
+            const conn = mysql.createConnection(config);
             conn.connect((connErr) => {
                if (connErr) {
                   throw connErr;
@@ -142,32 +78,14 @@ export default class CaptureRouter extends SelfAwareRouter {
                      if (queryErr) {
                         throw queryErr;
                      } else {
+                        conn.end();
 
-                        // LAUNCH THE CAPTURE
+                        logger.info(`Launching capture with id ${result.insertId}`);
                         launch({ id: result.insertId });
 
-                        /* TODO get the aws credentials from the environment in MyCRT database*/
-                        /*    aws.config(...)  */
-                        /* TODO get the parameterGroup from the environment in MyCRT database*/
-                        const parameterGroup: string = "supergroup";
-                        const params = {
-                           DBParameterGroupName : parameterGroup,
-                           Parameters: [
-                              {
-                                 ApplyMethod: "immediate",
-                                 ParameterName: "general_log",
-                                 ParameterValue: '1',
-                              },
-                           ],
-                        };
-                        rds.modifyDBParameterGroup(params, (awsErr, data) => {
-                           if (awsErr) {
-                              throw awsErr;
-                           } else {
-                              response.json(result.insertId);
-                              conn.end();
-                           }
-                        });
+                        logger.info(`Successfully created capture!`);
+                        response.json(result.insertId).end();
+
                      }
                   });
                }

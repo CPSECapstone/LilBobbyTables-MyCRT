@@ -1,4 +1,4 @@
 
 export interface ICaptureIpcNodeDelegate {
-   onStop: () => Promise<number>;
+   onStop: () => Promise<any>;
 }

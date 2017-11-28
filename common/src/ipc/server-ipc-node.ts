@@ -33,7 +33,8 @@ export class ServerIpcNode extends IpcNode {
    /** Send the 'stop' signal to a capture */
    public async stopCapture(id: number) {
       const path = this.getChildSocketPath(ChildProgramType.CAPTURE, id);
-      const result: number | null = await this.connectSendDisconnect<null, number>(path, CaptureStopMessage, null);
+      const result: any = await this.connectSendDisconnect<null, any>(path, CaptureStopMessage, null);
+      return result;
    }
 
    /** register messages to handle */

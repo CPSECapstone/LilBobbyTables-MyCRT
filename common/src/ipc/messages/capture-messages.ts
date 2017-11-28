@@ -6,4 +6,4 @@ export const CaptureStopMessage = {
    createMessage: (): null => {
       return null;
    },
-} as IIpcMessage<null, number>;
+} as IIpcMessage<null, any>;

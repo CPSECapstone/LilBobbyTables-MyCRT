@@ -1,5 +1,7 @@
 import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
 
+import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
+
 const logger = Logging.defaultLogger(__dirname);
 
 export interface ICaptureConfig {
@@ -34,15 +36,20 @@ export class Capture implements ICaptureIpcNodeDelegate {
       }
    }
 
-   public async onStop(): Promise<number> {
+   public async onStop(): Promise<any> {
       logger.info(`Capture ${this.id} received stop signal!`);
       this.done = true;
-      return this.id;
+
+      const s3res = await stopRdsLoggingAndUploadToS3();
+      return s3res;
    }
 
    private setup(): void {
       logger.info(`Performing setup for Capture ${this.id}`);
       this.ipcNode.start();
+
+      logger.info(`Starting RDS logging`);
+      startRdsLogging();
    }
 
    private loop(): void {
