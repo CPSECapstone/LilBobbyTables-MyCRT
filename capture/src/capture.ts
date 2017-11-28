@@ -5,6 +5,7 @@ const logger = Logging.defaultLogger(__dirname);
 export interface ICaptureConfig {
    readonly id: number;
    readonly interval?: number;
+   readonly supervised?: boolean;
 
    // other config stuff can be here...
 
@@ -24,8 +25,13 @@ export class Capture implements ICaptureIpcNodeDelegate {
    }
 
    public run(): void {
-      this.setup();
-      this.loop();
+      if (this.config.supervised) {
+         this.setup();
+         this.loop();
+      } else {
+         this.setup();
+         this.teardown();
+      }
    }
 
    public async onStop(): Promise<number> {
