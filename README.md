@@ -13,3 +13,8 @@
 ### Major Features
 > MyCRT will bring three major features to AWS and RDS users. These features are workload capture, workload replay, and system metric display and comparison. Workload capture will allow users to record actions made to a source MySQL database along with a snapshot of its initial state and a collection of system metrics taken during the capture. Workload replay allows the users to replay these captured workloads on target database systems with different configurations. The same set of metrics is also recorded on the target systems. Finally, MyCRT will provide the metrics and interfaces to allow users to compare the metrics and choose the most efficient system configuration.
 
+### Architecture Overview
+##### Deployment Diagram
+![deployment diagram](https://user-images.githubusercontent.com/9324880/33972167-58c08d68-e031-11e7-8113-39390eddff8d.png)
+> To better understand the architecture of MyCRT, please visit the [architecture overview](https://github.com/CPSECapstone/LilBobbyTables-MyCRT/wiki/Architecture-Overview)
+.
