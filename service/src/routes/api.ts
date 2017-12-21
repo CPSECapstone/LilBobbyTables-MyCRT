@@ -13,8 +13,8 @@ export default class ApiRouter extends SelfAwareRouter {
          this.router.use(router.urlPrefix, router.router);
       };
 
-      mountRouter(new CaptureRouter());
-      mountRouter(new ReplayRouter());
+      mountRouter(new CaptureRouter(this.ipcNode));
+      mountRouter(new ReplayRouter(this.ipcNode));
 
    }
 
