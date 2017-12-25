@@ -26,6 +26,7 @@ CREATE TABLE Capture (
    name VARCHAR(32),
    start DATETIME,
    end DATETIME,
+   status VARCHAR(32),
    envId INT(11) REFERENCES Environment(id)
 );
 
