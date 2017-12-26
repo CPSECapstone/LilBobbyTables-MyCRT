@@ -3,6 +3,7 @@ import { Logging } from '@lbt-mycrt/common';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 import SelfAwareRouter from './self-aware-router';
+import ConnectionPool from './util/cnnPool';
 
 export default class CaptureRouter extends SelfAwareRouter {
    public name: string = 'capture';
@@ -14,43 +15,17 @@ export default class CaptureRouter extends SelfAwareRouter {
 
       this.router
          .get('/', (request, response) => {
-            const conn = mysql.createConnection(config);
-
-            conn.connect((connErr) => {
-               if (connErr) {
-                  throw connErr;
-               } else {
-                  const queryStr = mysql.format("SELECT * FROM Capture", []);
-                  conn.query(queryStr, (queryErr, rows) => {
-                     if (queryErr) {
-                        throw queryErr;
-                     } else {
-                        response.json(rows);
-                        conn.end();
-                     }
-                  });
-               }
+            const queryStr = mysql.format("SELECT * FROM Capture", []);
+            ConnectionPool.query(response, queryStr, (error, rows, fields) => {
+               response.json(rows);
             });
          })
 
          .get('/:id', (request, response) => {
             const id = request.params.id;
-            const conn = mysql.createConnection(config);
-
-            conn.connect((connErr) => {
-               if (connErr) {
-                  throw connErr;
-               } else {
-                  const queryStr = mysql.format("SELECT * FROM Capture WHERE id = ?", [id]);
-                  conn.query(queryStr, (queryErr, rows) => {
-                     if (queryErr) {
-                        throw queryErr;
-                     } else {
-                        response.json(rows[0]);
-                        conn.end();
-                     }
-                  });
-               }
+            const queryStr = mysql.format("SELECT * FROM Capture WHERE id = ?", [id]);
+            ConnectionPool.query(response, queryStr, (error, row, fields) => {
+               response.json(row);
             });
          })
 
@@ -63,32 +38,18 @@ export default class CaptureRouter extends SelfAwareRouter {
          })
 
          .post('/', (request, response) => {
+            const capture = request.body;
+            const insertStr = mysql.format("INSERT INTO Capture SET ?", capture);
+            logger.info('Creating Capture');
 
             /* Add validation for insert */
-            const capture = request.body;
+            ConnectionPool.query(response, insertStr, (error, result) => {
+               logger.info(`Launching capture with id ${result.insertId}`);
+               launch({ id: result.insertId });
 
-            logger.info('Creating Capture');
-            const conn = mysql.createConnection(config);
-            conn.connect((connErr) => {
-               if (connErr) {
-                  throw connErr;
-               } else {
-                  const insertStr = mysql.format("INSERT INTO Capture SET ?", capture);
-                  conn.query(insertStr, (queryErr, result) => {
-                     if (queryErr) {
-                        throw queryErr;
-                     } else {
-                        conn.end();
+               logger.info(`Successfully created capture!`);
+               response.json(result.insertId);
 
-                        logger.info(`Launching capture with id ${result.insertId}`);
-                        launch({ id: result.insertId });
-
-                        logger.info(`Successfully created capture!`);
-                        response.json(result.insertId).end();
-
-                     }
-                  });
-               }
             });
          })
       ;
