@@ -8,6 +8,13 @@ export interface ICaptureConfig {
    readonly id: number;
    readonly interval?: number;
    readonly supervised?: boolean;
+   /* TODO: Remove question marks once the new info has been configured */
+   readonly dbName?: string;
+   readonly dbHost?: string;
+   readonly dbUser?: string;
+   readonly dbPass?: string;
+   readonly s3Bucket?: string;
+   readonly s3Key?: string;
 
    // other config stuff can be here...
 

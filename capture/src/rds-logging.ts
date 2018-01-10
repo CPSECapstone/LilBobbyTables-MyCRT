@@ -77,7 +77,6 @@ export const stopRdsLoggingAndUploadToS3 = async (): Promise<any> => {
          if (remoteConnErr) {
             reject(remoteConnErr);
          } else {
-
             /* TODO run a query to select the general_log */
             const queryStr = mysql.format("SELECT * FROM mysql.general_log " +
             "where user_host = ?", ["nfl2015user[nfl2015user] @  [172.31.35.19]"]);
@@ -95,5 +94,4 @@ export const stopRdsLoggingAndUploadToS3 = async (): Promise<any> => {
          }
       });
    });
-
 };

@@ -10,7 +10,7 @@ export declare type CallbackFunction = (error: MysqlError | null, results: any, 
 
 export default class ConnectionPool {
 
-   public static singleton: ConnectionPool = new ConnectionPool();
+   public static singleton: ConnectionPool = new ConnectionPool(require('../../../db/config.json'), 1);
    public static query(response: Response, query: string, callback: CallbackFunction) {
       ConnectionPool.singleton.pool.getConnection((connErr, conn) => {
          if (connErr) {
@@ -28,14 +28,11 @@ export default class ConnectionPool {
       });
    }
 
-   protected config: string;
-   protected connectionLimit: number;
    protected pool: Pool;
-   protected poolSize: number = 1;
 
-   public constructor() {
-      this.config = require('../../../db/config.json');
-      this.connectionLimit = this.poolSize;
+   public constructor(protected config: string, protected connectionLimit: number) {
+      this.config = config;
+      this.connectionLimit = connectionLimit;
       this.pool = mysql.createPool(this.config);
    }
 }
