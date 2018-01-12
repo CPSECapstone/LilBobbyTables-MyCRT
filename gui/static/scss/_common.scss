@@ -1,1 +1,8 @@
+@import 'theme';
 
+.myCRT-nav {
+    background-color: $color-primary-0;
+    .myCRT-nav-title {
+        color: white;
+    }
+}
