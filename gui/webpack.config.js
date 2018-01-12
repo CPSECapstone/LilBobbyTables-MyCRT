@@ -2,12 +2,6 @@ const path = require('path');
 
 const config = {
 
-   // node: {
-   //    fs: 'empty',
-   //    net: 'empty',
-   //    tls: 'empty',
-   // },
-
    entry: {       // one per web page
       index: path.resolve(__dirname, 'dist', 'pages', 'index.js'),
       environment: path.resolve(__dirname, 'dist', 'pages', 'environment.js'),
@@ -27,6 +21,10 @@ const config = {
          {
             test: /\.css$/,
             use: ['style-loader', 'css-loader'],
+         },
+         {
+            test: /\.(woff|woff2|eot|ttf|otf|png|svg|jpg|gif)$/, // fonts and images
+            use: ['file-loader'],
          },
       ],
    },

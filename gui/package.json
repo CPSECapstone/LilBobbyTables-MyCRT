@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT#readme",
   "devDependencies": {
+    "@types/bootstrap": "^3.3.36",
     "@types/chai": "^4.0.5",
+    "@types/jquery": "^3.2.17",
     "@types/mocha": "^2.2.44",
     "@types/mustache": "^0.8.30",
     "@types/node": "8.0.53",
@@ -32,6 +34,8 @@
   "dependencies": {
     "@lbt-mycrt/cli": "file:../cli",
     "@lbt-mycrt/common": "file:../common",
+    "bootstrap": "^3.3.7",
+    "jquery": "^3.2.1",
     "mustache": "^2.3.0",
     "react": "^16.1.1",
     "react-dom": "^16.1.1"

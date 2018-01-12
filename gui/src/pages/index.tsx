@@ -5,6 +5,7 @@ import { BrowserLogger as logger } from '../logging';
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import './common';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 const Title = () => {
