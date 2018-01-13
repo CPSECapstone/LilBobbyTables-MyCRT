@@ -11,7 +11,6 @@ export default class CaptureRouter extends SelfAwareRouter {
 
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
-      const config = require('../../db/config.json');
 
       this.router
          .get('/', (request, response) => {
