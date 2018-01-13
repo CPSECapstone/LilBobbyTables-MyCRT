@@ -7,7 +7,7 @@ import ConnectionPool from './util/cnnPool';
 
 export default class CaptureRouter extends SelfAwareRouter {
    public name: string = 'capture';
-   public urlPrefix: string = '/capture';
+   public urlPrefix: string = '/captures';
 
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
