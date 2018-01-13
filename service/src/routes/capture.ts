@@ -38,6 +38,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          .post('/', (request, response) => {
             const capture = request.body;
+            capture.status = "queued";
             const insertStr = mysql.format("INSERT INTO Capture SET ?", capture);
             logger.info('Creating Capture');
 

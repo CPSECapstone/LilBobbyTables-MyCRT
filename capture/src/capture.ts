@@ -2,6 +2,8 @@ import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/com
 
 import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
 
+import mysql = require('mysql');
+
 const logger = Logging.defaultLogger(__dirname);
 
 export interface ICaptureConfig {
@@ -21,6 +23,29 @@ export interface ICaptureConfig {
 }
 
 export class Capture implements ICaptureIpcNodeDelegate {
+   public static updateCaptureStatus(id: number, status: string) {
+      const config = require("../db/config.json");
+      const conn = mysql.createConnection(config);
+
+      return new Promise<any>((resolve, reject) => {
+         conn.connect((connErr) => {
+            if (connErr) {
+               reject(connErr);
+            } else {
+               const updateStr = mysql.format("UPDATE Capture SET status = ? WHERE id = ?", [status, id]);
+               conn.query(updateStr, async (updateErr, rows) => {
+                  conn.end();
+                  if (updateErr) {
+                     reject(updateErr);
+                  } else {
+                     resolve(rows);
+                  }
+               });
+            }
+         });
+      });
+   }
+
    private done: boolean = false;
 
    private ipcNode: CaptureIpcNode;
@@ -34,11 +59,10 @@ export class Capture implements ICaptureIpcNodeDelegate {
    }
 
    public run(): void {
+      this.setup();
       if (this.config.supervised) {
-         this.setup();
          this.loop();
       } else {
-         this.setup();
          this.teardown();
       }
    }
@@ -55,6 +79,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
       logger.info(`Performing setup for Capture ${this.id}`);
       this.ipcNode.start();
 
+      Capture.updateCaptureStatus(this.id, "live");
       logger.info(`Starting RDS logging`);
       startRdsLogging();
    }
