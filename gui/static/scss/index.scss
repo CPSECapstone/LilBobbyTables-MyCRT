@@ -1,1 +1,10 @@
 @import 'common';
+
+.jumbotron {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    .container {
+        text-align: center;
+    }
+}
