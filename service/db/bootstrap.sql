@@ -3,7 +3,7 @@ CREATE DATABASE LBTMyCRT;
 USE LBTMyCRT;
 
 CREATE TABLE Environment (
-   id int(11) AUTO_INCREMENT PRIMARY KEY,
+   id INT(11) AUTO_INCREMENT PRIMARY KEY,
    name VARCHAR(32),
    iamId INT(11) REFERENCES IAMReference(id),
    dbId INT(11) REFERENCES DBReference(id),
@@ -11,7 +11,7 @@ CREATE TABLE Environment (
 );
 
 CREATE TABLE IAMReference (
-   id int(11) AUTO_INCREMENT PRIMARY KEY,
+   id INT(11) AUTO_INCREMENT PRIMARY KEY,
    accessKey VARCHAR(32), -- must be encrypted
    secretKey VARCHAR(64), -- must be encrypted
    region VARCHAR(16),
@@ -19,7 +19,7 @@ CREATE TABLE IAMReference (
 );
 
 CREATE TABLE DBReference (
-   id int(11) AUTO_INCREMENT PRIMARY KEY,
+   id INT(11) AUTO_INCREMENT PRIMARY KEY,
    name VARCHAR(32),
    host VARCHAR(64),
    user VARCHAR(32),
@@ -28,16 +28,16 @@ CREATE TABLE DBReference (
 );
 
 CREATE TABLE S3Reference (
-   id int(11) AUTO_INCREMENT PRIMARY KEY,
+   id INT(11) AUTO_INCREMENT PRIMARY KEY,
    bucket VARCHAR(32)
 );
 
 CREATE TABLE Metrics (
-   id int(11) AUTO_INCREMENT PRIMARY KEY
+   id INT(11) AUTO_INCREMENT PRIMARY KEY
 );
 
 CREATE TABLE Capture (
-   id int(11) AUTO_INCREMENT PRIMARY KEY,
+   id INT(11) AUTO_INCREMENT PRIMARY KEY,
    name VARCHAR(32),
    start DATETIME,
    end DATETIME,
@@ -46,7 +46,7 @@ CREATE TABLE Capture (
 );
 
 CREATE TABLE Replay (
-   id int(11) AUTO_INCREMENT PRIMARY KEY,
+   id INT(11) AUTO_INCREMENT PRIMARY KEY,
    name VARCHAR(32),
    start DATETIME,
    end DATETIME,
