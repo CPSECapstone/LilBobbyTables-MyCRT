@@ -12,8 +12,19 @@ export default class Metricrouter extends SelfAwareRouter {
       const logger = Logging.defaultLogger(__dirname);
 
       this.router
-      .get('/', (request, response) => {
-         response.sendStatus(200);
+      .get('/:type/:id', (request, response) => {
+         const id = request.params.id;
+         const type = (request.params.type === "capture") ? "Capture" : "Replay";
+
+         const queryStr = mysql.format("SELECT status FROM ? WHERE id = ?", []);
+         ConnectionPool.query(response, queryStr, (error, results, fields) => {
+            if (results[0] === "live") {
+               // call a function to retrieve metrics
+            } else {
+               // pull the metrics from s3
+            }
+            response.json();
+         });
       });
    }
 }

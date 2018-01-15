@@ -71,6 +71,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
       logger.info(`Capture ${this.id} received stop signal!`);
       this.done = true;
 
+      Capture.updateCaptureStatus(this.id, "dead");
       const s3res = await stopRdsLoggingAndUploadToS3();
       return s3res;
    }

@@ -50,5 +50,6 @@ CREATE TABLE Replay (
    name VARCHAR(32),
    start DATETIME,
    end DATETIME,
+   status VARCHAR(32),
    capId INT(11) REFERENCES Capture(id)
 );
