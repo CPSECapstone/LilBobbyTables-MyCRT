@@ -11,6 +11,7 @@ CREATE TABLE Environment (
 );
 
 CREATE TABLE IAMReference (
+   id int(11) AUTO_INCREMENT PRIMARY KEY,
    accessKey VARCHAR(32), -- must be encrypted
    secretKey VARCHAR(64), -- must be encrypted
    region VARCHAR(16),
