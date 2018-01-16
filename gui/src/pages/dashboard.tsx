@@ -17,7 +17,7 @@ const DashboardApp = () => {
         <div>
             <ol className="breadcrumb">
                 <li><a href="./environments">Environments</a></li>
-                <li className="active">Environment</li>
+                <li className="active">Dashboard</li>
             </ol>
             <div className="page-header myCRT-page-header">
                 <h1>Environment Dashboard</h1>

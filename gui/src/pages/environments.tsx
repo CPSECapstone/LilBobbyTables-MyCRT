@@ -13,7 +13,7 @@ const EnvironmentsApp = () => {
            <div className="page-header myCRT-page-header">
                 <h1>Environments</h1>
             </div>
-           <EnvironmentPanel title="Lil Environment"/>
+           <EnvironmentPanel title="Lil Environment #1"/>
            <EnvironmentPanel title="Sample Environment #2"/>
            <EnvironmentPanel title="Sample Environment #3"/>
        </div>
