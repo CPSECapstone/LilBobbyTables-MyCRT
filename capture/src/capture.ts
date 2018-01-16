@@ -1,10 +1,38 @@
-import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
+import { CaptureIpcNode, getMetrics, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
 
 import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
 
 import mysql = require('mysql');
 
 const logger = Logging.defaultLogger(__dirname);
+
+// const metrics = {
+//     Dimensions: [
+//         {
+//             Name: 'DBInstanceIdentifier', /* required */
+//             Value: 'nfl2015', /* required */
+//         },
+//         /* more items */
+//     ],
+//     EndTime: new Date() || 'Mon Jan 14 2018 07:00:00 GMT-0800 (PST)' || 123456789, /* required */
+//     // ExtendedStatistics: [
+//     //     'STRING_VALUE',
+//     // ],
+//     MetricName: 'CPUUtilization', /* required */
+//     Namespace: 'AWS/RDS', /* required */
+//     Period: 60, /* required */
+//     StartTime: new Date() || 'Mon Jan 14 2018 1:00:00 GMT-0800 (PST)' || 123456789, /* required */
+//     Statistics: [
+//         'Maximum',
+//         // "CPUUtilization", || NetworkIn | NetworkOut | FreeableMemory,
+//     ],
+//     Unit: 'Percent',
+//     // | Microseconds | Milliseconds | Bytes | Kilobytes | Megabytes |
+//     //     Gigabytes | Terabytes | Bits | Kilobits | Megabits | Gigabits | Terabits |
+//     //     Percent | Count | Bytes/Second | Kilobytes/Second | Megabytes/Second |
+//     //     Gigabytes/Second | Terabytes/Second | Bits/Second | Kilobits/Second |
+//     //     Megabits/Second | Gigabits/Second | Terabits/Second | Count/Second | None
+// };
 
 export interface ICaptureConfig {
    readonly id: number;
@@ -68,6 +96,8 @@ export class Capture implements ICaptureIpcNodeDelegate {
    }
 
    public async onStop(): Promise<any> {
+    //   getMetrics(metrics);
+
       logger.info(`Capture ${this.id} received stop signal!`);
       this.done = true;
 
