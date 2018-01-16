@@ -9,23 +9,25 @@ const logger = Logging.consoleLogger();
 const metrics = {
     Dimensions: [
         {
-            Name: 'STRING_VALUE', /* required */
-            Value: 'STRING_VALUE', /* required */
+            Name: 'DBInstanceIdentifier', /* required */
+            Value: 'nfl2015', /* required */
         },
         /* more items */
     ],
-    EndTime: new Date() || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789, /* required */
-    ExtendedStatistics: [
-        'STRING_VALUE',
-    ],
-    MetricName: 'STRING_VALUE', /* required */
-    Namespace: 'STRING_VALUE', /* required */
-    Period: 0, /* required */
-    StartTime: new Date() || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789, /* required */
+    EndTime: new Date() || 'Mon Jan 14 2018 07:00:00 GMT-0800 (PST)' || 123456789, /* required */
+    // ExtendedStatistics: [
+    //     'STRING_VALUE',
+    // ],
+    MetricName: 'CPUUtilization', /* required */
+    Namespace: 'AWS/RDS', /* required */
+    Period: 60, /* required */
+    StartTime: new Date() || 'Mon Jan 14 2018 1:00:00 GMT-0800 (PST)' || 123456789, /* required */
     Statistics: [
-        "CPUUtilization", // || NetworkIn | NetworkOut | FreeableMemory,
+        'Maximum',
+        // "CPUUtilization", || NetworkIn | NetworkOut | FreeableMemory,
     ],
-    // Unit: Seconds | Microseconds | Milliseconds | Bytes | Kilobytes | Megabytes |
+    Unit: 'Percent',
+    // | Microseconds | Milliseconds | Bytes | Kilobytes | Megabytes |
     //     Gigabytes | Terabytes | Bits | Kilobits | Megabits | Gigabits | Terabits |
     //     Percent | Count | Bytes/Second | Kilobytes/Second | Megabytes/Second |
     //     Gigabytes/Second | Terabytes/Second | Bits/Second | Kilobits/Second |
