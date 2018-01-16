@@ -40,7 +40,15 @@ const data3 = [
 const MetricsApp = () => {
     return (
         <div>
-            <h1 style={{"text-align": "center"}}>Capture Metrics</h1>
+            <ol className="breadcrumb">
+                <li><a href="./environments">Environments</a></li>
+                <li><a href="./dashboard">Dashboard</a></li>
+                <li><a href="./capture">Capture</a></li>
+                <li className="active">Metrics</li>
+            </ol>
+            <div className="page-header myCRT-page-header">
+                <h1>Capture Metrics</h1>
+            </div>
             <Graph title={"CPU Load Chart"} data={data} />
             <Graph title={"Memory Chart"} data={data2} />
             <Graph title={"I/O Chart"} data={data3} />

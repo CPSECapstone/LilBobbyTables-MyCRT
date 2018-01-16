@@ -4,7 +4,8 @@ const config = {
 
    entry: {       // one per web page
       index: path.resolve(__dirname, 'dist', 'pages', 'index.js'),
-      environment: path.resolve(__dirname, 'dist', 'pages', 'environment.js'),
+      environments: path.resolve(__dirname, 'dist', 'pages', 'environments.js'),
+      dashboard: path.resolve(__dirname, 'dist', 'pages', 'dashboard.js'),
       capture: path.resolve(__dirname, 'dist', 'pages', 'capture.js'),
       captures: path.resolve(__dirname, 'dist', 'pages', 'captures.js'),
       replay: path.resolve(__dirname, 'dist', 'pages', 'replay.js'),

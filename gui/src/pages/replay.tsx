@@ -1,3 +1,5 @@
+import './common';
+
 import '../../static/css/replay.css';
 
 import React = require('react');
@@ -5,17 +7,16 @@ import ReactDom = require('react-dom');
 
 const ReplayApp = () => {
    return (
-      <div className="replay-style-test">
-         <p>Hello from replay.tsx</p>
-
-         <ul>
-            <li>and</li>
-            <li>this</li>
-            <li>is</li>
-            <li>a</li>
-            <li>list</li>
-         </ul>
-      </div>
+        <div>
+            <ol className="breadcrumb">
+                <li><a href="./environments">Environments</a></li>
+                <li><a href="./dashboard">Dashboard</a></li>
+                <li className="active">Replay</li>
+            </ol>
+           <div className="page-header myCRT-page-header">
+                <h1>Replay Name</h1>
+            </div>
+        </div>
    );
 };
 

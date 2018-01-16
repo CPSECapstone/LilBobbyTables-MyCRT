@@ -139,7 +139,8 @@ class MyCrtService {
       };
 
       routePage(/^\/?$/, Pages.index);
-      routePage(/^\/environment\/?$/, Pages.environment);
+      routePage(/^\/environments\/?$/, Pages.environments);
+      routePage(/^\/dashboard\/?$/, Pages.dashboard);
       routePage(/^\/captures\/?$/, Pages.captures);
       routePage(/^\/capture\/?$/, Pages.capture);
       routePage(/^\/replay\/?$/, Pages.replay);

@@ -87,7 +87,8 @@ const basePartials = [baseHeader, baseNeck, baseFooter];
 
 // pages
 const index = new Template('index', 'html/pages/index.mustache', {}, basePartials, true);
-const environment = new Template('environment', 'html/pages/environment.mustache', {}, basePartials, true);
+const environments = new Template('environment', 'html/pages/environments.mustache', {}, basePartials, true);
+const dashboard = new Template('environment', 'html/pages/dashboard.mustache', {}, basePartials, true);
 const captures = new Template('captures', 'html/pages/captures.mustache', {}, basePartials, true);
 const capture = new Template('capture', 'html/pages/capture.mustache', {}, basePartials, true);
 const replay = new Template('replay', 'html/pages/replay.mustache', {}, basePartials, true);
@@ -96,7 +97,8 @@ const metrics = new Template('metrics', 'html/pages/metrics.mustache', {}, baseP
 export const Pages = {
    capture,
    captures,
-   environment,
+   dashboard,
+   environments,
    index,
    metrics,
    replay,

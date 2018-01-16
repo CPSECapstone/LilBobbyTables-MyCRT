@@ -15,7 +15,7 @@ const IndexApp = () => {
             <div className="container">
                 <h1>MyCRT</h1>
                 <p>Amazon Web Services</p>
-                <p><a className="btn btn-primary btn-lg" href="/metrics" role="button">Get Started</a></p>
+                <p><a className="btn btn-primary btn-lg" href="/environments" role="button">Get Started</a></p>
             </div>
         </div>
     );
