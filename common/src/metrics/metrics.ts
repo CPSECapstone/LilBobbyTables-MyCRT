@@ -4,48 +4,65 @@ import AWS = require('aws-sdk');
 import Logging = require('./../logging');
 
 const cloudwatch = new AWS.CloudWatch({ region: 'us-east-2' });
-
 const logger = Logging.consoleLogger();
 
-const metrics: any = {
-    Dimensions: [
-        {
-            Name: 'DBInstanceIdentifier', /* required */
-            Value: 'nfl2015', /* required */
-        },
-        /* more items */
-    ],
-    EndTime: '2018-01-14T07:00:00Z', /* required */
-    // ExtendedStatistics: [
-    //     'STRING_VALUE',
-    // ],
-    MetricName: 'CPUUtilization', /* required */
-    Namespace: 'AWS/RDS', /* required */
-    Period: 60, /* required */
-    StartTime: '2018-01-14T01:00:00Z', /* required */
-    Statistics: [
-        'Maximum',
-        // "CPUUtilization", || NetworkIn | NetworkOut | FreeableMemory,
-    ],
-    Unit: 'Percent',
-    // | Microseconds | Milliseconds | Bytes | Kilobytes | Megabytes |
-    //     Gigabytes | Terabytes | Bits | Kilobits | Megabits | Gigabits | Terabits |
-    //     Percent | Count | Bytes/Second | Kilobytes/Second | Megabytes/Second |
-    //     Gigabytes/Second | Terabytes/Second | Bits/Second | Kilobits/Second |
-    //     Megabits/Second | Gigabits/Second | Terabits/Second | Count/Second | None
-};
+export class MetricConfiguration {
+    public dimName: string;
+    public dimValue: string;
+    public endTime: Date;
+    public startTime: Date;
+    public period: number;
+    public statistics: any;
+    public percent: string;
+    public metricName: string;
+    private jsonObject: any;
 
-export const getMetrics = () => {
-    // logger.log("info", "metrics %s", metrics);
-    logger.info(JSON.stringify(AWS.config));
-    cloudwatch.getMetricStatistics(metrics, function onComplete(err, data) {
-        if (err) { logger.log("info", "failed to get metrics %s", err.stack); }
-        // tslint:disable-next-line:one-line
-        else { logger.log("info", "%s", data); }
-    });
-};
+    constructor(dimName: string, dimValue: string, endTime: Date, startTime: Date,
+                period: number, statistics: any, percent: string, metricName: string) {
+            this.dimName = dimName;
+            this.dimValue = dimValue;
+            this.endTime = endTime;
+            this.startTime = startTime;
+            this.period = period;
+            this.statistics = statistics;
+            this.percent = percent;
+            this.metricName = metricName;
 
-// const getMetrics = cloudwatch.getMetricStatistics(metrics, function onComplete(err, data) {
-//     if (err) { logger.log("info", "failed to get metrics %s", err.stack); } else { logger.log("info", "%s", data); }
+            const jsonObject = {
+                    Dimensions: [
+                    {
+                        Name: this.dimName,
+                        Value: this.dimValue,
+                    },
+                ],
+                EndTime: this.endTime,
+                MetricName: this.metricName,
+                Namespace: 'AWS/RDS',
+                Period: this.period,
+                StartTime: this.startTime,
+                Statistics: this.statistics, // "CPUUtilization", || NetworkIn | NetworkOut | FreeableMemory,
+                Unit: this.percent,
+            };
+        }
 
-// });
+    public getMetrics() {
+        logger.info(JSON.stringify(AWS.config));
+        cloudwatch.getMetricStatistics(this.jsonObject, function onComplete(err, data) {
+            // tslint:disable-next-line:max-line-length
+            if (err) { logger.log("info", "failed to get metrics %s", err.stack); } else { logger.log("info", "%s", data); }
+        });
+}
+
+// temp global variables
+// const mdimName = 'DBInstanceIdentifier';
+// const mdimValue = 'nfl2015';
+// const mendTime = '2018-01-14T07:00:00Z';
+// const mstartTime = '2018-01-14T01:00:00Z';
+// const mmetricName = 'CPUUtilization';
+// const mnameSpace = 'AWS/RDS';
+// const mperiod = 60;
+// const mstatistics = 'Maximum';
+// const mpercent = 'Percent';
+
+// const testMetrics = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', '2018-01-14T07:00:00Z',
+//                                         '2018-01-14T01:00:00Z', 60, 'Maximum', 'Percent', 'CPUUtilization');
