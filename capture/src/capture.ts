@@ -1,4 +1,4 @@
-import { CaptureIpcNode, getMetrics, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
+import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
 
 import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
 
@@ -96,8 +96,6 @@ export class Capture implements ICaptureIpcNodeDelegate {
    }
 
    public async onStop(): Promise<any> {
-    //   getMetrics(metrics);
-
       logger.info(`Capture ${this.id} received stop signal!`);
       this.done = true;
 
