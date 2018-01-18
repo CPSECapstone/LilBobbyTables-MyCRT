@@ -1,3 +1,6 @@
+# All package-lock.json
+package-lock.json
+
 *.swp
 
 # Mac finder's cache for view settings for directory. Unnecessary for the git repository
