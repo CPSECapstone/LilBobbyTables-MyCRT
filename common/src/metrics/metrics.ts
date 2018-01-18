@@ -51,7 +51,7 @@ export class MetricConfiguration {
             // tslint:disable-next-line:max-line-length
             if (err) { logger.log("info", "failed to get metrics %s", err.stack); } else { logger.log("info", "%s", data); }
         });
-}
+}}
 
 // temp global variables
 // const mdimName = 'DBInstanceIdentifier';
@@ -65,4 +65,4 @@ export class MetricConfiguration {
 // const mpercent = 'Percent';
 
 // const testMetrics = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', '2018-01-14T07:00:00Z',
-//                                         '2018-01-14T01:00:00Z', 60, 'Maximum', 'Percent', 'CPUUtilization');
+//                                         '2018-01-14T01:00:00Z', 60, 'Maximum', 'Percent', 'CPUUtilization')
