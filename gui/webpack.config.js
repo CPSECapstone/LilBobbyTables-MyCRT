@@ -13,7 +13,7 @@ const config = {
    },
 
    output: {
-      path: path.resolve(__dirname, 'static', 'js'),
+      path: path.resolve(__dirname, 'static', 'bundles'),
       filename: '[name]-bundle.js',
    },
 
@@ -25,7 +25,8 @@ const config = {
          },
          {
             test: /\.(woff|woff2|eot|ttf|otf|png|svg|jpg|gif)$/, // fonts and images
-            use: ['file-loader'],
+            // use: ['file-loader'],
+            loader: 'file-loader?bundles/[name].[ext]',
          },
       ],
    },

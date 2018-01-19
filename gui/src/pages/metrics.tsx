@@ -18,23 +18,26 @@ const data = [
 ];
 
 const data2 = [
-    {name: 'Page A', uv: 4000, pv: 1000, amt: 2400},
-    {name: 'Page B', uv: 3000, pv: 1333, amt: 2210},
-    {name: 'Page C', uv: 2000, pv: 2222, amt: 2291},
-    {name: 'Page D', uv: 2780, pv: 3333, amt: 2000},
-    {name: 'Page E', uv: 1890, pv: 2222, amt: 2181},
-    {name: 'Page F', uv: 2390, pv: 4444, amt: 2500},
-    {name: 'Page G', uv: 3490, pv: 3332, amt: 2100},
+    {Timestamp: 'Page A', Maximum: 4000, pv: 1000, amt: 2400},
+    {Timestamp: 'Page B', Maximum: 3000, pv: 1333, amt: 2210},
+    {Timestamp: 'Page C', Maximum: 2000, pv: 2222, amt: 2291},
+    {Timestamp: 'Page D', Maximum: 2780, pv: 3333, amt: 2000},
+    {Timestamp: 'Page E', Maximum: 1890, pv: 2222, amt: 2181},
+    {Timestamp: 'Page F', Maximum: 2390, pv: 4444, amt: 2500},
+    {Timestamp: 'Page G', Maximum: 3490, pv: 3332, amt: 2100},
 ];
 
+// tslint:disable-next-line:no-var-requires
+const data4: any = require('../../dummydata.json').Datapoints;
+
 const data3 = [
-  {name: 'Page A', uv: 4000, pv: 1333, amt: 2400},
-  {name: 'Page B', uv: 3000, pv: 2400, amt: 2210},
-  {name: 'Page C', uv: 2000, pv: 2222, amt: 2291},
-  {name: 'Page D', uv: 2780, pv: 4444, amt: 2000},
-  {name: 'Page E', uv: 1890, pv: 3800, amt: 2181},
-  {name: 'Page F', uv: 2390, pv: 4444, amt: 2500},
-  {name: 'Page G', uv: 3490, pv: 1000, amt: 2100},
+  {Timestamp: 'Page A', Maximum: 4000, pv: 1333, amt: 2400},
+  {Timestamp: 'Page B', Maximum: 3000, pv: 2400, amt: 2210},
+  {Timestamp: 'Page C', Maximum: 2000, pv: 2222, amt: 2291},
+  {Timestamp: 'Page D', Maximum: 2780, pv: 4444, amt: 2000},
+  {Timestamp: 'Page E', Maximum: 1890, pv: 3800, amt: 2181},
+  {Timestamp: 'Page F', Maximum: 2390, pv: 4444, amt: 2500},
+  {Timestamp: 'Page G', Maximum: 3490, pv: 1000, amt: 2100},
 ];
 
 const MetricsApp = () => {
@@ -49,7 +52,7 @@ const MetricsApp = () => {
             <div className="page-header myCRT-page-header">
                 <h1>Capture Metrics</h1>
             </div>
-            <Graph title={"CPU Load Chart"} data={data} />
+            <Graph title={"CPU Utilization Chart"} data={data4} />
             <Graph title={"Memory Chart"} data={data2} />
             <Graph title={"I/O Chart"} data={data3} />
         </div>

@@ -17,7 +17,9 @@ const CaptureApp = () => {
             </ol>
            <div className="page-header myCRT-page-header">
                 <h1>Capture Name</h1>
-                <p><a className="btn btn-primary" href="/metrics" role="button">Compare Metrics</a></p>
+                <a role="button" href= "./metrics" className="btn btn-primary">
+                    <span className="glyphicon glyphicon glyphicon-stats" aria-hidden="true"></span> Compare Metrics
+                </a>
            </div>
            <div className="modal-body row">
                <div className="col-md-6">
