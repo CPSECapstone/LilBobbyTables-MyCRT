@@ -1,5 +1,5 @@
 import { launch } from '@lbt-mycrt/capture';
-import { Logging } from '@lbt-mycrt/common';
+import { IMetric, IMetricsList, Logging } from '@lbt-mycrt/common';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 import SelfAwareRouter from './self-aware-router';
@@ -26,6 +26,17 @@ export default class CaptureRouter extends SelfAwareRouter {
             ConnectionPool.query(response, queryStr, (error, row, fields) => {
                response.json(row);
             });
+         })
+
+         .get('/:id/metrics', (request, response) => {
+            const dummyMetrics = require('../../dummydata.json');
+            const metrics: IMetricsList = {
+               dataPoints: dummyMetrics.Datapoints as [IMetric],
+               displayName: `${dummyMetrics.Label} (display name)`,
+               label: dummyMetrics.Label,
+               live: false,
+            };
+            response.json(metrics).end();
          })
 
          .post('/:id/stop', async (request, response) => {
