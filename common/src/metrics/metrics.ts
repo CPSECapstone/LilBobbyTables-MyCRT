@@ -6,6 +6,11 @@ import Logging = require('./../logging');
 const cloudwatch = new AWS.CloudWatch({ region: 'us-east-2' });
 const logger = Logging.consoleLogger();
 
+// Metrics to retrieve
+const CPU = 'CPUUtilization';
+const IO = 'NetworkIn';
+const MEMORY = 'FreeableMemory';
+
 export class MetricConfiguration {
     public dimName: string;
     public dimValue: string;
@@ -14,11 +19,9 @@ export class MetricConfiguration {
     public period: number;
     public statistics: any;
     public percent: string;
-    public metricName: string;
-    private jsonObject: any;
 
     constructor(dimName: string, dimValue: string, endTime: Date, startTime: Date,
-                period: number, statistics: any, percent: string, metricName: string) {
+                period: number, statistics: any, percent: string) {
             this.dimName = dimName;
             this.dimValue = dimValue;
             this.endTime = endTime;
@@ -26,9 +29,30 @@ export class MetricConfiguration {
             this.period = period;
             this.statistics = statistics;
             this.percent = percent;
-            this.metricName = metricName;
+        }
 
-            const jsonObject = {
+    public getCPUMetrics = () => {
+        this.getMetrics(CPU);
+    }
+
+    public getIOMetrics = () => {
+        this.getMetrics(IO);
+    }
+
+    public getMemoryMetrics = () => {
+        this.getMetrics(MEMORY);
+    }
+
+    private getMetrics(metricName: string) {
+        logger.info(JSON.stringify(AWS.config));
+        cloudwatch.getMetricStatistics(this.buildMetricRequest(metricName), function onComplete(err, data) {
+            // tslint:disable-next-line:max-line-length
+            if (err) { logger.log("info", "failed to get metrics %s", err.stack); } else { logger.log("info", "%s", data); }
+        });
+    }
+
+    private buildMetricRequest(metricName: string) {
+        return {
                     Dimensions: [
                     {
                         Name: this.dimName,
@@ -36,7 +60,7 @@ export class MetricConfiguration {
                     },
                 ],
                 EndTime: this.endTime,
-                MetricName: this.metricName,
+                MetricName: metricName,
                 Namespace: 'AWS/RDS',
                 Period: this.period,
                 StartTime: this.startTime,
@@ -44,14 +68,7 @@ export class MetricConfiguration {
                 Unit: this.percent,
             };
         }
-
-    public getMetrics() {
-        logger.info(JSON.stringify(AWS.config));
-        cloudwatch.getMetricStatistics(this.jsonObject, function onComplete(err, data) {
-            // tslint:disable-next-line:max-line-length
-            if (err) { logger.log("info", "failed to get metrics %s", err.stack); } else { logger.log("info", "%s", data); }
-        });
-}}
+}
 
 // temp global variables
 // const mdimName = 'DBInstanceIdentifier';
@@ -65,4 +82,5 @@ export class MetricConfiguration {
 // const mpercent = 'Percent';
 
 // const testMetrics = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', '2018-01-14T07:00:00Z',
-//                                         '2018-01-14T01:00:00Z', 60, 'Maximum', 'Percent', 'CPUUtilization')
+//                                         '2018-01-14T01:00:00Z', 60, 'Maximum', 'Percent');
+// testMetrics.getCPUMetrics();
