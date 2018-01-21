@@ -57,4 +57,25 @@ export class S3Backend extends StorageBackend {
       });
    }
 
+   public async deleteJson(key: string): Promise<void> {
+
+      const params: S3.DeleteObjectRequest = {
+         Bucket: this.bucket,
+         Key: key,
+      };
+
+      return new Promise<void>((resolve, reject) => {
+         this.s3.deleteObject(params, (err: AWSError, data: S3.DeleteObjectOutput) => {
+
+            if (err) {
+               logger.error(err.message);
+               reject(err.code);
+            } else {
+               resolve();
+            }
+
+         });
+      });
+   }
+
 }

@@ -1,4 +1,4 @@
-import fs = require('fs');
+import fs = require('fs-extra');
 import path = require('path');
 
 import Logging = require('../logging');
@@ -56,6 +56,11 @@ export class LocalBackend extends StorageBackend {
          });
 
       });
+   }
+
+   public async deleteJson(key: string): Promise<void> {
+      const file = path.join(this.rootDir, key);
+      return fs.unlink(file);
    }
 
 }

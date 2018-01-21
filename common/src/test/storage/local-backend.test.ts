@@ -8,6 +8,8 @@ import { LocalBackend } from '../../storage/local-backend';
 
 import { dummyData, key } from './data';
 
+/* tslint:disable no-unused-expression */
+
 describe("LocalBackend", () => {
 
    let backend: LocalBackend;
@@ -30,6 +32,17 @@ describe("LocalBackend", () => {
 
       expect(result.name).to.equal(dummyData.name);
       expect(result.age).to.equal(dummyData.age);
+
+   });
+
+   it("should delete files, and fail to read missing files", async () => {
+
+      await backend.writeJson(key, dummyData);
+      await backend.deleteJson(key);
+      const result = await backend.readJson(key)
+         .catch((reason) => {
+            expect(reason).to.not.be.null;
+         });
 
    });
 
