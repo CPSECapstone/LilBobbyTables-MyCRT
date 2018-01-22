@@ -1,5 +1,6 @@
 /* Styles */
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
+import '../../themes/flatly.min.css';
 
 /* Scripts */
 

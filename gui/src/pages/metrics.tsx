@@ -41,22 +41,33 @@ const data3 = [
 ];
 
 const MetricsApp = () => {
-    return (
-        <div>
+   return (
+      <div>
+         <nav>
             <ol className="breadcrumb">
-                <li><a href="./environments">Environments</a></li>
-                <li><a href="./dashboard">Dashboard</a></li>
-                <li><a href="./capture">Capture</a></li>
-                <li className="active">Metrics</li>
+               <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
+               <li className="breadcrumb-item"><a href="./dashboard">Dashboard</a></li>
+               <li className="breadcrumb-item"><a href="./capture">Capture</a></li>
+               <li className="breadcrumb-item active">Metrics</li>
             </ol>
-            <div className="page-header myCRT-page-header">
-                <h1>Capture Metrics</h1>
+         </nav>
+
+         <div className="container">
+            <div className="row">
+               <div className="col-xs-12">
+
+                  <div className="page-header">
+                     <h1>Capture Metrics</h1>
+                  </div>
+                  <Graph title={"CPU Utilization Chart"} data={data4} />
+                  <Graph title={"Memory Chart"} data={data2} />
+                  <Graph title={"I/O Chart"} data={data3} />
+
+               </div>
             </div>
-            <Graph title={"CPU Utilization Chart"} data={data4} />
-            <Graph title={"Memory Chart"} data={data2} />
-            <Graph title={"I/O Chart"} data={data3} />
-        </div>
-    );
+         </div>
+      </div>
+   );
 };
 
 ReactDom.render(<MetricsApp />, document.getElementById('metrics-app'));

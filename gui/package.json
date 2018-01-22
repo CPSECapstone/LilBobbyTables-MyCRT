@@ -35,9 +35,10 @@
   "dependencies": {
     "@lbt-mycrt/cli": "file:../cli",
     "@lbt-mycrt/common": "file:../common",
-    "bootstrap": "^3.3.7",
+    "bootstrap": "^4.0.0",
     "jquery": "^3.2.1",
     "mustache": "^2.3.0",
+    "popper.js": "^1.12.9",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",
     "recharts": "^1.0.0-beta.9"

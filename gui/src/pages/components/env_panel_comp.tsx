@@ -13,13 +13,15 @@ export class EnvironmentPanel extends React.Component<any, any>  {
 
     public render() {
         return (
-            <div onClick={ (e) => this.handleClick(e)} className="col-md-4 myCRT-panel">
-                <div className="panel panel-info">
-                    <div className="panel-heading">
-                        <h3 className="panel-title">{this.props.title}</h3>
+            <div onClick={ (e) => this.handleClick(e)} className="myCRT-panel">
+                <div className="card">
+                    <div className="card-header">
+                        <h5>{this.props.title}</h5>
                     </div>
-                    <div className="panel-body">
-                        <p> Information about environment </p>
+                    <div className="card-body">
+                        <p>
+                           Information about environment
+                        </p>
                     </div>
                 </div>
             </div>

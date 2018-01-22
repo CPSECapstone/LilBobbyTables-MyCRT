@@ -13,11 +13,11 @@ export class CapturePanel extends React.Component<any, any>  {
 
     public render() {
         return (
-            <div className="panel panel-info myCRT-panel" onClick={ (e) => this.handleClick(e)}>
-                <div className="panel-heading">
-                    <h3 className="panel-title">{this.props.title}</h3>
+            <div className="card myCRT-panel" onClick={ (e) => this.handleClick(e)}>
+                <div className="card-header">
+                    <h5>{this.props.title}</h5>
                 </div>
-                <div className="panel-body">
+                <div className="card-body">
                     <p> Information about this capture </p>
                 </div>
             </div>

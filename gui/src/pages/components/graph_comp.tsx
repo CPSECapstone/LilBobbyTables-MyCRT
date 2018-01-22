@@ -12,7 +12,7 @@ export class Graph extends React.Component<any, any>  {
                 <button type="button" className="btn btn-primary" style={{margin: "10px 10px 20px", display: "inline"}}>
                     <span className="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download
                 </button>
-                <LineChart width={1400} height={500} data={this.props.data}
+                <LineChart width={1000} height={400} data={this.props.data}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <XAxis dataKey="Timestamp"/>
                     <YAxis allowDecimals={true}/>
