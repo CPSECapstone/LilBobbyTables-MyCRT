@@ -1,5 +1,5 @@
 import { launch } from '@lbt-mycrt/capture';
-import { Logging } from '@lbt-mycrt/common';
+import { IMetric, IMetricsList, Logging } from '@lbt-mycrt/common';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 import SelfAwareRouter from './self-aware-router';
@@ -7,11 +7,10 @@ import ConnectionPool from './util/cnnPool';
 
 export default class CaptureRouter extends SelfAwareRouter {
    public name: string = 'capture';
-   public urlPrefix: string = '/capture';
+   public urlPrefix: string = '/captures';
 
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
-      const config = require('../../db/config.json');
 
       this.router
          .get('/', (request, response) => {
@@ -29,6 +28,17 @@ export default class CaptureRouter extends SelfAwareRouter {
             });
          })
 
+         .get('/:id/metrics', (request, response) => {
+            const dummyMetrics = require('../../dummydata.json');
+            const metrics: IMetricsList = {
+               dataPoints: dummyMetrics.Datapoints as [IMetric],
+               displayName: `${dummyMetrics.Label} (display name)`,
+               label: dummyMetrics.Label,
+               live: false,
+            };
+            response.json(metrics).end();
+         })
+
          .post('/:id/stop', async (request, response) => {
 
             const captureId = request.params.id;
@@ -39,6 +49,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          .post('/', (request, response) => {
             const capture = request.body;
+            capture.status = "queued";
             const insertStr = mysql.format("INSERT INTO Capture SET ?", capture);
             logger.info('Creating Capture');
 

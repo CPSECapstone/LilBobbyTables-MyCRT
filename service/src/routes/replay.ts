@@ -2,7 +2,7 @@ import SelfAwareRouter from './self-aware-router';
 
 export default class ReplayRouter extends SelfAwareRouter {
    public name: string = 'replay';
-   public urlPrefix: string = '/replay';
+   public urlPrefix: string = '/replays';
 
    protected mountRoutes(): void {
       this.router

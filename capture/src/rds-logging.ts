@@ -39,7 +39,6 @@ const setGeneralLogging = async (on: boolean) => {
 };
 
 const uploadToS3 = async (body: string) => {
-   /* STOP REVERTING */
    /* Get s3 bucket from environment */
    /* TODO connect to an S3 bucket using aws credentials */
    /* TODO intelligently name the key filename */
