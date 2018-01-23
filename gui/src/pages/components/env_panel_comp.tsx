@@ -14,7 +14,7 @@ export class EnvironmentPanel extends React.Component<any, any>  {
     public render() {
         return (
             <div onClick={ (e) => this.handleClick(e)} className="myCRT-panel">
-                <div className="card">
+                <div className="card mt-3 w-100">
                     <div className="card-header">
                         <h5>{this.props.title}</h5>
                     </div>

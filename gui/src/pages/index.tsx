@@ -11,10 +11,10 @@ import { mycrt } from './utils/mycrt-client'; // client for interacting with the
 
 const IndexApp = () => {
     return (
-        <div className="jumbotron">
+        <div className="jumbotron jumbotron-fluid">
             <div className="container">
-                <h1>MyCRT</h1>
-                <p>Amazon Web Services</p>
+                <h1 className="display-3">MyCRT</h1>
+                <p className="lead">Amazon Web Services</p>
                 <p><a className="btn btn-primary btn-lg" href="/environments" role="button">Get Started</a></p>
             </div>
         </div>

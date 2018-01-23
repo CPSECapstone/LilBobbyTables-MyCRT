@@ -11,8 +11,7 @@ const EnvironmentsApp = () => {
    return (
       <div className="container">
          <div className="row">
-            <div className="col-xs-12">
-
+            <div className="col-sm-12 mb-r">
                <div className="page-header">
                   <h1>Environments</h1>
                </div>

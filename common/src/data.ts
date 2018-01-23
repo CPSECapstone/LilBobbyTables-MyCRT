@@ -25,9 +25,9 @@ export interface IReplay {
 
 /** Interface for a single metric measurement */
 export interface IMetric {
-   timestamp: string;
-   maximum: number;
-   unit: string;
+   Timestamp: string;
+   Maximum: number;
+   Unit: string;
 }
 
 /** Interface for a list of a IMetrics gathered at different timestamps for a capture/replay */

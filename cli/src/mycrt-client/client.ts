@@ -25,37 +25,37 @@ export class MyCrtClient {
 
    /** Create a new Capture */
    public async postCapture(capture: ICapture): Promise<number | null> {
-      return this.makeRequest<number>(HttpMethod.POST, '/capture', capture);
+      return this.makeRequest<number>(HttpMethod.POST, '/captures', capture);
    }
 
    /** Stop a specific capture */
    public async stopCapture(id: number): Promise<any> {
-      return this.makeRequest<ICapture>(HttpMethod.POST, `/capture/${id}/stop`);
+      return this.makeRequest<ICapture>(HttpMethod.POST, `/captures/${id}/stop`);
    }
 
    /** Retrieve all of the captures */
    public async getCaptures(): Promise<ICapture[] | null> {
-      return this.makeRequest<ICapture[]>(HttpMethod.GET, '/capture');
+      return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures');
    }
 
    /** Retrieve a specific capture */
    public async getCapture(id: number): Promise<ICapture | null> {
-      return this.makeRequest<ICapture>(HttpMethod.GET, `/capture/${id}`);
+      return this.makeRequest<ICapture>(HttpMethod.GET, `/captures/${id}`);
    }
 
    /** Retrieve the metrics for a Capture */
    public async getCaptureMetrics(id: number): Promise<IMetricsList | null> {
-      return this.makeRequest<IMetricsList>(HttpMethod.GET, `/capture/${id}/metrics`);
+      return this.makeRequest<IMetricsList>(HttpMethod.GET, `/captures/${id}/metrics`);
    }
 
    /** Retrieve all of the replays */
    public async getReplays(): Promise<IReplay[] | null> {
-      return this.makeRequest<IReplay[]>(HttpMethod.GET, '/replay');
+      return this.makeRequest<IReplay[]>(HttpMethod.GET, '/replays');
    }
 
    /** Retrieve a specific replay */
    public async getReplay(id: number): Promise<IReplay | null> {
-      return this.makeRequest<IReplay>(HttpMethod.GET, `/replay/${id}`);
+      return this.makeRequest<IReplay>(HttpMethod.GET, `/replays/${id}`);
    }
 
    private async makeRequest<T>(method: HttpMethod, url: string, body?: any): Promise<T | null> {

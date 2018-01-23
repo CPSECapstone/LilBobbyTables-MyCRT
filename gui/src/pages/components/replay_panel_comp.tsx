@@ -13,7 +13,7 @@ export class ReplayPanel extends React.Component<any, any>  {
 
     public render() {
         return (
-            <div className="card myCRT-panel" onClick={ (e) => this.handleClick(e)}>
+            <div className="card myCRT-panel w-100 mt-3" onClick={ (e) => this.handleClick(e)}>
                 <div className="card-header">
                     <h5>{this.props.title}</h5>
                 </div>

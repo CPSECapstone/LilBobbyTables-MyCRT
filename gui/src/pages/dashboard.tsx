@@ -29,7 +29,7 @@ const DashboardApp = () => {
                </div>
             </div>
             <div className="row">
-               <div className="col-xs-12 col-md-6">
+               <div className="col-xs-12 col-md-6 mb-r">
                   <div>
                      <h2>Captures</h2>
                   </div>
@@ -38,7 +38,7 @@ const DashboardApp = () => {
                   <CapturePanel title="Sample Capture #2" />
                   <CapturePanel title="Sample Capture #3" />
                </div>
-               <div className="col-xs-12 col-md-6">
+               <div className="col-xs-12 col-md-6 mb-r">
                   <div>
                      <h2>Replays</h2>
                   </div>
