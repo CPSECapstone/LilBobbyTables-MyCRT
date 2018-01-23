@@ -28,6 +28,7 @@ export interface IMetric {
    Timestamp: string;
    Maximum: number;
    Unit: string;
+   [key: string]: any;
 }
 
 /** Interface for a list of a IMetrics gathered at different timestamps for a capture/replay */

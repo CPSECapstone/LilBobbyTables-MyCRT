@@ -19,15 +19,23 @@ class MetricsApp extends React.Component<any, any> {
         this.state = {data: null};
     }
 
+    public formatData(data: IMetricsList) {
+        for (const dataPoint of data.dataPoints) {
+            dataPoint.Maximum1 = dataPoint.Maximum;
+            dataPoint.Maximum2 = dataPoint.Maximum * 1.5;
+            dataPoint.Maximum3 = dataPoint.Maximum * 2;
+        }
+    }
+
     public async componentWillMount() {
         logger.info("getting data");
         const passedData = await mycrt.getCaptureMetrics(123);
         logger.info("got data");
         if (passedData != null) {
+            this.formatData(passedData);
             this.setState({data: passedData});
             logger.info("changed state");
         }
-
     }
 
     public render() {
