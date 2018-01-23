@@ -36,6 +36,7 @@
     "@lbt-mycrt/cli": "file:../cli",
     "@lbt-mycrt/common": "file:../common",
     "bootstrap": "^4.0.0",
+    "font-awesome": "^4.7.0",
     "jquery": "^3.2.1",
     "mustache": "^2.3.0",
     "popper.js": "^1.12.9",

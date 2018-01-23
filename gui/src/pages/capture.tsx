@@ -25,7 +25,7 @@ const CaptureApp = () => {
                   <div className="page-header">
                      <h1>Capture Name</h1>
                      <a role="button" href="./metrics" className="btn btn-primary">
-                        Compare Metrics
+                        <i className="fa fa-line-chart" aria-hidden="true"></i> Compare Metrics
                      </a>
                   </div>
                   <div className="modal-body">
