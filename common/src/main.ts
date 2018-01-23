@@ -19,3 +19,5 @@ export * from './ipc/messages/ipc-message';
 
 /* IPC Delegates */
 export * from './ipc/delegates/capture-delegate';
+
+export * from './metrics/metrics';
