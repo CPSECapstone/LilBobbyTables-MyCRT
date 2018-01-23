@@ -106,7 +106,11 @@ class MyCrtService {
 
       // log each request to the console
       this.express!.use((request, response, then) => {
-         logger.info(`----=[ ${request.method} ${request.path} ]=----`);
+         let paramsStr: string = '';
+         if (Object.keys(request.query).length) {
+            paramsStr = ` ${JSON.stringify(request.query)}`;
+         }
+         logger.info(`----=[ ${request.method} ${request.path}${paramsStr} ]=----`);
          /* TODO: Add MySQL connection here */
          then();
       });

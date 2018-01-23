@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { ICapture, IMetricsList, IReplay } from '@lbt-mycrt/common/dist/data';
+import { ICapture, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
 
@@ -25,7 +25,7 @@ export class MyCrtClient {
 
    /** Create a new Capture */
    public async postCapture(capture: ICapture): Promise<number | null> {
-      return this.makeRequest<number>(HttpMethod.POST, '/captures', capture);
+      return this.makeRequest<number>(HttpMethod.POST, '/captures', null, capture);
    }
 
    /** Stop a specific capture */
@@ -43,9 +43,14 @@ export class MyCrtClient {
       return this.makeRequest<ICapture>(HttpMethod.GET, `/captures/${id}`);
    }
 
-   /** Retrieve the metrics for a Capture */
-   public async getCaptureMetrics(id: number): Promise<IMetricsList | null> {
-      return this.makeRequest<IMetricsList>(HttpMethod.GET, `/captures/${id}/metrics`);
+   /** Retrieve a set of specific metrics for a Capture. */
+   public async getCaptureMetrics(id: number, type: MetricType): Promise<IMetricsList | null> {
+      return this.makeRequest<IMetricsList>(HttpMethod.GET, `/captures/${id}/metrics`, {type: type.toString()});
+   }
+
+   /** Retrieve all of the metrics for a Capture */
+   public async getAllCaptureMetrics(id: number): Promise<[IMetricsList] | null> {
+      return this.makeRequest<[IMetricsList]>(HttpMethod.GET, `/captures/${id}/metrics`);
    }
 
    /** Retrieve all of the replays */
@@ -58,9 +63,10 @@ export class MyCrtClient {
       return this.makeRequest<IReplay>(HttpMethod.GET, `/replays/${id}`);
    }
 
-   private async makeRequest<T>(method: HttpMethod, url: string, body?: any): Promise<T | null> {
+   private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
 
-      const fullUrl = `${this.host}/api${url}`;
+      const fullUrl: URL = new URL(`${this.host}/api${url}`);
+      Object.keys(params).forEach((key) => { fullUrl.searchParams.append(key, params[key]); });
       this.delegate.logger.info(`Performing ${method} on ${fullUrl}`);
 
       const options = {

@@ -23,6 +23,9 @@ export interface IReplay {
    end?: string;
 }
 
+/** The type of data */
+export enum MetricType { CPU = "CPU", IO = "IO", MEMORY = "MEMORY" }
+
 /** Interface for a single metric measurement */
 export interface IMetric {
    Timestamp: string;
@@ -34,6 +37,7 @@ export interface IMetric {
 /** Interface for a list of a IMetrics gathered at different timestamps for a capture/replay */
 export interface IMetricsList {
    label: string;
+   type: MetricType;
    displayName: string;
    live: boolean;
    dataPoints: [IMetric];

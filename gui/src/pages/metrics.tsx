@@ -9,7 +9,7 @@ import ReactDom = require('react-dom');
 
 import { Graph } from './components/graph_comp';
 
-import { IMetricsList } from '@lbt-mycrt/common';
+import { IMetricsList, MetricType } from '@lbt-mycrt/common/dist/data';
 import { mycrt } from './utils/mycrt-client';
 
 class MetricsApp extends React.Component<any, any> {
@@ -29,7 +29,7 @@ class MetricsApp extends React.Component<any, any> {
 
     public async componentWillMount() {
         logger.info("getting data");
-        const passedData = await mycrt.getCaptureMetrics(123);
+        const passedData = await mycrt.getCaptureMetrics(123, MetricType.CPU);
         logger.info("got data");
         if (passedData != null) {
             this.formatData(passedData);

@@ -1,5 +1,5 @@
 import { launch } from '@lbt-mycrt/capture';
-import { IMetric, IMetricsList, Logging } from '@lbt-mycrt/common';
+import { IMetric, IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 import SelfAwareRouter from './self-aware-router';
@@ -29,14 +29,15 @@ export default class CaptureRouter extends SelfAwareRouter {
          })
 
          .get('/:id/metrics', (request, response) => {
-            const dummyMetrics = require('../../dummydata.json');
-            const metrics: IMetricsList = {
-               dataPoints: dummyMetrics.Datapoints as [IMetric],
-               displayName: `${dummyMetrics.Label} (display name)`,
-               label: dummyMetrics.Label,
-               live: false,
-            };
-            response.json(metrics).end();
+            const typeQuery: any = request.query.type;
+            const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
+            const backend: MetricsBackend = new MetricsBackend();
+            const result: IMetricsList | [IMetricsList] | null = backend.readCaptureMetrics(type);
+            if (result === null) {
+               response.status(http.BAD_REQUEST).end();
+            } else {
+               response.json(result).end();
+            }
          })
 
          .post('/:id/stop', async (request, response) => {
