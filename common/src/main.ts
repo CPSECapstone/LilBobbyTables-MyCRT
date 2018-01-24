@@ -22,3 +22,5 @@ export * from './ipc/delegates/capture-delegate';
 
 /* Metrics */
 export * from './metrics/metrics-backend';
+export * from './metrics/metrics';
+
