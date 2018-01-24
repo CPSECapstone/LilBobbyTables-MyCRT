@@ -16,7 +16,21 @@ class MetricsApp extends React.Component<any, any> {
 
     public constructor(props: any) {
         super(props);
-        this.state = {data: null};
+        this.state = {cpuData: null, memData: null, ioData: null};
+    }
+
+    public async componentWillMount() {
+        const cpuData = this.getData(123, "cpuData", MetricType.CPU);
+        const memData = this.getData(123, "memData", MetricType.MEMORY);
+        const ioData = this.getData(123, "ioData", MetricType.IO);
+    }
+
+    public async getData(id: number, name: string, type: MetricType) {
+        const passedData = await mycrt.getCaptureMetrics(id, type);
+        if (passedData != null) {
+            this.formatData(passedData);
+            this.setState({[name]: passedData});
+        }
     }
 
     public formatData(data: IMetricsList) {
@@ -24,17 +38,6 @@ class MetricsApp extends React.Component<any, any> {
             dataPoint.Maximum1 = dataPoint.Maximum;
             dataPoint.Maximum2 = dataPoint.Maximum * 1.5;
             dataPoint.Maximum3 = dataPoint.Maximum * 2;
-        }
-    }
-
-    public async componentWillMount() {
-        logger.info("getting data");
-        const passedData = await mycrt.getCaptureMetrics(123, MetricType.CPU);
-        logger.info("got data");
-        if (passedData != null) {
-            this.formatData(passedData);
-            this.setState({data: passedData});
-            logger.info("changed state");
         }
     }
 
@@ -57,12 +60,12 @@ class MetricsApp extends React.Component<any, any> {
                         <div className="page-header">
                             <h1>Capture Metrics</h1>
                         </div>
-                        <Graph title={this.state.data ? this.state.data.displayName : ''}
-                               data={this.state.data ? this.state.data.dataPoints : []} />
-                        <Graph title={this.state.data ? this.state.data.displayName : ''}
-                               data={this.state.data ? this.state.data.dataPoints : []} />
-                        <Graph title={this.state.data ? this.state.data.displayName : ''}
-                               data={this.state.data ? this.state.data.dataPoints : []} />
+                        <Graph title={this.state.cpuData ? this.state.cpuData.displayName : ''}
+                               data={this.state.cpuData ? this.state.cpuData.dataPoints : []} />
+                        <Graph title={this.state.memData ? this.state.memData.displayName : ''}
+                               data={this.state.memData ? this.state.memData.dataPoints : []} />
+                        <Graph title={this.state.ioData ? this.state.ioData.displayName : ''}
+                               data={this.state.ioData ? this.state.ioData.dataPoints : []} />
                     </div>
                     </div>
                 </div>
