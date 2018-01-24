@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { ICapture, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
+import { IChildProgram, IMetricsList, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
 
@@ -24,23 +24,23 @@ export class MyCrtClient {
    }
 
    /** Create a new Capture */
-   public async postCapture(capture: ICapture): Promise<number | null> {
+   public async postCapture(capture: IChildProgram): Promise<number | null> {
       return this.makeRequest<number>(HttpMethod.POST, '/captures', null, capture);
    }
 
    /** Stop a specific capture */
    public async stopCapture(id: number): Promise<any> {
-      return this.makeRequest<ICapture>(HttpMethod.POST, `/captures/${id}/stop`);
+      return this.makeRequest<IChildProgram>(HttpMethod.POST, `/captures/${id}/stop`);
    }
 
    /** Retrieve all of the captures */
-   public async getCaptures(): Promise<ICapture[] | null> {
-      return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures');
+   public async getCaptures(): Promise<IChildProgram[] | null> {
+      return this.makeRequest<IChildProgram[]>(HttpMethod.GET, '/captures');
    }
 
    /** Retrieve a specific capture */
-   public async getCapture(id: number): Promise<ICapture | null> {
-      return this.makeRequest<ICapture>(HttpMethod.GET, `/captures/${id}`);
+   public async getCapture(id: number): Promise<IChildProgram | null> {
+      return this.makeRequest<IChildProgram>(HttpMethod.GET, `/captures/${id}`);
    }
 
    /** Retrieve a set of specific metrics for a Capture. */
@@ -54,13 +54,13 @@ export class MyCrtClient {
    }
 
    /** Retrieve all of the replays */
-   public async getReplays(): Promise<IReplay[] | null> {
-      return this.makeRequest<IReplay[]>(HttpMethod.GET, '/replays');
+   public async getReplays(): Promise<IChildProgram[] | null> {
+      return this.makeRequest<IChildProgram[]>(HttpMethod.GET, '/replays');
    }
 
    /** Retrieve a specific replay */
-   public async getReplay(id: number): Promise<IReplay | null> {
-      return this.makeRequest<IReplay>(HttpMethod.GET, `/replays/${id}`);
+   public async getReplay(id: number): Promise<IChildProgram | null> {
+      return this.makeRequest<IChildProgram>(HttpMethod.GET, `/replays/${id}`);
    }
 
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {

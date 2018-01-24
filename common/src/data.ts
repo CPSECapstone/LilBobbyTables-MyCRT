@@ -1,26 +1,23 @@
 
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
 
-/** Interface for Capture objects sent/received from the MyCRT service. */
-export interface ICapture {
-   id?: number;
-   name?: string;
-   start?: string;
-   end?: string | null;
+export enum ChildProgramStatus { DEAD = 'dead', LIVE = 'live', STARTING = 'starting'}
+
+/** Capture/Replay */
+export interface IChildProgram {
+   type: ChildProgramType;
+   id: number;
+   name: string;
+   start: string;
+   end: string | null;
+   status: ChildProgramStatus;
 }
 
 /** Interface for Environment objects sent/received from the MyCRT service. */
 export interface IEnvironment {
    id?: number;
    name?: string;
-}
-
-/** Interface for Replay objects sent/received from the MyCRT service. */
-export interface IReplay {
-   id?: number;
-   name?: string;
-   start?: string;
-   end?: string;
+   s3Bucket?: string;
 }
 
 /** The type of data */
@@ -40,5 +37,5 @@ export interface IMetricsList {
    type: MetricType;
    displayName: string;
    live: boolean;
-   dataPoints: [IMetric];
+   dataPoints: IMetric[];
 }

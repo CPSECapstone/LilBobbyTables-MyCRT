@@ -1,5 +1,7 @@
 import { launch } from '@lbt-mycrt/capture';
-import { IMetric, IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, IMetric,
+         IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
+import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 import SelfAwareRouter from './self-aware-router';
@@ -31,8 +33,15 @@ export default class CaptureRouter extends SelfAwareRouter {
          .get('/:id/metrics', (request, response) => {
             const typeQuery: any = request.query.type;
             const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
-            const backend: MetricsBackend = new MetricsBackend();
-            const result: IMetricsList | [IMetricsList] | null = backend.readCaptureMetrics(type);
+            const backend: MetricsBackend = new MetricsBackend(new LocalBackend(''));
+            const result = backend.readMetrics({
+               id: parseInt(request.params.id),
+               name: "name",
+               status: ChildProgramStatus.DEAD,
+               type: ChildProgramType.CAPTURE,
+               start: new Date().toString(),
+               end: new Date().toString(),
+            }, type);
             if (result === null) {
                response.status(http.BAD_REQUEST).end();
             } else {

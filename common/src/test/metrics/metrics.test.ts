@@ -2,8 +2,6 @@ import { expect } from 'chai';
 import 'mocha';
 import { MetricConfiguration } from '../../main';
 
-/* tslint:disable no-unused-expression */
-
 describe("Metrics", () => {
 
     let metrics: MetricConfiguration;

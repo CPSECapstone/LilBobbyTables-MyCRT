@@ -7,8 +7,6 @@ import { S3Backend } from '../../storage/s3-backend';
 
 import { dummyData, key } from './data';
 
-/* tslint:disable no-unused-expression */
-
 describe("S3Backend", () => {
 
    let s3: S3;

@@ -6,7 +6,11 @@
     "jsRules": {},
     "rules": {
        "quotemark": [ false ],
-       "no-empty": [ false ]
+       "no-empty": [ false ],
+       "no-unused-expression": false,
+       "object-literal-sort-keys": false,
+       "max-classes-per-file": [ true, 3, "exclude-class-expressions" ],
+       "radix": false
     },
     "rulesDirectory": [],
     "typedef": [

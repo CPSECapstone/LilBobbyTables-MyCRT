@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-import { ICapture, IEnvironment, IReplay, Logging } from '@lbt-mycrt/common';
+import { IChildProgram, IEnvironment, Logging } from '@lbt-mycrt/common';
 
 import { MyCrtClient } from './mycrt-client/client';
 import { IMyCrtClientDelegate } from './mycrt-client/client-delegate';
@@ -22,7 +22,7 @@ export default class MyCrtCli {
    public async run() {
 
       // get all of the captures
-      const captures: ICapture[] | null = await this.mycrt.getCaptures();
+      const captures: IChildProgram[] | null = await this.mycrt.getCaptures();
       if (captures === null) {
          this.logger.warn("Failed to get captures");
          return;
@@ -42,7 +42,7 @@ export default class MyCrtCli {
 
       // get a single capture
       this.print("\nGetting a specific capture");
-      const theCapture: ICapture | null = await this.mycrt.getCapture(captures[0].id!);
+      const theCapture: IChildProgram | null = await this.mycrt.getCapture(captures[0].id!);
       if (theCapture === null) {
          this.print("Failed to get theCapture");
          return;

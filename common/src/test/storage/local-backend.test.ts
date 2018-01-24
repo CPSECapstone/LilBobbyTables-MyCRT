@@ -8,8 +8,6 @@ import { LocalBackend } from '../../storage/local-backend';
 
 import { dummyData, key } from './data';
 
-/* tslint:disable no-unused-expression */
-
 describe("LocalBackend", () => {
 
    let backend: LocalBackend;

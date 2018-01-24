@@ -9,8 +9,6 @@ import MyCrtService from '../main';
 const expect = chai.expect;
 chai.use(chaiHttp);
 
-/* tslint:disable no-unused-expression */
-
 describe("MyCRTService", () => {
 
    // it("should have a Server instance after launching, but not after closing", () => {

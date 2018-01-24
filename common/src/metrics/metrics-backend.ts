@@ -1,58 +1,80 @@
-import { IMetric, IMetricsList, MetricType } from '../data';
-
+import { ChildProgramStatus, ChildProgramType, IChildProgram, IMetric, IMetricsList, MetricType } from '../data';
 import { defaultLogger } from '../logging';
+import { StorageBackend } from '../storage/backend';
 
 const logger = defaultLogger(__dirname);
 
 /**
  * Reads/Write metrics to the backend.
- * TEMPORARY IMPLEMENTATION FOR NOW. Only reads dummy data.
  */
 export class MetricsBackend {
 
-   constructor() {
-
+   public static getDoneMetricsKey(childProgram: IChildProgram): string {
+      const childType = childProgram.type === ChildProgramType.CAPTURE ? "capture" : "replay";
+      return `${childType}${childProgram.id}/metrics.json`;
    }
 
-   public readCaptureMetrics(type: MetricType | null | undefined): IMetricsList | [IMetricsList] | null {
-      if (!type) {
-         return [this.readIo(), this.readMemory(), this.readCpu()];
+   public static specificMetricFromList(list: IMetricsList[], type: MetricType): IMetricsList {
+      for (const metric of list) {
+         if (metric.type === type) {
+            return metric;
+         }
       }
+      throw new BadMetricTypeError();
+   }
 
-      switch (type) {
-         case MetricType.CPU:
-            return this.readCpu();
-         case MetricType.IO:
-            return this.readIo();
-         case MetricType.MEMORY:
-            return this.readMemory();
+   constructor(private backend: StorageBackend) {}
+
+   public readMetrics(childProgram: IChildProgram, metricType?: MetricType | undefined):
+         Promise<IMetricsList | IMetricsList[]> {
+
+      switch (childProgram.status) {
+         case ChildProgramStatus.LIVE:
+            return this.readMetricsStatusDead(childProgram, metricType);
+         case ChildProgramStatus.DEAD:
+            return this.readMetricsStatusDead(childProgram, metricType);
          default:
-            return null;
+            throw new BadChildProgramStatusError();
       }
+
    }
 
-   private readIo(): IMetricsList {
-      return this.readDummyData('../../dummydata_io.json', MetricType.IO);
+   private readMetricsStatusLive(childProgram: IChildProgram, metricType: MetricType | undefined):
+         Promise<IMetricsList | IMetricsList[]> {
+
+      return new Promise((resolve, reject) => {
+         reject('NOT IMPLEMENTED');
+      });
+
    }
 
-   private readMemory(): IMetricsList {
-      return this.readDummyData('../../dummydata_memory.json', MetricType.MEMORY);
+   private async readMetricsStatusDead(childProgram: IChildProgram, metricType: MetricType | undefined):
+         Promise<IMetricsList | IMetricsList[]> {
+
+      const key = MetricsBackend.getDoneMetricsKey(childProgram);
+      if (metricType === undefined) {
+         return this.readFromBackend<IMetricsList[]>(key);
+      }
+
+      return new Promise<IMetricsList>(async (resolve, reject) => {
+         const metrics = await this.readFromBackend<IMetricsList[]>(key);
+         for (const metric of metrics) {
+            if (metric.type === metricType) {
+               resolve(metric);
+               return;
+            }
+         }
+         reject(`No metrics for ${metricType}`);
+      });
+
    }
 
-   private readCpu(): IMetricsList {
-      return this.readDummyData('../../dummydata_cpu.json', MetricType.CPU);
-   }
-
-   private readDummyData(path: string, type: MetricType): IMetricsList {
-      const dummyMetrics = require(path);
-      const metrics: IMetricsList = {
-         dataPoints: dummyMetrics.Datapoints as [IMetric],
-         displayName: `${type}`,
-         label: dummyMetrics.Label,
-         live: false,
-         type,
-      };
-      return metrics;
+   private readFromBackend<T>(key: string): Promise<T> {
+      return this.backend.readJson<T>(key);
    }
 
 }
+
+export class BadChildProgramStatusError extends Error {}
+
+export class BadMetricTypeError extends Error {}
