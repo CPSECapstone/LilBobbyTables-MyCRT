@@ -20,70 +20,59 @@ export class MetricConfiguration {
 
     constructor(dimName: string, dimValue: string,
                 period: number, statistics: any, percent: string) {
-            this.dimName = dimName;
-            this.dimValue = dimValue;
-            this.period = period;
-            this.statistics = statistics;
-            this.percent = percent;
-        }
+        this.dimName = dimName;
+        this.dimValue = dimValue;
+        this.period = period;
+        this.statistics = statistics;
+        this.percent = percent;
+    }
 
-    public getCPUMetrics = (startTime: Date, endTime: Date) => {
+    public getCPUMetrics(startTime: Date, endTime: Date) {
         return this.getMetrics(CPU, startTime, endTime);
     }
 
-    public getIOMetrics = (startTime: Date, endTime: Date) => {
+    public getIOMetrics(startTime: Date, endTime: Date) {
         return this.getMetrics(IO, startTime, endTime);
     }
 
-    public getMemoryMetrics = (startTime: Date, endTime: Date) => {
+    public getMemoryMetrics(startTime: Date, endTime: Date) {
         return this.getMetrics(MEMORY, startTime, endTime);
     }
 
-    private getMetrics(metricName: string, startTime: Date, endTime: Date) {
+    private getMetrics(metricName: string, startTime: Date, endTime: Date): Promise<any> {
         logger.info(JSON.stringify(AWS.config));
         // tslint:disable-next-line:max-line-length
-        cloudwatch.getMetricStatistics(this.buildMetricRequest(metricName, startTime, endTime),
-        function onComplete(err, data) {
-            // tslint:disable-next-line:max-line-length
-            if (err) {
-                logger.log("info", "failed to get metrics %s", err.stack);
-                return data;
-            }
-            // tslint:disable-next-line:one-line
-            else { return data; }
+        return new Promise<any>((resolve, reject) => {
+            cloudwatch.getMetricStatistics(this.buildMetricRequest(metricName, startTime, endTime),
+                function onMetricResult(err, data) {
+                    // tslint:disable-next-line:max-line-length
+                    if (err) {
+                        logger.log("info", "failed to get metrics %s", err.stack);
+                        reject(err.stack);
+                    }
+                    // tslint:disable-next-line:one-line
+                    else {
+                        resolve(data);
+                    }
+                });
         });
     }
 
     private buildMetricRequest(metricName: string, startTime: Date, endTime: Date) {
         return {
-                    Dimensions: [
-                    {
-                        Name: this.dimName,
-                        Value: this.dimValue,
-                    },
-                ],
-                EndTime: endTime,
-                MetricName: metricName,
-                Namespace: 'AWS/RDS',
-                Period: this.period,
-                StartTime: startTime,
-                Statistics: this.statistics, // "CPUUtilization", || NetworkIn | NetworkOut | FreeableMemory,
-                Unit: this.percent,
-            };
-        }
+            Dimensions: [
+                {
+                    Name: this.dimName,
+                    Value: this.dimValue,
+                },
+            ],
+            EndTime: endTime,
+            MetricName: metricName,
+            Namespace: 'AWS/RDS',
+            Period: this.period,
+            StartTime: startTime,
+            Statistics: this.statistics,
+            Unit: this.percent,
+        };
+    }
 }
-
-// temp global variables
-// const mdimName = 'DBInstanceIdentifier';
-// const mdimValue = 'nfl2015';
-// const mendTime = '2018-01-14T07:00:00Z';
-// const mstartTime = '2018-01-14T01:00:00Z';
-// const mmetricName = 'CPUUtilization';
-// const mnameSpace = 'AWS/RDS';
-// const mperiod = 60;
-// const mstatistics = 'Maximum';
-// const mpercent = 'Percent';
-
-// const testMetrics = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', '2018-01-14T07:00:00Z',
-//                                         '2018-01-14T01:00:00Z', 60, 'Maximum', 'Percent');
-// testMetrics.getCPUMetrics();
