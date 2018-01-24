@@ -21,7 +21,8 @@
 //     });
 
 //     it("should get Memory metrics", async () => {
-//         memoryMetrics = await metrics.getMemoryMetrics(new Date(2018, 0, 14, 1, 0, 0), new Date(2018, 0, 14, 7, 0, 0));
+//         memoryMetrics = await metrics.getMemoryMetrics(new Date(2018, 0, 14, 1, 0, 0),
+//           new Date(2018, 0, 14, 7, 0, 0));
 //         expect(memoryMetrics.Label).to.equal('FreeableMemory');
 //     });
 
