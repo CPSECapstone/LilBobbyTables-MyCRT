@@ -1,13 +1,13 @@
-import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
-
-import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
-
 import { S3 } from 'aws-sdk';
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
-import { MetricConfiguration } from '../../common/src/metrics/metrics';
-import { StorageBackend } from '../../common/src/storage/backend';
-import { S3Backend } from '../../common/src/storage/s3-backend';
+
+import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
+import { MetricConfiguration } from '@lbt-mycrt/common/dist/metrics/metrics';
+import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
+import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
+
+import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
 
 const logger = Logging.defaultLogger(__dirname);
 
@@ -207,7 +207,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
    // pull metric from cloudwatch and send them to S3
    private async sendMetricsToS3(s3: StorageBackend, startTime: Date) {
 
-     const baseKey = `lil-test-environment/capture/${this.id}/depot/`;
+     const baseKey = `capture${this.id}/depot/`;
      const endTime: Date = this.getEndTime(startTime);
 
      const CPUdata = await this.metricConfig.getCPUMetrics(startTime, endTime);
