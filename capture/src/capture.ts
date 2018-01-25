@@ -142,7 +142,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
    constructor(public config: ICaptureConfig) {
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
       this.storage = new S3Backend(new S3(), "lil-test-environment");
-      this.metricConfig = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum'], 'Percent');
+      this.metricConfig = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
    }
 
    public get id(): number {
