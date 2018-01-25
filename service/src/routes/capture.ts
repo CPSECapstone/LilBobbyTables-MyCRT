@@ -31,22 +31,23 @@ export default class CaptureRouter extends SelfAwareRouter {
          })
 
          .get('/:id/metrics', (request, response) => {
-            const typeQuery: any = request.query.type;
-            const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
-            const backend: MetricsBackend = new MetricsBackend(new LocalBackend(''));
-            const result = backend.readMetrics({
-               id: parseInt(request.params.id),
-               name: "name",
-               status: ChildProgramStatus.DEAD,
-               type: ChildProgramType.CAPTURE,
-               start: new Date().toString(),
-               end: new Date().toString(),
-            }, type);
-            if (result === null) {
-               response.status(http.BAD_REQUEST).end();
-            } else {
-               response.json(result).end();
-            }
+            // const typeQuery: any = request.query.type;
+            // const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
+            // const backend: MetricsBackend = new MetricsBackend(new LocalBackend(''));
+            // const result = backend.readMetrics({
+            //    id: parseInt(request.params.id),
+            //    name: "name",
+            //    status: ChildProgramStatus.DEAD,
+            //    type: ChildProgramType.CAPTURE,
+            //    start: new Date().toString(),
+            //    end: new Date().toString(),
+            // }, type);
+            // if (result === null) {
+            //    response.status(http.BAD_REQUEST).end();
+            // } else {
+            //    response.json(result).end();
+            // }
+            response.status(http.IM_A_TEAPOT);
          })
 
          .post('/:id/stop', async (request, response) => {
