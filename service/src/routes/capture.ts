@@ -29,7 +29,11 @@ export default class CaptureRouter extends SelfAwareRouter {
             const id = request.params.id;
             const queryStr = mysql.format("SELECT * FROM Capture WHERE id = ?", [id]);
             ConnectionPool.query(response, queryStr, (error, row, fields) => {
-               response.json(row);
+               if (row.length) {
+                  response.json(row[0]).end();
+               } else {
+                  response.status(http.NOT_FOUND).end();
+               }
             });
          })
 

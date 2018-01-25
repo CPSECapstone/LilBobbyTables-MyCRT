@@ -16,14 +16,25 @@ class MetricsApp extends React.Component<any, any> {
 
     public constructor(props: any) {
         super(props);
-        this.state = {cpuData: null, memData: null, ioData: null};
+
+        // FIXME: THIS IS A QUICK AND DIRTY WAY TO DO THIS
+
+        let id: any = 123;
+        const match = window.location.search.match(/.*?.*id=(\d+)/);
+        if (match) {
+           id = match[1];
+        }
+
+        this.state = {cpuData: null, memData: null, ioData: null, captureId: id, capture: null};
     }
 
-    public async componentWillMount() {
-        const cpuData = this.getData(123, "cpuData", MetricType.CPU);
-        const memData = this.getData(123, "memData", MetricType.MEMORY);
-        const ioData = this.getData(123, "ioData", MetricType.IO);
-    }
+   public async componentWillMount() {
+      const capture = await mycrt.getCapture(this.state.captureId);
+      logger.info(JSON.stringify(capture));
+      const cpuData = this.getData(capture!.id, "cpuData", MetricType.CPU);
+      const memData = this.getData(capture!.id, "memData", MetricType.MEMORY);
+      const ioData = this.getData(capture!.id, "ioData", MetricType.IO);
+   }
 
     public async getData(id: number, name: string, type: MetricType) {
         const passedData = await mycrt.getCaptureMetrics(id, type);
@@ -61,11 +72,14 @@ class MetricsApp extends React.Component<any, any> {
                             <h1>Capture Metrics</h1>
                         </div>
                         <Graph title={this.state.cpuData ? this.state.cpuData.displayName : ''}
-                               data={this.state.cpuData ? this.state.cpuData.dataPoints : []} />
+                               data={this.state.cpuData ? this.state.cpuData.dataPoints : []}
+                               id={this.state.captureId} type="CPU" />
                         <Graph title={this.state.memData ? this.state.memData.displayName : ''}
-                               data={this.state.memData ? this.state.memData.dataPoints : []} />
+                               data={this.state.memData ? this.state.memData.dataPoints : []}
+                               id={this.state.captureId} type="MEMORY" />
                         <Graph title={this.state.ioData ? this.state.ioData.displayName : ''}
-                               data={this.state.ioData ? this.state.ioData.dataPoints : []} />
+                               data={this.state.ioData ? this.state.ioData.dataPoints : []}
+                               id={this.state.captureId} type="IO" />
                     </div>
                     </div>
                 </div>

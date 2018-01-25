@@ -34,7 +34,7 @@ class DashboardApp extends React.Component<any, any> {
       if (this.state.captures) {
          for (const capture of this.state.captures) {
             const name = `capture ${capture.id}`;
-            captures.push((<CapturePanel title={name} />));
+            captures.push((<CapturePanel title={name} id={capture.id} />));
          }
       }
       return (
