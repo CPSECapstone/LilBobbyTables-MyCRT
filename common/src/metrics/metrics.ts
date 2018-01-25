@@ -1,6 +1,8 @@
 /* Created by Alex and Christiana on Jan 15 2018 */
 
 import AWS = require('aws-sdk');
+
+import { IMetric, IMetricsList, MetricType } from '../data';
 import Logging = require('./../logging');
 
 const cloudwatch = new AWS.CloudWatch({ region: 'us-east-2' });
@@ -10,6 +12,30 @@ const logger = Logging.consoleLogger();
 const CPU = 'CPUUtilization';
 const IO = 'NetworkIn';
 const MEMORY = 'FreeableMemory';
+
+const nameToType = (name: string): MetricType => {
+   switch (name) {
+      case CPU:
+         return MetricType.CPU;
+      case IO:
+         return MetricType.IO;
+      case MEMORY:
+         return MetricType.MEMORY;
+      default:
+         throw new Error();
+   }
+};
+
+const toIMetricsList = (data: AWS.CloudWatch.GetMetricStatisticsOutput): IMetricsList => {
+   const labelStr = data.Label || CPU;
+   return {
+      label: labelStr,
+      type: nameToType(labelStr),
+      displayName: nameToType(labelStr),
+      live: false,
+      dataPoints: (data.Datapoints || []) as any,
+   };
+};
 
 export class MetricConfiguration {
     public dimName: string;
@@ -39,20 +65,16 @@ export class MetricConfiguration {
         return this.getMetrics(MEMORY, startTime, endTime);
     }
 
-    private getMetrics(metricName: string, startTime: Date, endTime: Date): Promise<any> {
+    private getMetrics(metricName: string, startTime: Date, endTime: Date): Promise<IMetricsList> {
         logger.info(JSON.stringify(AWS.config));
-        // tslint:disable-next-line:max-line-length
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<IMetricsList>((resolve, reject) => {
             cloudwatch.getMetricStatistics(this.buildMetricRequest(metricName, startTime, endTime),
                 function onMetricResult(err, data) {
-                    // tslint:disable-next-line:max-line-length
                     if (err) {
                         logger.log("info", "failed to get metrics %s", err.stack);
                         reject(err.stack);
-                    }
-                    // tslint:disable-next-line:one-line
-                    else {
-                        resolve(data);
+                    } else {
+                        resolve(toIMetricsList(data));
                     }
                 });
         });

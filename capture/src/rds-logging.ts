@@ -1,6 +1,10 @@
 import aws = require('aws-sdk');
 import mysql = require('mysql');
 
+import { Logging } from '@lbt-mycrt/common';
+
+const logger = Logging.defaultLogger(__dirname);
+
 // tslint:disable-next-line:no-var-requires
 const remoteConfig = require('../db/remoteConfig.json');
 
@@ -64,19 +68,17 @@ export const startRdsLogging = async () => {
    return await setGeneralLogging(true);
 };
 
-// TODO: clean up some more of the callback hell
 export const stopRdsLoggingAndUploadToS3 = async (): Promise<any> => {
+   logger.info("Turning off general logging, querying general logs, and putting them on S3");
 
    await setGeneralLogging(false);
 
    return new Promise<any>((resolve, reject) => {
-      /* TODO connect to the database held by the environment */
       const remoteConn = mysql.createConnection(remoteConfig);
       remoteConn.connect((remoteConnErr) => {
          if (remoteConnErr) {
             reject(remoteConnErr);
          } else {
-            /* TODO run a query to select the general_log */
             const queryStr = mysql.format("SELECT * FROM mysql.general_log " +
             "where user_host = ?", ["nfl2015user[nfl2015user] @  [172.31.35.19]"]);
 
@@ -85,7 +87,9 @@ export const stopRdsLoggingAndUploadToS3 = async (): Promise<any> => {
                if (queryErr) {
                   reject(queryErr);
                } else {
+                  logger.info("Uploading workload to s3");
                   const s3res = await uploadToS3(JSON.stringify(rows));
+                  logger.info(`Workload located at ${s3res}`);
                   resolve(s3res);
                }
             });

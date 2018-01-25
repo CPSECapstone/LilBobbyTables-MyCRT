@@ -1,9 +1,12 @@
+import { S3 } from 'aws-sdk';
+import * as http from 'http-status-codes';
+import * as mysql from 'mysql';
+
 import { launch } from '@lbt-mycrt/capture';
 import { ChildProgramStatus, ChildProgramType, IMetric,
          IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
-import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
-import * as http from 'http-status-codes';
-import * as mysql from 'mysql';
+import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
+
 import SelfAwareRouter from './self-aware-router';
 import ConnectionPool from './util/cnnPool';
 
@@ -30,30 +33,38 @@ export default class CaptureRouter extends SelfAwareRouter {
             });
          })
 
-         .get('/:id/metrics', (request, response) => {
-            // const typeQuery: any = request.query.type;
-            // const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
-            // const backend: MetricsBackend = new MetricsBackend(new LocalBackend(''));
-            // const result = backend.readMetrics({
-            //    id: parseInt(request.params.id),
-            //    name: "name",
-            //    status: ChildProgramStatus.DEAD,
-            //    type: ChildProgramType.CAPTURE,
-            //    start: new Date().toString(),
-            //    end: new Date().toString(),
-            // }, type);
-            // if (result === null) {
-            //    response.status(http.BAD_REQUEST).end();
-            // } else {
-            //    response.json(result).end();
-            // }
-            response.status(http.IM_A_TEAPOT);
+         .get('/:id/metrics', async (request, response) => {
+
+            const typeQuery: any = request.query.type;
+            const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
+
+            const backend: MetricsBackend = new MetricsBackend(new S3Backend(new S3(), 'lil-test-environment'));
+
+            const result = await backend.readMetrics({
+               id: parseInt(request.params.id),
+               name: "name",
+               status: ChildProgramStatus.DEAD,
+               type: ChildProgramType.CAPTURE,
+               start: new Date().toString(),
+               end: new Date().toString(),
+            }, type).catch((reason) => {
+               response.status(http.INTERNAL_SERVER_ERROR).json({reason}).end();
+            });
+
+            if (result === null) {
+               response.status(http.BAD_REQUEST).end();
+            } else {
+               response.json(result).end();
+            }
          })
 
          .post('/:id/stop', async (request, response) => {
 
             const captureId = request.params.id;
-            const s3res: any = await this.ipcNode.stopCapture(captureId);
+            const s3res: any = await this.ipcNode.stopCapture(captureId).catch((reason) => {
+               logger.error(`Failed to stop capture ${captureId}: ${reason}`);
+            });
+            logger.info(`Capture ${captureId} stopped! workload file at ${s3res}`);
             response.json(s3res).end();
 
          })

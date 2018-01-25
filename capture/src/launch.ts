@@ -21,7 +21,7 @@ export const launch = (config: ICaptureConfig) => {
       })
 
       .on('error', (error: string) => {
-         logger.info(error);
+         logger.error(`Capture ${config.id} errorred: ${error}`);
       })
 
    ;

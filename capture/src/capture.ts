@@ -3,7 +3,9 @@ import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
 import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
 import { MetricConfiguration } from '@lbt-mycrt/common/dist/metrics/metrics';
+import { MetricsBackend } from '@lbt-mycrt/common/dist/metrics/metrics-backend';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
@@ -59,9 +61,9 @@ export interface ICaptureConfig {
 
 export class Capture implements ICaptureIpcNodeDelegate {
 
-   public static updateCaptureStatus(id: number, status: string) {
-      const config = require("../db/config.json");
-      const conn = mysql.createConnection(config);
+   public static updateCaptureStatus(id: number, status: string): Promise<any> {
+      const localDbConfig = require('../db/config.json');
+      const conn = mysql.createConnection(localDbConfig);
 
       return new Promise<any>((resolve, reject) => {
          conn.connect((connErr) => {
@@ -69,7 +71,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
                reject(connErr);
             } else {
                const updateStr = mysql.format("UPDATE Capture SET status = ? WHERE id = ?", [status, id]);
-               conn.query(updateStr, async (updateErr, rows) => {
+               conn.query(updateStr, (updateErr, rows) => {
                   conn.end();
                   if (updateErr) {
                      reject(updateErr);
@@ -82,54 +84,54 @@ export class Capture implements ICaptureIpcNodeDelegate {
       });
    }
 
-   public static updateCaptureStartTime(id: number) {
-    const config = require("../db/config.json");
-    const conn = mysql.createConnection(config);
+   public static updateCaptureStartTime(id: number): Promise<any> {
+      const localDbConfig = require('../db/config.json');
+      const conn = mysql.createConnection(localDbConfig);
 
-    return new Promise<any>((resolve, reject) => {
-       conn.connect((connErr) => {
-          if (connErr) {
-             reject(connErr);
-          } else {
-             const updateStr = mysql.format("UPDATE Capture SET start = NOW() WHERE id = ?", [id]);
-             conn.query(updateStr, async (updateErr, rows) => {
-                conn.end();
-                if (updateErr) {
-                   reject(updateErr);
-                } else {
-                   resolve(rows);
-                }
-             });
-          }
-       });
-    });
+      return new Promise<any>((resolve, reject) => {
+         conn.connect((connErr) => {
+            if (connErr) {
+               reject(connErr);
+            } else {
+               const updateStr = mysql.format("UPDATE Capture SET start = NOW() WHERE id = ?", [id]);
+               conn.query(updateStr, (updateErr, rows) => {
+                  conn.end();
+                  if (updateErr) {
+                     reject(updateErr);
+                  } else {
+                     resolve(rows);
+                  }
+               });
+            }
+         });
+      });
    }
 
    public static updateCaptureEndTime(id: number) {
-    const config = require("../db/config.json");
-    const conn = mysql.createConnection(config);
+      const localDbConfig = require('../db/config.json');
+      const conn = mysql.createConnection(localDbConfig);
 
-    return new Promise<any>((resolve, reject) => {
-      conn.connect((connErr) => {
-          if (connErr) {
-            reject(connErr);
-          } else {
-            const updateStr = mysql.format("UPDATE Capture SET end = NOW() WHERE id = ?", [id]);
-            conn.query(updateStr, async (updateErr, rows) => {
-                conn.end();
-                if (updateErr) {
-                  reject(updateErr);
-                } else {
-                  resolve(rows);
-                }
-            });
-          }
+      return new Promise<any>((resolve, reject) => {
+         conn.connect((connErr) => {
+            if (connErr) {
+               reject(connErr);
+            } else {
+               const updateStr = mysql.format("UPDATE Capture SET end = NOW() WHERE id = ?", [id]);
+               conn.query(updateStr, (updateErr, rows) => {
+                  conn.end();
+                  if (updateErr) {
+                     reject(updateErr);
+                  } else {
+                     resolve(rows);
+                  }
+               });
+            }
+         });
       });
-    });
    }
 
    private done: boolean = false;
-   private startTime: Date = new Date();
+   private readonly startTime: Date = new Date();
    private ipcNode: CaptureIpcNode;
    private metricConfig: MetricConfiguration;
    private storage: StorageBackend;
@@ -147,12 +149,24 @@ export class Capture implements ICaptureIpcNodeDelegate {
       return this.config.id;
    }
 
+   public asIChildProgram(): IChildProgram {
+      return {
+         type: ChildProgramType.CAPTURE,
+         id: this.id,
+         name: "",
+         start: this.startTime.toJSON(),
+         end: null,
+         status: ChildProgramStatus.DEAD,
+      };
+   }
+
    public run(): void {
       this.setup();
       if (this.config.supervised) {
+         logger.info(`Capture ${this.id} is looping!`);
          this.loop();
-         setTimeout( () => { this.loopSend(this.startTime); },
-                    this.config.sendMetricsInterval || this.DEFAULT_METRICS_INTERVAL );
+         // setTimeout( () => { this.loopSend(this.startTime); },
+                  //   this.config.sendMetricsInterval || this.DEFAULT_METRICS_INTERVAL );
       } else {
          this.teardown();
       }
@@ -162,19 +176,34 @@ export class Capture implements ICaptureIpcNodeDelegate {
       logger.info(`Capture ${this.id} received stop signal!`);
       this.done = true;
 
-      Capture.updateCaptureStatus(this.id, "dead");
-      Capture.updateCaptureEndTime(this.id);
-      const s3res = await stopRdsLoggingAndUploadToS3();
+      logger.info("set status to dead");
+      await Capture.updateCaptureStatus(this.id, "dead").catch((reason) => {
+         logger.error(`Failed to set status to dead: ${reason}`);
+      });
+      logger.info("record end time");
+      await Capture.updateCaptureEndTime(this.id).catch((reason) => {
+         logger.error(`Failed to record end time: ${reason}`);
+      });
+      logger.info("save workload");
+      const s3res = await stopRdsLoggingAndUploadToS3().catch((reason) => {
+         logger.error(`Failed to upload RDS log to S3: ${reason}`);
+      });
+      logger.info(`Got S3 location!: ${s3res}`);
       return s3res;
    }
 
-   private setup(): void {
+   private async setup(): Promise<void> {
       logger.info(`Performing setup for Capture ${this.id}`);
       this.ipcNode.start();
 
-      logger.info(`Capture ${this.id}: startTime = ${this.startTime.toJSON()}`);
-      Capture.updateCaptureStartTime(this.id);
-      Capture.updateCaptureStatus(this.id, "live");
+      logger.info(`Setting Capture ${this.id} startTime = ${this.startTime.toJSON()} . . . `);
+      await Capture.updateCaptureStartTime(this.id).catch((reason) => {
+         logger.error(`Failed to update start time: ${reason}`);
+      });
+      logger.info(`Setting Capture ${this.id} status to 'live'`);
+      await Capture.updateCaptureStatus(this.id, "live").catch((reason) => {
+         logger.error(`Failed to update status: ${reason}`);
+      });
 
       logger.info(`Starting RDS logging`);
       startRdsLogging();
@@ -190,34 +219,34 @@ export class Capture implements ICaptureIpcNodeDelegate {
       }
    }
 
-   private loopSend(startTime: Date): void {
-     logger.info(`Capture ${this.id}: loopSend start`);
+   // private loopSend(startTime: Date): void {
+   //   logger.info(`Capture ${this.id}: loopSend start`);
 
-     if (this.done) {
-       this.teardown();
-     } else {
-       this.sendMetricsToS3(this.storage, startTime);
-       const nextTime = this.subMinutesFromDate(this.getEndTime(startTime),
-                          this.config.metricsOverlap || this.DEFAULT_METRICS_OVERLAP);
-       setTimeout(() => { this.loopSend(nextTime); },
-                  this.config.sendMetricsInterval || this.DEFAULT_METRICS_INTERVAL);
-     }
-   }
+   //   if (this.done) {
+   //     this.teardown();
+   //   } else {
+   //     this.sendMetricsToS3(this.storage, startTime);
+   //     const nextTime = this.subMinutesFromDate(this.getEndTime(startTime),
+   //                        this.config.metricsOverlap || this.DEFAULT_METRICS_OVERLAP);
+   //     setTimeout(() => { this.loopSend(nextTime); },
+   //                this.config.sendMetricsInterval || this.DEFAULT_METRICS_INTERVAL);
+   //   }
+   // }
 
    // pull metric from cloudwatch and send them to S3
-   private async sendMetricsToS3(s3: StorageBackend, startTime: Date) {
+   private async sendMetricsToS3(s3: StorageBackend, startTime: Date, endTime: Date) {
 
-     const baseKey = `capture${this.id}/depot/`;
-     const endTime: Date = this.getEndTime(startTime);
+      logger.info("Retrieving metrics");
+      const CPUdata = await this.metricConfig.getCPUMetrics(startTime, endTime);
+      const MEMdata = await this.metricConfig.getMemoryMetrics(startTime, endTime);
+      const IOdata = await this.metricConfig.getIOMetrics(startTime, endTime);
+      const allData = [CPUdata, MEMdata, IOdata];
 
-     const CPUdata = await this.metricConfig.getCPUMetrics(startTime, endTime);
-     s3.writeJson(`${baseKey}cpu-${endTime.toJSON()}.json`, CPUdata);
-
-     const MEMdata = await this.metricConfig.getCPUMetrics(startTime, endTime);
-     s3.writeJson(`${baseKey}memory-${endTime.toJSON()}.json`, MEMdata);
-
-     const IOdata = await this.metricConfig.getCPUMetrics(startTime, endTime);
-     s3.writeJson(`${baseKey}io-${endTime.toJSON()}.json`, IOdata);
+      const baseKey = MetricsBackend.getDoneMetricsKey(this.asIChildProgram());
+      logger.info(`Saving metrics to ${baseKey}`);
+      await s3.writeJson(baseKey, allData).catch((reason) => {
+         logger.error(`Could not save metrics: ${reason}`);
+      });
    }
 
    private getEndTime(startTime: Date): Date {
@@ -237,8 +266,11 @@ export class Capture implements ICaptureIpcNodeDelegate {
     return new Date(startDate.valueOf() - (minutes * millisecPerMin));
   }
 
-   private teardown(): void {
+   private async teardown() {
       logger.info(`Performing teardown for Capture ${this.id}`);
+
+      await this.sendMetricsToS3(this.storage, this.startTime, new Date());
+
       this.ipcNode.stop();
    }
 
