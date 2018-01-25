@@ -12,6 +12,26 @@ export class S3Backend extends StorageBackend {
       super();
    }
 
+   public exists(key: string): Promise<boolean> {
+
+      const params: S3.HeadObjectRequest = {
+         Bucket: this.bucket,
+         Key: key,
+      };
+
+      return new Promise<boolean>((resolve, reject) => {
+         this.s3.headObject(params, (err: AWSError, data: S3.HeadObjectOutput) => {
+            if (err && err.code === 'NotFound') {
+               resolve(false);
+            } else if (!err) {
+               resolve(true);
+            } else {
+               reject(err);
+            }
+         });
+      });
+   }
+
    public async readJson<T>(key: string): Promise<T> {
 
       const params: S3.GetObjectRequest = {

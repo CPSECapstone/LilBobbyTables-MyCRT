@@ -37,6 +37,22 @@ describe("S3Backend", () => {
       backend = new S3Backend(s3, 'lil-test-environment');
    });
 
+   it("should know if a file exists", async () => {
+
+      mockito.when(spiedS3.headObject(mockito.anything(), mockito.anyFunction()))
+         .thenCall((params, callback) => {
+            callback({code: 'NotFound'});
+         });
+      expect(await backend.exists(key)).to.be.false;
+
+      await backend.writeJson(key, dummyData);
+      mockito.when(spiedS3.headObject(mockito.anything(), mockito.anyFunction()))
+         .thenCall((params, callback) => {
+            callback();
+         });
+      expect(await backend.exists(key)).to.be.true;
+   });
+
    it("should write data, then read it back", async () => {
 
       await backend.writeJson(key, dummyData);

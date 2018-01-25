@@ -30,7 +30,7 @@ export class MetricsBackend {
 
       switch (childProgram.status) {
          case ChildProgramStatus.LIVE:
-            return this.readMetricsStatusDead(childProgram, metricType);
+            return this.readMetricsStatusLive(childProgram, metricType);
          case ChildProgramStatus.DEAD:
             return this.readMetricsStatusDead(childProgram, metricType);
          default:
@@ -42,9 +42,7 @@ export class MetricsBackend {
    private readMetricsStatusLive(childProgram: IChildProgram, metricType: MetricType | undefined):
          Promise<IMetricsList | IMetricsList[]> {
 
-      return new Promise((resolve, reject) => {
-         reject('NOT IMPLEMENTED');
-      });
+      throw new Error('NOT IMPLEMENTED');
 
    }
 

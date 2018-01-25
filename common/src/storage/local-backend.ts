@@ -17,6 +17,11 @@ export class LocalBackend extends StorageBackend {
       }
    }
 
+   public exists(key: string): Promise<boolean> {
+      const file = path.join(this.rootDir, key);
+      return fs.pathExists(file);
+   }
+
    public async readJson<T>(key: string): Promise<T> {
       const file = path.join(this.rootDir, key);
       return new Promise<T>((resolve, reject) => {

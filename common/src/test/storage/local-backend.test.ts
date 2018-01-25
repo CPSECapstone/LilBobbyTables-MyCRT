@@ -23,6 +23,12 @@ describe("LocalBackend", () => {
       fs.remove(rootDir);
    });
 
+   it("should know if a file exists", async () => {
+      expect(await backend.exists(key)).to.be.false;
+      await backend.writeJson(key, dummyData);
+      expect(await backend.exists(key)).to.be.true;
+   });
+
    it("should write data, then read it back", async () => {
 
       await backend.writeJson(key, dummyData);
