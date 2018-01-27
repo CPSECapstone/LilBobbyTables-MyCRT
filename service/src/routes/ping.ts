@@ -24,7 +24,7 @@ export default class PingRouter extends SelfAwareRouter {
     const logger = Logging.defaultLogger(__dirname);
 
     this.router.get('/', async (request, response) => {
-      const m = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum'], 'Percent');
+      const m = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
       const cpuMetrics = await m.getCPUMetrics(new Date(2018, 0, 14, 1, 0, 0), new Date(2018, 0, 14, 7, 0, 0));
       response.json(cpuMetrics);
     });

@@ -10,7 +10,7 @@ const logger = Logging.consoleLogger();
 
 // Metrics to retrieve
 const CPU = 'CPUUtilization';
-const IO = 'NetworkIn';
+const IO = 'ReadLatency';
 const MEMORY = 'FreeableMemory';
 
 const nameToType = (name: string): MetricType => {
@@ -42,33 +42,31 @@ export class MetricConfiguration {
     public dimValue: string;
     public period: number;
     public statistics: any;
-    public percent: string;
 
     constructor(dimName: string, dimValue: string,
-                period: number, statistics: any, percent: string) {
+                period: number, statistics: any) {
         this.dimName = dimName;
         this.dimValue = dimValue;
         this.period = period;
         this.statistics = statistics;
-        this.percent = percent;
     }
 
     public getCPUMetrics(startTime: Date, endTime: Date) {
-        return this.getMetrics(CPU, startTime, endTime);
+        return this.getMetrics(CPU, startTime, endTime, 'Percent');
     }
 
     public getIOMetrics(startTime: Date, endTime: Date) {
-        return this.getMetrics(IO, startTime, endTime);
+        return this.getMetrics(IO, startTime, endTime, 'Seconds');
     }
 
     public getMemoryMetrics(startTime: Date, endTime: Date) {
-        return this.getMetrics(MEMORY, startTime, endTime);
+        return this.getMetrics(MEMORY, startTime, endTime, 'Bytes');
     }
 
-    private getMetrics(metricName: string, startTime: Date, endTime: Date): Promise<IMetricsList> {
+    private getMetrics(metricName: string, startTime: Date, endTime: Date, unit: string): Promise<IMetricsList> {
         logger.info(JSON.stringify(AWS.config));
         return new Promise<IMetricsList>((resolve, reject) => {
-            cloudwatch.getMetricStatistics(this.buildMetricRequest(metricName, startTime, endTime),
+            cloudwatch.getMetricStatistics(this.buildMetricRequest(metricName, startTime, endTime, unit),
                 function onMetricResult(err, data) {
                     if (err) {
                         logger.log("info", "failed to get metrics %s", err.stack);
@@ -80,7 +78,7 @@ export class MetricConfiguration {
         });
     }
 
-    private buildMetricRequest(metricName: string, startTime: Date, endTime: Date) {
+    private buildMetricRequest(metricName: string, startTime: Date, endTime: Date, unit: string) {
         return {
             Dimensions: [
                 {
@@ -94,7 +92,7 @@ export class MetricConfiguration {
             Period: this.period,
             StartTime: startTime,
             Statistics: this.statistics,
-            Unit: this.percent,
+            Unit: unit,
         };
     }
 }
