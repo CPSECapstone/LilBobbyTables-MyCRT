@@ -13,9 +13,10 @@ const EnvironmentsApp = () => {
          <div className="row">
             <div className="col-sm-12 mb-r">
                <div className="page-header">
-                  <h1>Environments</h1>
-                  <a role="button" className="btn btn-primary" href="#">
-                    <i className="fa fa-plus" aria-hidden="true"></i> Create
+                  <h1 style={{display: "inline"}}>Environments</h1>
+                  <a role="button" className="btn btn-primary" href="#"
+                     style={{marginBottom: "20px", marginLeft: "15px"}}>
+                    <i className="fa fa-plus" aria-hidden="true"></i>
                   </a>
                </div>
                <EnvironmentPanel title="Lil Environment #1" />
