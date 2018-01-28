@@ -9,37 +9,34 @@ import MyCrtService from '../main';
 const expect = chai.expect;
 chai.use(chaiHttp);
 
-describe("MyCRTService", () => {
+export const mycrt: MyCrtService = new MyCrtService();
 
-   // it("should have a Server instance after launching, but not after closing", () => {
-   //    const mycrt: MyCRTService = new MyCRTService();
-   //    mycrt.launch();
-   //    expect(mycrt.getServer()).to.be.instanceOf(Server);
-   //    expect(mycrt.isLaunched()).to.be.true;
-   //    mycrt.close();
-   //    expect(mycrt.getServer()).to.be.null;
-   //    expect(mycrt.isLaunched()).to.be.false;
-   // });
+export const launchMyCrtService = async () => {
+   expect(await mycrt.launch().catch((reason) => {
+      chai.assert.fail(`mycrt launch failed: ${reason}`);
+   })).to.be.true;
+   expect(mycrt.getServer()).to.be.instanceOf(Server);
+   expect(mycrt.isLaunched()).to.be.true;
+};
 
-});
+export const closeMyCrtService = async () => {
+   expect(await mycrt.close().catch((reason) => {
+      chai.assert.fail(`mycrt close failed: ${reason}`);
+   })).to.be.true;
+   expect(mycrt.getServer()).to.be.null;
+   expect(mycrt.isLaunched()).to.be.false;
+};
 
-describe("MyCRTService GET /", () => {
+describe("MyCrtService", () => {
 
-   // let mycrt: MyCRTService;
-   // before(() => {
-   //    mycrt = new MyCRTService();
-   //    mycrt.launch();
-   // });
+   before(launchMyCrtService);
+   after(closeMyCrtService);
 
-   // after(() => {
-   //    mycrt.close();
-   // });
-
-   // it("should return 200", (done) => {
-   //    chai.request(mycrt.getServer()).get('/').then((response) => {
-   //       expect(response).to.have.status(http.OK);
-   //       done();
-   //    });
-   // });
+   it("should return 200 on '/'", (done) => {
+      chai.request(mycrt.getServer()).get('/').then((response) => {
+         expect(response).to.have.status(http.OK);
+         done();
+      });
+   });
 
 });

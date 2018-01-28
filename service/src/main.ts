@@ -40,53 +40,65 @@ class MyCrtService {
       return this.port !== null;
    }
 
-   public launch(): void {
+   public launch(): Promise<boolean> {
 
-      // make sure it isn't already launched
-      if (this.isLaunched()) {
-         throw new Error(`MyCRT Service has already launched on port ${this.port}`);
-      }
+      return new Promise<boolean>(async (resolve, reject) => {
 
-      // make express
-      this.express = express();
-      this.mountEverything();
-
-      // set the port and host
-      this.port = process.env.port ? parseInt(process.env.port as string, 10) : this.DEFAULT_PORT;
-      this.host = process.env.host ? process.env.host as string : this.DEFAULT_HOST;
-
-      // configure the application
-      for (const key of config) {
-         this.express.set(key, config[key]);
-      }
-
-      // listen for requests
-      this.server = this.express.listen(this.port, this.host, (error: any) => {
-         if (error) {
-            this.close();
-            logger.error(error);
+         // make sure it isn't already launched
+         if (this.isLaunched()) {
+            throw new Error(`MyCRT Service has already launched on port ${this.port}`);
          }
-         logger.info(`server is listening on ${this.port}`);
-         logger.info("-----------------------------------------------------------");
-      });
 
-      // start the IpcNode
-      this.ipcNode.start();
+         // make express
+         this.express = express();
+         this.mountEverything();
+
+         // set the port and host
+         this.port = process.env.port ? parseInt(process.env.port as string, 10) : this.DEFAULT_PORT;
+         this.host = process.env.host ? process.env.host as string : this.DEFAULT_HOST;
+
+         // configure the application
+         for (const key of config) {
+            this.express.set(key, config[key]);
+         }
+
+         // start the IpcNode
+         this.ipcNode.start();
+
+         // listen for requests
+         this.server = this.express.listen(this.port, this.host, (error: any) => {
+            if (error) {
+               this.close();
+               logger.error(error);
+            }
+            logger.info(`server is listening on ${this.port}`);
+            logger.info("-----------------------------------------------------------");
+            resolve(true);
+         });
+
+      });
 
    }
 
-   public close(callback?: () => void | undefined): void {
+   public close(): Promise<boolean> {
+      return new Promise<boolean>(async (resolve, reject) => {
 
-      // only if already launched!
-      if (this.isLaunched()) {
-         logger.info("Closing MyCRTServer");
-         this.server!.close(callback);
-         this.server = null;
-         this.port = null;
-         this.host = null;
-         this.express = null;
-         this.ipcNode.stop();
-      }
+         // only if already launched!
+         if (this.isLaunched()) {
+            logger.info("Closing MyCRTServer");
+            this.port = null;
+            this.host = null;
+            this.express = null;
+            await this.ipcNode.stop();
+            this.server!.close(() => {
+               this.server = null;
+               resolve(true);
+            });
+         } else {
+            throw new Error(`MyCRT has not launched yet`);
+         }
+
+      });
 
    }
 
