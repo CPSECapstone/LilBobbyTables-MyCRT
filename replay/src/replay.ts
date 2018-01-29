@@ -28,11 +28,6 @@ export class Replay implements IReplayIpcNodeDelegate {
       this.loop();
    }
 
-   public async onStop(): Promise<any> {
-      logger.info(`Replay ${this.id} received stop signal!`);
-      this.done = true;
-   }
-
    private setup() {
       logger.info(`Replay ${this.id}: setup`);
       this.ipcNode.start();
@@ -44,6 +39,7 @@ export class Replay implements IReplayIpcNodeDelegate {
       if (this.done) {
          this.teardown();
       } else {
+         this.done = true; // just one loop
          setTimeout(() => {
             this.loop();
          }, this.config.interval || DEFAULT_INTERVAL);

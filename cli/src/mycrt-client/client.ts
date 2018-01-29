@@ -53,6 +53,8 @@ export class MyCrtClient {
       return this.makeRequest<[IMetricsList]>(HttpMethod.GET, `/captures/${id}/metrics`);
    }
 
+   /** Create a new Replay */
+
    /** Retrieve all of the replays */
    public async getReplays(): Promise<IChildProgram[] | null> {
       return this.makeRequest<IChildProgram[]>(HttpMethod.GET, '/replays');

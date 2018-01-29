@@ -56,15 +56,6 @@ export default class ReplayRouter extends SelfAwareRouter {
             });
          })
 
-         .post('/:id/stop', async (request, response) => {
-            const replayId = request.params.id;
-            await this.ipcNode.stopReplay(replayId).catch((reason) => {
-               logger.error(`Failed to stop replay ${replayId}: ${reason}`);
-            });
-            logger.info(`Replay ${replayId} stopped!`);
-            response.status(http.OK).end();
-         })
-
       ;
    }
 }

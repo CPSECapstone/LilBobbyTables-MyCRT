@@ -3,8 +3,6 @@ import winston = require('winston');
 import { ChildProgramType } from '../data';
 import { IpcNode, IpcNodeAppspace, IpcNodeSocketRoot } from './ipc-node';
 import { CaptureStopMessage } from './messages/capture-messages';
-import { ReplayStopMessage } from './messages/replay-messages';
-// import { TestMessage } from './messages/test-message';
 
 export const ServerIpcNodeId: string = 'server.ipcnode';
 export const ServerIpcNodePath: string = `${IpcNodeSocketRoot}${IpcNodeAppspace}${ServerIpcNodeId}`;
@@ -37,16 +35,6 @@ export class ServerIpcNode extends IpcNode {
       const result: any = await this.connectSendDisconnect<null, any>(path, CaptureStopMessage, null)
          .catch((reason) => {
             this.logger.error(`Failed to stop capture: ${reason}`);
-         });
-      return result;
-   }
-
-   /** Send the 'stop' signal to a replay */
-   public async stopReplay(id: number) {
-      const path = this.getChildSocketPath(ChildProgramType.REPLAY, id);
-      const result = await this.connectSendDisconnect<null, any>(path, ReplayStopMessage, null)
-         .catch((reason) => {
-            this.logger.error(`Failed to stop replay: ${reason}`);
          });
       return result;
    }
