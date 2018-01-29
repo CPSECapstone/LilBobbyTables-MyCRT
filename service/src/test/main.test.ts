@@ -29,14 +29,14 @@ export const closeMyCrtService = async () => {
 
 describe("MyCrtService", () => {
 
-   before(launchMyCrtService);
-   after(closeMyCrtService);
+   // before(launchMyCrtService);
+   // after(closeMyCrtService);
 
-   it("should return 200 on '/'", (done) => {
-      chai.request(mycrt.getServer()).get('/').then((response) => {
-         expect(response).to.have.status(http.OK);
-         done();
-      });
-   });
+   // it("should return 200 on '/'", (done) => {
+   //    chai.request(mycrt.getServer()).get('/').then((response) => {
+   //       expect(response).to.have.status(http.OK);
+   //       done();
+   //    });
+   // });
 
 });
