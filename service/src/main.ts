@@ -103,18 +103,15 @@ class MyCrtService {
    }
 
    private mountEverything(): void {
-      this.mountBodyParser();
       this.mountMiddlewares();
       this.mountApiRoutes();
       this.mountStaticFileRoutes();
       this.mountPageRoutes();
    }
 
-   private mountBodyParser(): void {
-      this.express!.use(bodyParser.json());
-   }
-
    private mountMiddlewares(): void {
+
+      this.express!.use(bodyParser.json());
 
       // log each request to the console
       this.express!.use((request, response, then) => {

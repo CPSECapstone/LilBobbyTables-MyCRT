@@ -1,3 +1,5 @@
+import { check, validationResult } from 'express-validator/check';
+import { matchedData } from 'express-validator/filter';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 
@@ -6,6 +8,7 @@ import { launch } from '@lbt-mycrt/replay';
 
 import SelfAwareRouter from './self-aware-router';
 import ConnectionPool from './util/cnnPool';
+import { captureExists } from './validators/replay-validators';
 
 export default class ReplayRouter extends SelfAwareRouter {
    public name: string = 'replay';
@@ -40,10 +43,20 @@ export default class ReplayRouter extends SelfAwareRouter {
             });
          })
 
-         .post('/', (request, response) => {
-            const replay = request.body;
+         .post('/',
+            check('name').exists(),
+            check('captureId').isNumeric().custom(captureExists),
+         (request, response) => {
+
+            const errors = validationResult(request);
+            if (!errors.isEmpty()) {
+               response.status(http.BAD_REQUEST).json(errors.array());
+               return;
+            }
+
+            const replay = matchedData(request);
             replay.status = 'queued';
-            const insertStr = mysql.format('INSERT INTO Replay SET ?', replay);
+            const insertStr = mysql.format('INSERT INTO Replay SET ?', [replay]);
             logger.info('Creating Replay');
 
             /* Add validation for insert */
@@ -54,6 +67,7 @@ export default class ReplayRouter extends SelfAwareRouter {
                logger.info(`Successfully created replay!`);
                response.json(result.insertId);
             });
+
          })
 
       ;

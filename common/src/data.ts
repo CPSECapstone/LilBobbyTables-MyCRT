@@ -8,9 +8,14 @@ export interface IChildProgram {
    type: ChildProgramType;
    id: number;
    name: string;
-   start: string;
-   end: string | null;
-   status: ChildProgramStatus;
+   start?: string;
+   end?: string | null;
+   status?: ChildProgramStatus;
+}
+
+export interface IReplay extends IChildProgram {
+   type: ChildProgramType.REPLAY;
+   captureId?: number;
 }
 
 /** Interface for Environment objects sent/received from the MyCRT service. */
