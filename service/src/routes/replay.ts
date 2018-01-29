@@ -1,5 +1,5 @@
-import { check, validationResult } from 'express-validator/check';
-import { matchedData } from 'express-validator/filter';
+// import { check, validationResult } from 'express-validator/check';
+// import { matchedData } from 'express-validator/filter';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 
@@ -8,7 +8,7 @@ import { launch } from '@lbt-mycrt/replay';
 
 import SelfAwareRouter from './self-aware-router';
 import ConnectionPool from './util/cnnPool';
-import { captureExists } from './validators/replay-validators';
+// import { captureExists } from './validators/replay-validators';
 
 export default class ReplayRouter extends SelfAwareRouter {
    public name: string = 'replay';
@@ -44,17 +44,18 @@ export default class ReplayRouter extends SelfAwareRouter {
          })
 
          .post('/',
-            check('name').exists(),
-            check('captureId').isNumeric().custom(captureExists),
+            // check('name').exists(),
+            // check('captureId').isNumeric().custom(captureExists),
          (request, response) => {
 
-            const errors = validationResult(request);
-            if (!errors.isEmpty()) {
-               response.status(http.BAD_REQUEST).json(errors.array());
-               return;
-            }
+            // const errors = validationResult(request);
+            // if (!errors.isEmpty()) {
+            //    response.status(http.BAD_REQUEST).json(errors.array());
+            //    return;
+            // }
 
-            const replay = matchedData(request);
+            // const replay = matchedData(request);
+            const replay = request.body;
             replay.status = 'queued';
             const insertStr = mysql.format('INSERT INTO Replay SET ?', [replay]);
             logger.info('Creating Replay');

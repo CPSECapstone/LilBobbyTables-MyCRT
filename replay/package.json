@@ -15,7 +15,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@lbt-mycrt/common": "file:../common"
+    "@lbt-mycrt/common": "file:../common",
+    "aws-sdk": "^2.188.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.2",
