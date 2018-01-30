@@ -30,7 +30,6 @@ class MetricsApp extends React.Component<any, any> {
 
    public async componentWillMount() {
       const capture = await mycrt.getCapture(this.state.captureId);
-      logger.info(JSON.stringify(capture));
       const cpuData = this.getData(capture!.id, "cpuData", MetricType.CPU);
       const memData = this.getData(capture!.id, "memData", MetricType.MEMORY);
       const ioData = this.getData(capture!.id, "ioData", MetricType.IO);
@@ -46,9 +45,8 @@ class MetricsApp extends React.Component<any, any> {
 
     public formatData(data: IMetricsList) {
         for (const dataPoint of data.dataPoints) {
-            dataPoint.Maximum1 = dataPoint.Maximum;
-            dataPoint.Maximum2 = dataPoint.Maximum * 1.5;
-            dataPoint.Maximum3 = dataPoint.Maximum * 2;
+            dataPoint.Maximum1 = dataPoint.Maximum * 1.5;
+            dataPoint.Maximum2 = dataPoint.Maximum * 2;
         }
     }
 
