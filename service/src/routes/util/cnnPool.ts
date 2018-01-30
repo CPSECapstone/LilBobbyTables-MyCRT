@@ -11,6 +11,7 @@ export declare type CallbackFunction = (error: MysqlError | null, results: any, 
 export default class ConnectionPool {
 
    public static singleton: ConnectionPool = new ConnectionPool(require('../../../db/config.json'), 1);
+
    public static query(response: Response, query: string, callback: CallbackFunction) {
       ConnectionPool.singleton.pool.getConnection((connErr, conn) => {
          if (connErr) {
@@ -25,6 +26,25 @@ export default class ConnectionPool {
                callback(queryErr, results, fields);
             });
          }
+      });
+   }
+
+   public static plainQuery(query: string): Promise<any> {
+      return new Promise<any>((resolve, reject) => {
+         ConnectionPool.singleton.pool.getConnection((connErr, conn) => {
+            if (connErr) {
+               reject(connErr);
+            } else {
+               conn.query(query, (queryErr, results, fields) => {
+                  conn.release();
+                  if (queryErr) {
+                     reject(queryErr);
+                  } else {
+                     resolve(results);
+                  }
+               });
+            }
+         });
       });
    }
 
