@@ -10,7 +10,7 @@ import { OptionDefinition } from 'command-line-args';
 const optionId: OptionDefinition = {
    name: 'id',
    type: Number,
-   description: "The id of this capture. This is used to communicate with the MyCRT DB and S3",
+   description: "The id of this capture, used to communicate with the MyCRT DB and S3 [bold]{REQUIRED}",
 };
 
 const optionMock: OptionDefinition = {
