@@ -12,12 +12,9 @@ import { Pages, StaticFileDirs, Template } from '@lbt-mycrt/gui';
 
 import ApiRouter from './routes/api';
 import SelfAwareRouter from './routes/self-aware-router';
+import settings = require('./settings');
 
 const logger = Logging.defaultLogger(__dirname);
-
-/* tslint:disable no-var-requires */
-const config = require('../mycrt.config.json');
-/* tslint:enable no-var-requires */
 
 class MyCrtService {
 
@@ -40,6 +37,13 @@ class MyCrtService {
       return this.port !== null;
    }
 
+   public setting(key: string): any {
+      if (this.express === null) {
+         return undefined;
+      }
+      return this.express.get(key);
+   }
+
    public launch(): Promise<boolean> {
 
       return new Promise<boolean>(async (resolve, reject) => {
@@ -58,8 +62,8 @@ class MyCrtService {
          this.host = process.env.host ? process.env.host as string : this.DEFAULT_HOST;
 
          // configure the application
-         for (const key of config) {
-            this.express.set(key, config[key]);
+         for (const key in settings) {
+            this.express.set(key, (settings as any)[key]);
          }
 
          // start the IpcNode

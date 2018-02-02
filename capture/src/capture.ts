@@ -1,4 +1,3 @@
-import { S3 } from 'aws-sdk';
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
@@ -7,7 +6,6 @@ import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/
 import { MetricConfiguration } from '@lbt-mycrt/common/dist/metrics/metrics';
 import { MetricsBackend } from '@lbt-mycrt/common/dist/metrics/metrics-backend';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
-import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
 import { CaptureConfig } from './args';
 import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
@@ -91,9 +89,9 @@ export class Capture implements ICaptureIpcNodeDelegate {
    private metricConfig: MetricConfiguration;
    private storage: StorageBackend;
 
-   constructor(public config: CaptureConfig) {
+   constructor(public config: CaptureConfig, storage: StorageBackend) {
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
-      this.storage = new S3Backend(new S3(), "lil-test-environment");
+      this.storage = storage;
       this.metricConfig = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
    }
 
@@ -114,14 +112,13 @@ export class Capture implements ICaptureIpcNodeDelegate {
 
    public run(): void {
       this.setup();
-      if (this.config.supervised) {
-         logger.info(`Capture ${this.id} is looping!`);
-         this.loop();
-         // setTimeout( () => { this.loopSend(this.startTime); },
-                  //   this.config.sendMetricsInterval || this.DEFAULT_METRICS_INTERVAL );
-      } else {
+      if (!this.config.supervised) {
          throw new Error("unsupervised capture mode has not been implemented yet!");
       }
+      logger.info(`Capture ${this.id} is looping!`);
+      setTimeout(() => {
+         this.loop();
+      }, this.config.interval);
    }
 
    public async onStop(): Promise<any> {
@@ -158,7 +155,10 @@ export class Capture implements ICaptureIpcNodeDelegate {
       });
 
       logger.info(`Starting RDS logging`);
-      startRdsLogging();
+      // TODO: abstract Rds communication
+      if (!this.config.mock) {
+         startRdsLogging();
+      }
    }
 
    private loop(): void {
@@ -187,6 +187,11 @@ export class Capture implements ICaptureIpcNodeDelegate {
 
    // pull metric from cloudwatch and send them to S3
    private async sendMetricsToS3(s3: StorageBackend, startTime: Date, endTime: Date) {
+      // TODO: handle properly after metrics are using DI
+      if (this.config.mock) {
+         logger.warn("MOCK MODE: not sending metrics");
+         return;
+      }
 
       logger.info("Retrieving metrics");
       const CPUdata = await this.metricConfig.getCPUMetrics(startTime, endTime);
@@ -201,21 +206,21 @@ export class Capture implements ICaptureIpcNodeDelegate {
       });
    }
 
-   private getEndTime(startTime: Date): Date {
-      return this.addMinutesToDate(startTime, this.config.interval);
-   }
+   // private getEndTime(startTime: Date): Date {
+   //    return this.addMinutesToDate(startTime, this.config.interval);
+   // }
 
-   private addMinutesToDate(startDate: Date, minutes: number): Date {
+   // private addMinutesToDate(startDate: Date, minutes: number): Date {
 
-      const millisecPerMin = 60000;
-      return new Date(startDate.valueOf() + (minutes * millisecPerMin));
-   }
+   //    const millisecPerMin = 60000;
+   //    return new Date(startDate.valueOf() + (minutes * millisecPerMin));
+   // }
 
-   private subMinutesFromDate(startDate: Date, minutes: number): Date {
+   // private subMinutesFromDate(startDate: Date, minutes: number): Date {
 
-    const millisecPerMin = 60000;
-    return new Date(startDate.valueOf() - (minutes * millisecPerMin));
-  }
+   //    const millisecPerMin = 60000;
+   //    return new Date(startDate.valueOf() - (minutes * millisecPerMin));
+   // }
 
    private async teardown() {
       logger.info(`Performing teardown for Capture ${this.id}`);

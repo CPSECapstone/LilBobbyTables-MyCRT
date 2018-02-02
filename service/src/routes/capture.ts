@@ -7,6 +7,7 @@ import { ChildProgramStatus, ChildProgramType, IMetric,
          IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
+import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
 import ConnectionPool from './util/cnnPool';
 
@@ -18,6 +19,7 @@ export default class CaptureRouter extends SelfAwareRouter {
       const logger = Logging.defaultLogger(__dirname);
 
       this.router
+
          .get('/', (request, response) => {
             const queryStr = mysql.format("SELECT * FROM Capture", []);
             ConnectionPool.query(response, queryStr, (error, rows, fields) => {
@@ -82,7 +84,11 @@ export default class CaptureRouter extends SelfAwareRouter {
             /* Add validation for insert */
             ConnectionPool.query(response, insertStr, (error, result) => {
                logger.info(`Launching capture with id ${result.insertId}`);
-               launch(new CaptureConfig(result.insertId));
+
+               const config = new CaptureConfig(result.insertId);
+               config.mock = settings.captures.mock;
+
+               launch(config);
 
                logger.info(`Successfully created capture!`);
                response.json(result.insertId);

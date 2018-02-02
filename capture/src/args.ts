@@ -7,13 +7,13 @@ import { OptionDefinition } from 'command-line-args';
 // notation rules documented here
 // https://github.com/75lb/command-line-args/wiki/Notation-rules
 
-const optionId: OptionDefinition = {
+export const optionId: OptionDefinition = {
    name: 'id',
    type: Number,
    description: "The id of this capture, used to communicate with the MyCRT DB and S3 [bold]{REQUIRED}",
 };
 
-const optionMock: OptionDefinition = {
+export const optionMock: OptionDefinition = {
    name: 'mock',
    alias: 'm',
    type: Boolean,
@@ -21,7 +21,7 @@ const optionMock: OptionDefinition = {
    description: "Whether or not the capture should be performed as a mock",
 };
 
-const optionInterval: OptionDefinition = {
+export const optionInterval: OptionDefinition = {
    name: 'interval',
    alias: 'i',
    type: Number,
@@ -29,7 +29,7 @@ const optionInterval: OptionDefinition = {
    description: "Frequency of the processing interval in ms.",
 };
 
-const optionIntervalOverlap: OptionDefinition = {
+export const optionIntervalOverlap: OptionDefinition = {
    name: 'intervalOverlap',
    alias: 'o',
    type: Number,
@@ -37,7 +37,7 @@ const optionIntervalOverlap: OptionDefinition = {
    description: "The amount of overlap time between metric retrievals.",
 };
 
-const optionSupervised: OptionDefinition = {
+export const optionSupervised: OptionDefinition = {
    name: 'supervised',
    alias: 's',
    type: Boolean,
@@ -100,11 +100,6 @@ export class CaptureConfig {
 
    private makeOptionArgs(option: OptionDefinition, value: any): string[] {
 
-      const valueStr: string = value.toString();
-      if (valueStr.length <= 0) {
-         return [];
-      }
-
       let key: string;
       if (option.name) {
          key = `--${option.name}`;
@@ -114,7 +109,14 @@ export class CaptureConfig {
          throw new Error("Cannot make option arguments without a name or alias");
       }
 
-      return [key, valueStr];
+      if (option.type !== Boolean) {
+         return [key, value.toString()];
+      } else if (value) {
+         return [key];
+      } else {
+         return [];
+      }
+
    }
 
 }
