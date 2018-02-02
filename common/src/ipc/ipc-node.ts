@@ -77,15 +77,18 @@ export class IpcNode {
    }
 
    /** stop the server/listening */
-   public stop(): void {
-      if (!this.started) {
-         throw new Error(`IpcNode ${this.id} is not started`);
-      }
+   public stop() {
+      return new Promise<void>((resolve) => {
+         if (!this.started) {
+            throw new Error(`IpcNode ${this.id} is not started`);
+         }
 
-      this.logger.info(`Stopping IpcNode ${this.id}...`);
-      this.ipc.server.stop();
-      this.started = false;
-      this.logger.info(`Successfully stopped IpcNode ${this.id}`);
+         this.logger.info(`Stopping IpcNode ${this.id}...`);
+         this.ipc.server.stop();
+         this.started = false;
+         this.logger.info(`Successfully stopped IpcNode ${this.id}`);
+         resolve();
+      });
    }
 
    /** get an array of messages that can be handled */

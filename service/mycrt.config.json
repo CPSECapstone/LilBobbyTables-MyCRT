@@ -1,3 +1,11 @@
 {
-   "name": "MyCRT Server"
+   "name": "MyCRT Server",
+   "captures": {
+      "mock": true,
+      "interval": 2000
+   },
+   "replays": {
+      "mock": true,
+      "interval": 2000
+   }
 }

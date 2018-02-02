@@ -28,7 +28,7 @@
   "dependencies": {
     "@types/node": "8.0.53",
     "@types/winston": "^2.3.7",
-    "aws-sdk": "^2.182.0",
+    "aws-sdk": "^2.188.0",
     "fs": "0.0.1-security",
     "fs-extra": "^5.0.0",
     "node-ipc": "^9.1.1",
