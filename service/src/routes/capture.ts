@@ -87,6 +87,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
                const config = new CaptureConfig(result.insertId);
                config.mock = settings.captures.mock;
+               config.interval = settings.captures.interval;
 
                launch(config);
 

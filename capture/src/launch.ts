@@ -17,7 +17,7 @@ export const launch = (config: CaptureConfig) => {
    child_process.spawn(childName, args)
 
       .stdout.on('data', (data: string) => {
-         logger.info("[capture stdout]  " + data);
+         logger.info("[capture stdout]  " + data.toString().trim());
       })
 
       .on('close', (code: any) => {
@@ -25,7 +25,7 @@ export const launch = (config: CaptureConfig) => {
       })
 
       .on('error', (error: string) => {
-         logger.error(`Capture ${config.id} errorred: ${error}`);
+         logger.error(`Capture ${config.id} errorred: ${error.toString().trim()}`);
       })
 
    ;
