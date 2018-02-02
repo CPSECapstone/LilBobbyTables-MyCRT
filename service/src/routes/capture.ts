@@ -92,7 +92,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                launch(config);
 
                logger.info(`Successfully created capture!`);
-               response.json(result.insertId);
+               response.json({id: result.insertId}).end(); // TODO: query for the capture, and return the whole object
 
             });
          })

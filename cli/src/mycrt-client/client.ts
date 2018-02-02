@@ -25,8 +25,8 @@ export class MyCrtClient {
    }
 
    /** Create a new Capture */
-   public async startCapture(capture: IChildProgram): Promise<number | null> {
-      return this.makeRequest<number>(HttpMethod.POST, '/captures', null, capture);
+   public async startCapture(capture: IChildProgram): Promise<IChildProgram | null> {
+      return this.makeRequest<IChildProgram>(HttpMethod.POST, '/captures', null, capture);
    }
 
    /** Stop a specific capture */
