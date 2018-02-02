@@ -1,4 +1,4 @@
-import { S3 } from 'aws-sdk';
+import { CloudWatch, S3 } from 'aws-sdk';
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
@@ -134,6 +134,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
    private readonly startTime: Date = new Date();
    private ipcNode: CaptureIpcNode;
    private metricConfig: MetricConfiguration;
+   private cloudwatch: CloudWatch;
    private storage: StorageBackend;
    private DEFAULT_INTERVAL: number = 5 * 1000;
    private DEFAULT_METRICS_OVERLAP: number = 1 * 60 * 1000;
@@ -142,7 +143,8 @@ export class Capture implements ICaptureIpcNodeDelegate {
    constructor(public config: ICaptureConfig) {
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
       this.storage = new S3Backend(new S3(), "lil-test-environment");
-      this.metricConfig = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
+      this.cloudwatch = new CloudWatch({ region: 'us-east-2' });
+      this.metricConfig = new MetricConfiguration(this.cloudwatch, 'DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
    }
 
    public get id(): number {
