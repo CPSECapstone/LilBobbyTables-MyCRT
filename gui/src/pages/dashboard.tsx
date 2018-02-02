@@ -35,7 +35,10 @@ class DashboardApp extends React.Component<any, any> {
       const captures: JSX.Element[] = [];
       if (this.state.captures) {
          for (const capture of this.state.captures) {
-            const name = `capture ${capture.id}`;
+            let name = `${capture.name}`;
+            if (!name) {
+                name = `capture ${capture.id}`;
+            }
             captures.push((<CapturePanel title={name} id={capture.id} />));
          }
       }
