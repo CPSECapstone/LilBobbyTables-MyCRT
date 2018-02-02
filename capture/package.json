@@ -19,14 +19,17 @@
     "@types/node": "8.0.53",
     "aws-sdk": "^2.188.0",
     "child_process": "^1.0.2",
+    "command-line-args": "^5.0.1",
     "mysql": "^2.15.0",
     "path": "^0.12.7"
   },
   "devDependencies": {
     "@types/chai": "^4.0.5",
+    "@types/command-line-args": "^4.0.2",
     "@types/mocha": "^2.2.44",
     "@types/mysql": "^2.15.2",
     "chai": "^4.1.2",
+    "command-line-usage": "^4.1.0",
     "mocha": "^4.0.1",
     "tslint": "^5.8.0",
     "typescript": "^2.6.1"

@@ -2,18 +2,22 @@ import * as child_process from 'child_process';
 
 import { Logging } from '@lbt-mycrt/common';
 
-import { ICaptureConfig } from './capture';
+import { CaptureConfig } from './args';
 
 const logger = Logging.getLogger(true, Logging.simpleFormatter);
 
-export const launch = (config: ICaptureConfig) => {
+export const launch = (config: CaptureConfig) => {
 
    logger.info("launching capture");
 
-   child_process.spawn('mycrt-capture', [`${config.id}`])
+   const childName = 'mycrt-capture';
+   const args = config.toArgList();
+   logger.info(`   ${childName} ${args.join(' ')}`);
+
+   child_process.spawn(childName, args)
 
       .stdout.on('data', (data: string) => {
-         logger.info("[capture stdout]  " + data);
+         logger.info("[capture stdout]  " + data.toString().trim());
       })
 
       .on('close', (code: any) => {
@@ -21,7 +25,7 @@ export const launch = (config: ICaptureConfig) => {
       })
 
       .on('error', (error: string) => {
-         logger.error(`Capture ${config.id} errorred: ${error}`);
+         logger.error(`Capture ${config.id} errorred: ${error.toString().trim()}`);
       })
 
    ;

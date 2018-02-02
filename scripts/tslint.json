@@ -11,7 +11,8 @@
        "no-unused-expression": false,
        "object-literal-sort-keys": false,
        "max-classes-per-file": [ true, 3, "exclude-class-expressions" ],
-       "radix": false
+       "radix": false,
+       "forin": false
     },
     "rulesDirectory": [],
     "typedef": [

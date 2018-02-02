@@ -13,7 +13,7 @@ export const launch = (config: IReplayConfig) => {
    child_process.spawn('mycrt-replay', [`${config.id}`])
 
       .stdout.on('data', (data: string) => {
-         logger.info("[replay stdout] " + data);
+         logger.info("[replay stdout] " + data.toString().trim());
       })
 
       .on('close', (code: any) => {
@@ -21,7 +21,7 @@ export const launch = (config: IReplayConfig) => {
       })
 
       .on('error', (error: string) => {
-         logger.error(`Replay ${config.id} errorred: ${error}`);
+         logger.error(`Replay ${config.id} errorred: ${error.toString().trim()}`);
       })
 
    ;
