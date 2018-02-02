@@ -9,27 +9,10 @@ import { MetricsBackend } from '@lbt-mycrt/common/dist/metrics/metrics-backend';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
+import { CaptureConfig } from './args';
 import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
 
 const logger = Logging.defaultLogger(__dirname);
-
-export interface ICaptureConfig {
-   readonly id: number;
-   readonly interval?: number;
-   readonly sendMetricsInterval?: number;
-   readonly metricsOverlap?: number;
-   readonly supervised?: boolean;
-   /* TODO: Remove question marks once the new info has been configured */
-   readonly dbName?: string;
-   readonly dbHost?: string;
-   readonly dbUser?: string;
-   readonly dbPass?: string;
-   readonly s3Bucket?: string;
-   readonly s3Key?: string;
-
-   // other config stuff can be here...
-
-}
 
 export class Capture implements ICaptureIpcNodeDelegate {
 
@@ -107,11 +90,8 @@ export class Capture implements ICaptureIpcNodeDelegate {
    private ipcNode: CaptureIpcNode;
    private metricConfig: MetricConfiguration;
    private storage: StorageBackend;
-   private DEFAULT_INTERVAL: number = 5 * 1000;
-   private DEFAULT_METRICS_OVERLAP: number = 1 * 60 * 1000;
-   private DEFAULT_METRICS_INTERVAL: number = 5 * 60 * 1000;
 
-   constructor(public config: ICaptureConfig) {
+   constructor(public config: CaptureConfig) {
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
       this.storage = new S3Backend(new S3(), "lil-test-environment");
       this.metricConfig = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
@@ -140,7 +120,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
          // setTimeout( () => { this.loopSend(this.startTime); },
                   //   this.config.sendMetricsInterval || this.DEFAULT_METRICS_INTERVAL );
       } else {
-         this.teardown();
+         throw new Error("unsupervised capture mode has not been implemented yet!");
       }
    }
 
@@ -187,7 +167,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
       if (this.done) {
          this.teardown();
       } else {
-         setTimeout(() => { this.loop(); }, this.config.interval || this.DEFAULT_INTERVAL);
+         setTimeout(() => { this.loop(); }, this.config.interval);
       }
    }
 
@@ -222,8 +202,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
    }
 
    private getEndTime(startTime: Date): Date {
-      return this.addMinutesToDate(startTime, this.config.sendMetricsInterval
-             || this.DEFAULT_METRICS_INTERVAL);
+      return this.addMinutesToDate(startTime, this.config.interval);
    }
 
    private addMinutesToDate(startDate: Date, minutes: number): Date {

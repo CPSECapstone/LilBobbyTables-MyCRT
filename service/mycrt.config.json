@@ -1,3 +1,5 @@
 {
-   "name": "MyCRT Server"
+   "name": "MyCRT Server",
+   "mockCaptures": true,
+   "mockReplays": true
 }
