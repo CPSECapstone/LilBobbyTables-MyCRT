@@ -1,6 +1,7 @@
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { Duration } from './duration_comp';
 import { StartDateTime } from './start_date_time_comp';
 
 export class CaptureModal extends React.Component<any, any>  {
@@ -28,6 +29,11 @@ export class CaptureModal extends React.Component<any, any>  {
                                     <StartDateTime />
                                     <br/>
                                     <label><b>Duration</b></label>
+                                    <div style={{display: "inline"}}>
+                                        <Duration type="days" />
+                                        <Duration type="hours" />
+                                        <Duration type="minutes" />
+                                    </div>
                                 </div>
                             </form>
                         </div>
