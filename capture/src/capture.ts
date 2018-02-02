@@ -84,7 +84,9 @@ export class Capture implements ICaptureIpcNodeDelegate {
    }
 
    private done: boolean = false;
+   private loopTimeoutId: NodeJS.Timer | null = null;
    private readonly startTime: Date = new Date();
+
    private ipcNode: CaptureIpcNode;
    private metricConfig: MetricConfiguration;
    private storage: StorageBackend;
@@ -116,7 +118,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
          throw new Error("unsupervised capture mode has not been implemented yet!");
       }
       logger.info(`Capture ${this.id} is looping!`);
-      setTimeout(() => {
+      this.loopTimeoutId = setInterval(() => {
          this.loop();
       }, this.config.interval);
    }
@@ -124,7 +126,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
    public async onStop(): Promise<any> {
       logger.info(`Capture ${this.id} received stop signal!`);
       this.done = true;
-      return;
+      this.loop();
    }
 
    private async setup(): Promise<void> {
@@ -151,9 +153,8 @@ export class Capture implements ICaptureIpcNodeDelegate {
       logger.info(`Capture ${this.id}: loop start`);
 
       if (this.done) {
+         clearInterval(this.loopTimeoutId!);
          this.teardown();
-      } else {
-         setTimeout(() => { this.loop(); }, this.config.interval);
       }
    }
 
