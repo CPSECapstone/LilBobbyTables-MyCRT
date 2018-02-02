@@ -124,21 +124,7 @@ export class Capture implements ICaptureIpcNodeDelegate {
    public async onStop(): Promise<any> {
       logger.info(`Capture ${this.id} received stop signal!`);
       this.done = true;
-
-      logger.info("set status to dead");
-      await Capture.updateCaptureStatus(this.id, "dead").catch((reason) => {
-         logger.error(`Failed to set status to dead: ${reason}`);
-      });
-      logger.info("record end time");
-      await Capture.updateCaptureEndTime(this.id).catch((reason) => {
-         logger.error(`Failed to record end time: ${reason}`);
-      });
-      logger.info("save workload");
-      const s3res = await stopRdsLoggingAndUploadToS3().catch((reason) => {
-         logger.error(`Failed to upload RDS log to S3: ${reason}`);
-      });
-      logger.info(`Got S3 location!: ${s3res}`);
-      return s3res;
+      return;
    }
 
    private async setup(): Promise<void> {
@@ -224,6 +210,22 @@ export class Capture implements ICaptureIpcNodeDelegate {
 
    private async teardown() {
       logger.info(`Performing teardown for Capture ${this.id}`);
+
+      logger.info("set status to dead");
+      await Capture.updateCaptureStatus(this.id, "dead").catch((reason) => {
+         logger.error(`Failed to set status to dead: ${reason}`);
+      });
+
+      logger.info("record end time");
+      await Capture.updateCaptureEndTime(this.id).catch((reason) => {
+         logger.error(`Failed to record end time: ${reason}`);
+      });
+
+      logger.info("save workload");
+      const s3res = await stopRdsLoggingAndUploadToS3().catch((reason) => {
+         logger.error(`Failed to upload RDS log to S3: ${reason}`);
+      });
+      logger.info(`Got S3 location!: ${s3res}`);
 
       await this.sendMetricsToS3(this.storage, this.startTime, new Date());
 

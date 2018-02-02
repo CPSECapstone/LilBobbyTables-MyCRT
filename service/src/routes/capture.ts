@@ -67,11 +67,11 @@ export default class CaptureRouter extends SelfAwareRouter {
          .post('/:id/stop', async (request, response) => {
 
             const captureId = request.params.id;
-            const s3res: any = await this.ipcNode.stopCapture(captureId).catch((reason) => {
+            await this.ipcNode.stopCapture(captureId).catch((reason) => {
                logger.error(`Failed to stop capture ${captureId}: ${reason}`);
             });
-            logger.info(`Capture ${captureId} stopped! workload file at ${s3res}`);
-            response.json(s3res).end();
+            logger.info(`Capture ${captureId} stopped!`);
+            response.status(http.OK).end();
 
          })
 
