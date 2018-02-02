@@ -23,16 +23,16 @@ export class ChildIpcNode extends IpcNode {
       this.mycrt = await this.connectTo('mycrt', ServerIpcNodePath);
       this.logger.info(`Successfully connected to ${ServerIpcNodePath}`);
 
-      await super.start();
+      return super.start();
    }
 
    /** stop the ipc server and disconnect from the mycrt IpcNode */
-   public stop(): void {
-      super.stop();
-
+   public stop() {
       this.logger.info(`Disconnecting from ${ServerIpcNodePath}`);
       this.disconnect('mycrt');
       this.logger.info(`Successfully disconnected from ${ServerIpcNodePath}`);
+
+      return super.stop();
    }
 
    /** register messages to receive */

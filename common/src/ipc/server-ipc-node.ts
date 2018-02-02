@@ -3,7 +3,6 @@ import winston = require('winston');
 import { ChildProgramType } from '../data';
 import { IpcNode, IpcNodeAppspace, IpcNodeSocketRoot } from './ipc-node';
 import { CaptureStopMessage } from './messages/capture-messages';
-// import { TestMessage } from './messages/test-message';
 
 export const ServerIpcNodeId: string = 'server.ipcnode';
 export const ServerIpcNodePath: string = `${IpcNodeSocketRoot}${IpcNodeAppspace}${ServerIpcNodeId}`;

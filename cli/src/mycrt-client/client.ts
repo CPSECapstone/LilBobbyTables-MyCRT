@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { IChildProgram, IMetricsList, MetricType } from '@lbt-mycrt/common/dist/data';
+import { IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
 
@@ -10,6 +10,7 @@ export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELE
 export class MyCrtClient {
 
    private readonly host: string;
+
    /**
     * Using a delegate allows the client to work in both the Node runtime (cli) and in browsers (gui).
     * This is because the Node runtime should use the file system (not available in the browser),
@@ -24,13 +25,13 @@ export class MyCrtClient {
    }
 
    /** Create a new Capture */
-   public async postCapture(capture: IChildProgram): Promise<number | null> {
-      return this.makeRequest<number>(HttpMethod.POST, '/captures', null, capture);
+   public async startCapture(capture: IChildProgram): Promise<IChildProgram | null> {
+      return this.makeRequest<IChildProgram>(HttpMethod.POST, '/captures', null, capture);
    }
 
    /** Stop a specific capture */
    public async stopCapture(id: number): Promise<any> {
-      return this.makeRequest<IChildProgram>(HttpMethod.POST, `/captures/${id}/stop`);
+      return this.makeRequest<any>(HttpMethod.POST, `/captures/${id}/stop`);
    }
 
    /** Retrieve all of the captures */
@@ -51,6 +52,11 @@ export class MyCrtClient {
    /** Retrieve all of the metrics for a Capture */
    public async getAllCaptureMetrics(id: number): Promise<[IMetricsList] | null> {
       return this.makeRequest<[IMetricsList]>(HttpMethod.GET, `/captures/${id}/metrics`);
+   }
+
+   /** Create a new Replay */
+   public async startReplay(replay: IReplay): Promise<number | null> {
+      return this.makeRequest<number>(HttpMethod.POST, '/replays', null, replay);
    }
 
    /** Retrieve all of the replays */

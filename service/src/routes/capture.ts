@@ -2,11 +2,12 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 
-import { launch } from '@lbt-mycrt/capture';
+import { CaptureConfig, launch } from '@lbt-mycrt/capture';
 import { ChildProgramStatus, ChildProgramType, IMetric,
          IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
+import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
 import ConnectionPool from './util/cnnPool';
 
@@ -18,6 +19,7 @@ export default class CaptureRouter extends SelfAwareRouter {
       const logger = Logging.defaultLogger(__dirname);
 
       this.router
+
          .get('/', (request, response) => {
             const queryStr = mysql.format("SELECT * FROM Capture", []);
             ConnectionPool.query(response, queryStr, (error, rows, fields) => {
@@ -65,11 +67,11 @@ export default class CaptureRouter extends SelfAwareRouter {
          .post('/:id/stop', async (request, response) => {
 
             const captureId = request.params.id;
-            const s3res: any = await this.ipcNode.stopCapture(captureId).catch((reason) => {
+            await this.ipcNode.stopCapture(captureId).catch((reason) => {
                logger.error(`Failed to stop capture ${captureId}: ${reason}`);
             });
-            logger.info(`Capture ${captureId} stopped! workload file at ${s3res}`);
-            response.json(s3res).end();
+            logger.info(`Capture ${captureId} stopped!`);
+            response.status(http.OK).end();
 
          })
 
@@ -82,10 +84,15 @@ export default class CaptureRouter extends SelfAwareRouter {
             /* Add validation for insert */
             ConnectionPool.query(response, insertStr, (error, result) => {
                logger.info(`Launching capture with id ${result.insertId}`);
-               launch({ id: result.insertId });
+
+               const config = new CaptureConfig(result.insertId);
+               config.mock = settings.captures.mock;
+               config.interval = settings.captures.interval;
+
+               launch(config);
 
                logger.info(`Successfully created capture!`);
-               response.json(result.insertId);
+               response.json({id: result.insertId}).end(); // TODO: query for the capture, and return the whole object
 
             });
          })

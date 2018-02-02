@@ -1,4 +1,3 @@
-import { S3 } from 'aws-sdk';
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
@@ -7,57 +6,11 @@ import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/
 import { MetricConfiguration } from '@lbt-mycrt/common/dist/metrics/metrics';
 import { MetricsBackend } from '@lbt-mycrt/common/dist/metrics/metrics-backend';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
-import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
+import { CaptureConfig } from './args';
 import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
 
 const logger = Logging.defaultLogger(__dirname);
-
-// const metrics = {
-//     Dimensions: [
-//         {
-//             Name: 'DBInstanceIdentifier', /* required */
-//             Value: 'nfl2015', /* required */
-//         },
-//         /* more items */
-//     ],
-//     EndTime: new Date() || 'Mon Jan 14 2018 07:00:00 GMT-0800 (PST)' || 123456789, /* required */
-//     // ExtendedStatistics: [
-//     //     'STRING_VALUE',
-//     // ],
-//     MetricName: 'CPUUtilization', /* required */
-//     Namespace: 'AWS/RDS', /* required */
-//     Period: 60, /* required */
-//     StartTime: new Date() || 'Mon Jan 14 2018 1:00:00 GMT-0800 (PST)' || 123456789, /* required */
-//     Statistics: [
-//         'Maximum',
-//         // "CPUUtilization", || NetworkIn | NetworkOut | FreeableMemory,
-//     ],
-//     Unit: 'Percent',
-//     // | Microseconds | Milliseconds | Bytes | Kilobytes | Megabytes |
-//     //     Gigabytes | Terabytes | Bits | Kilobits | Megabits | Gigabits | Terabits |
-//     //     Percent | Count | Bytes/Second | Kilobytes/Second | Megabytes/Second |
-//     //     Gigabytes/Second | Terabytes/Second | Bits/Second | Kilobits/Second |
-//     //     Megabits/Second | Gigabits/Second | Terabits/Second | Count/Second | None
-// };
-
-export interface ICaptureConfig {
-   readonly id: number;
-   readonly interval?: number;
-   readonly sendMetricsInterval?: number;
-   readonly metricsOverlap?: number;
-   readonly supervised?: boolean;
-   /* TODO: Remove question marks once the new info has been configured */
-   readonly dbName?: string;
-   readonly dbHost?: string;
-   readonly dbUser?: string;
-   readonly dbPass?: string;
-   readonly s3Bucket?: string;
-   readonly s3Key?: string;
-
-   // other config stuff can be here...
-
-}
 
 export class Capture implements ICaptureIpcNodeDelegate {
 
@@ -131,17 +84,16 @@ export class Capture implements ICaptureIpcNodeDelegate {
    }
 
    private done: boolean = false;
+   private loopTimeoutId: NodeJS.Timer | null = null;
    private readonly startTime: Date = new Date();
+
    private ipcNode: CaptureIpcNode;
    private metricConfig: MetricConfiguration;
    private storage: StorageBackend;
-   private DEFAULT_INTERVAL: number = 5 * 1000;
-   private DEFAULT_METRICS_OVERLAP: number = 1 * 60 * 1000;
-   private DEFAULT_METRICS_INTERVAL: number = 5 * 60 * 1000;
 
-   constructor(public config: ICaptureConfig) {
+   constructor(public config: CaptureConfig, storage: StorageBackend) {
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
-      this.storage = new S3Backend(new S3(), "lil-test-environment");
+      this.storage = storage;
       this.metricConfig = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
    }
 
@@ -162,34 +114,19 @@ export class Capture implements ICaptureIpcNodeDelegate {
 
    public run(): void {
       this.setup();
-      if (this.config.supervised) {
-         logger.info(`Capture ${this.id} is looping!`);
-         this.loop();
-         // setTimeout( () => { this.loopSend(this.startTime); },
-                  //   this.config.sendMetricsInterval || this.DEFAULT_METRICS_INTERVAL );
-      } else {
-         this.teardown();
+      if (!this.config.supervised) {
+         throw new Error("unsupervised capture mode has not been implemented yet!");
       }
+      logger.info(`Capture ${this.id} is looping!`);
+      this.loopTimeoutId = setInterval(() => {
+         this.loop();
+      }, this.config.interval);
    }
 
    public async onStop(): Promise<any> {
       logger.info(`Capture ${this.id} received stop signal!`);
       this.done = true;
-
-      logger.info("set status to dead");
-      await Capture.updateCaptureStatus(this.id, "dead").catch((reason) => {
-         logger.error(`Failed to set status to dead: ${reason}`);
-      });
-      logger.info("record end time");
-      await Capture.updateCaptureEndTime(this.id).catch((reason) => {
-         logger.error(`Failed to record end time: ${reason}`);
-      });
-      logger.info("save workload");
-      const s3res = await stopRdsLoggingAndUploadToS3().catch((reason) => {
-         logger.error(`Failed to upload RDS log to S3: ${reason}`);
-      });
-      logger.info(`Got S3 location!: ${s3res}`);
-      return s3res;
+      this.loop();
    }
 
    private async setup(): Promise<void> {
@@ -206,16 +143,18 @@ export class Capture implements ICaptureIpcNodeDelegate {
       });
 
       logger.info(`Starting RDS logging`);
-      startRdsLogging();
+      // TODO: abstract Rds communication
+      if (!this.config.mock) {
+         startRdsLogging();
+      }
    }
 
    private loop(): void {
       logger.info(`Capture ${this.id}: loop start`);
 
       if (this.done) {
+         clearInterval(this.loopTimeoutId!);
          this.teardown();
-      } else {
-         setTimeout(() => { this.loop(); }, this.config.interval || this.DEFAULT_INTERVAL);
       }
    }
 
@@ -235,6 +174,11 @@ export class Capture implements ICaptureIpcNodeDelegate {
 
    // pull metric from cloudwatch and send them to S3
    private async sendMetricsToS3(s3: StorageBackend, startTime: Date, endTime: Date) {
+      // TODO: handle properly after metrics are using DI
+      if (this.config.mock) {
+         logger.warn("MOCK MODE: not sending metrics");
+         return;
+      }
 
       logger.info("Retrieving metrics");
       const CPUdata = await this.metricConfig.getCPUMetrics(startTime, endTime);
@@ -249,25 +193,40 @@ export class Capture implements ICaptureIpcNodeDelegate {
       });
    }
 
-   private getEndTime(startTime: Date): Date {
-      return this.addMinutesToDate(startTime, this.config.sendMetricsInterval
-             || this.DEFAULT_METRICS_INTERVAL);
-   }
+   // private getEndTime(startTime: Date): Date {
+   //    return this.addMinutesToDate(startTime, this.config.interval);
+   // }
 
-   private addMinutesToDate(startDate: Date, minutes: number): Date {
+   // private addMinutesToDate(startDate: Date, minutes: number): Date {
 
-      const millisecPerMin = 60000;
-      return new Date(startDate.valueOf() + (minutes * millisecPerMin));
-   }
+   //    const millisecPerMin = 60000;
+   //    return new Date(startDate.valueOf() + (minutes * millisecPerMin));
+   // }
 
-   private subMinutesFromDate(startDate: Date, minutes: number): Date {
+   // private subMinutesFromDate(startDate: Date, minutes: number): Date {
 
-    const millisecPerMin = 60000;
-    return new Date(startDate.valueOf() - (minutes * millisecPerMin));
-  }
+   //    const millisecPerMin = 60000;
+   //    return new Date(startDate.valueOf() - (minutes * millisecPerMin));
+   // }
 
    private async teardown() {
       logger.info(`Performing teardown for Capture ${this.id}`);
+
+      logger.info("set status to dead");
+      await Capture.updateCaptureStatus(this.id, "dead").catch((reason) => {
+         logger.error(`Failed to set status to dead: ${reason}`);
+      });
+
+      logger.info("record end time");
+      await Capture.updateCaptureEndTime(this.id).catch((reason) => {
+         logger.error(`Failed to record end time: ${reason}`);
+      });
+
+      logger.info("save workload");
+      const s3res = await stopRdsLoggingAndUploadToS3().catch((reason) => {
+         logger.error(`Failed to upload RDS log to S3: ${reason}`);
+      });
+      logger.info(`Got S3 location!: ${s3res}`);
 
       await this.sendMetricsToS3(this.storage, this.startTime, new Date());
 

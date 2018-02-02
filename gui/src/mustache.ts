@@ -19,7 +19,7 @@ export class Template {
    private readonly mustacheFile: string;
    private partials: Template[];
 
-   private mustacheFileText: string;
+   private mustacheFileText: string = "";
 
    private parsed: boolean;
    private topLevel: boolean;
