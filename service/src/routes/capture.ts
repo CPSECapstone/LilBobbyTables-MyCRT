@@ -2,7 +2,7 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 
-import { launch } from '@lbt-mycrt/capture';
+import { CaptureConfig, launch } from '@lbt-mycrt/capture';
 import { ChildProgramStatus, ChildProgramType, IMetric,
          IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
@@ -82,7 +82,7 @@ export default class CaptureRouter extends SelfAwareRouter {
             /* Add validation for insert */
             ConnectionPool.query(response, insertStr, (error, result) => {
                logger.info(`Launching capture with id ${result.insertId}`);
-               launch({ id: result.insertId });
+               launch(new CaptureConfig(result.insertId));
 
                logger.info(`Successfully created capture!`);
                response.json(result.insertId);

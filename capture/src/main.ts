@@ -18,3 +18,4 @@ if (typeof(require) !== 'undefined' && require.main === module) {
 }
 
 export { launch } from './launch';
+export { CaptureConfig } from './args';
