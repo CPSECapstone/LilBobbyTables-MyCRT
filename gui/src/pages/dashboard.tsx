@@ -39,7 +39,7 @@ class DashboardApp extends React.Component<any, any> {
             if (!name) {
                 name = `capture ${capture.id}`;
             }
-            captures.push((<CapturePanel title={name} id={capture.id} />));
+            captures.push((<CapturePanel title={name} capture={capture} />));
          }
       }
       return (
@@ -76,7 +76,7 @@ class DashboardApp extends React.Component<any, any> {
                             data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
-                        <ReplayModal id="replayModal"/>
+                        <ReplayModal id="replayModal" captures={this.state.captures}/>
                      </div>
                      <ReplayPanel title="Lil Replay" />
                      <ReplayPanel title="Sample Replay #2" />

@@ -53,10 +53,12 @@ export class CaptureModal extends React.Component<any, any>  {
                                     <StartDateTime />
                                     <br/>
                                     <label><b>Duration</b></label>
-                                    <div style={{display: "inline"}}>
-                                        <Duration type="days" />
-                                        <Duration type="hours" />
-                                        <Duration type="minutes" />
+                                    <div className="container">
+                                        <div className="row">
+                                            <Duration type="days" />
+                                            <Duration type="hours" />
+                                            <Duration type="minutes" />
+                                        </div>
                                     </div>
                                 </div>
                             </form>
@@ -65,7 +67,7 @@ export class CaptureModal extends React.Component<any, any>  {
                             <button type="button" className="btn btn-secondary"
                                 data-dismiss="modal">Cancel</button>
                             <button type="button" className="btn btn-info"
-                                    onClick = { (e) => this.handleClick(e) }>Save Changes</button>
+                                    onClick = { (e) => this.handleClick(e) }>Save Capture</button>
                         </div>
                     </div>
                 </div>
