@@ -1,3 +1,5 @@
+import { CloudWatch, S3 } from 'aws-sdk';
+
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
@@ -89,12 +91,15 @@ export class Capture implements ICaptureIpcNodeDelegate {
 
    private ipcNode: CaptureIpcNode;
    private metricConfig: MetricConfiguration;
+   private cloudwatch: CloudWatch;
    private storage: StorageBackend;
 
    constructor(public config: CaptureConfig, storage: StorageBackend) {
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
       this.storage = storage;
-      this.metricConfig = new MetricConfiguration('DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
+      this.cloudwatch = new CloudWatch({ region: 'us-east-2' });
+      this.metricConfig = new MetricConfiguration(this.cloudwatch, 'DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
+
    }
 
    public get id(): number {
