@@ -20,7 +20,7 @@ export class MetricsBackend {
             return metric;
          }
       }
-      throw new BadMetricTypeError();
+      throw new Error(`Bad Metric Type: ${type}`);
    }
 
    constructor(private backend: StorageBackend) {}
@@ -34,7 +34,7 @@ export class MetricsBackend {
          case ChildProgramStatus.DEAD:
             return this.readMetricsStatusDead(childProgram, metricType);
          default:
-            throw new BadChildProgramStatusError();
+            throw new Error(`Bad Child Program Status: ${childProgram.status}`);
       }
 
    }
@@ -72,7 +72,3 @@ export class MetricsBackend {
    }
 
 }
-
-export class BadChildProgramStatusError extends Error {}
-
-export class BadMetricTypeError extends Error {}
