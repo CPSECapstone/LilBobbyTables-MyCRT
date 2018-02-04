@@ -39,7 +39,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    }
 
    protected loop(): void {
-      logger.info(`Replay loop!`);
+      logger.info(`Replay ${this.id}: loop`);
       this.stop(false); // just once for now
    }
 

@@ -8,38 +8,58 @@ import { StorageBackend } from './backend';
 const logger = Logging.defaultLogger(__dirname);
 
 export class LocalBackend extends StorageBackend {
-
    constructor(private rootDir: string) {
       super();
 
       if (!fs.existsSync(this.rootDir)) {
-         fs.mkdirSync(this.rootDir);
+         fs.mkdirsSync(this.rootDir);
       }
    }
 
-   public exists(key: string): Promise<boolean> {
+   public async exists(key: string): Promise<boolean> {
       const file = path.join(this.rootDir, key);
-      return fs.pathExists(file);
+      return await fs.pathExists(file);
+   }
+
+   public async allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
+      const fullDirPrefix = path.join(this.rootDir, dirPrefix);
+      const result: string[] = [];
+
+      if (fs.existsSync(fullDirPrefix)) {
+         fs.readdirSync(fullDirPrefix).forEach((file) => {
+            if (file.match(pattern)) {
+               result.push(path.join(dirPrefix, file));
+            }
+         });
+      }
+
+      return result;
    }
 
    public async readJson<T>(key: string): Promise<T> {
       const file = path.join(this.rootDir, key);
-      const json = await fs.readJSON(file);
-      return json;
+      return fs.readJsonSync(file);
    }
 
    public async writeJson<T>(key: string, value: T): Promise<void> {
       const file = path.join(this.rootDir, key);
       const dir = path.dirname(file);
-      if (!await fs.pathExists(dir)) {
-         fs.mkdirs(dir);
+      if (!fs.existsSync(dir)) {
+         fs.mkdirsSync(dir);
       }
-      return fs.writeJSON(file, value);
+      await fs.writeJSON(file, value);
    }
 
    public async deleteJson(key: string): Promise<void> {
       const file = path.join(this.rootDir, key);
-      return fs.unlink(file);
+      return await fs.unlink(file);
+   }
+
+   public async deletePrefix(dirPrefix: string): Promise<void> {
+      dirPrefix = path.join(this.rootDir, dirPrefix);
+      if (await fs.pathExists(dirPrefix)) {
+         await fs.remove(dirPrefix);
+      }
    }
 
 }

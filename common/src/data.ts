@@ -3,12 +3,13 @@ export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
 
 /** The status of a capture/replay */
 export enum ChildProgramStatus {
-   SCHEDULED = 'scheduled',   /** The process has been scheduled for a future time */
-   STARTING = 'starting',     /** The process is initializing and will start soon */
-   RUNNING = 'running',       /** The process is running normally */
-   STOPPING = 'stopping',     /** The process has finished and is wrapping up */
-   DONE = 'done',             /** The process has wrapped up and does no longer exist */
-   FAILED = 'failed',         /** A fatal error occurred and the process no longer exists */
+   SCHEDULED = 'SCHEDULED',   /** The process has been scheduled for a future time */
+   STARTED = 'STARTED',       /** The process is being setup by MyCRT, but has not started yet */
+   STARTING = 'STARTING',     /** The process is initializing and will start soon */
+   RUNNING = 'RUNNING',       /** The process is running normally */
+   STOPPING = 'STOPPING',     /** The process has finished and is wrapping up */
+   DONE = 'DONE',             /** The process has wrapped up and does no longer exist */
+   FAILED = 'FAILED',         /** A fatal error occurred and the process no longer exists */
 }
 
 /** Capture/Replay */

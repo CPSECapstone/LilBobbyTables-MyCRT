@@ -32,21 +32,18 @@ describe("MetricsBackend", () => {
          label: "NetworkIn",
          type: MetricType.IO,
          displayName: "IO",
-         live: false,
          dataPoints: [],
       },
       {
          label: "FreeableMemory",
          type: MetricType.MEMORY,
          displayName: "MEMORY",
-         live: false,
          dataPoints: [],
       },
       {
          label: "CPUUtilization",
          type: MetricType.CPU,
          displayName: "CPU",
-         live: false,
          dataPoints: [],
       },
    ];
@@ -58,6 +55,9 @@ describe("MetricsBackend", () => {
       backend = mockito.mock(LocalBackend);
 
       const key = MetricsStorage.getDoneMetricsKey(c1);
+      mockito.when(backend.exists(key)).thenReturn(new Promise((resolve, reject) => {
+         resolve(true);
+      }));
       mockito.when(backend.readJson<IMetricsList[]>(key)).thenReturn(new Promise((resolve, reject) => {
          resolve(dummyMetrics);
       }));

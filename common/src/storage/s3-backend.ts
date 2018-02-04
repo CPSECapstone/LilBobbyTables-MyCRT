@@ -7,7 +7,6 @@ import { StorageBackend } from './backend';
 const logger = Logging.defaultLogger(__dirname);
 
 export class S3Backend extends StorageBackend {
-
    constructor(private s3: S3, private bucket: string) {
       super();
    }
@@ -30,6 +29,11 @@ export class S3Backend extends StorageBackend {
             }
          });
       });
+   }
+
+   public allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
+      // TODO: implement
+      throw new Error("Method not implemented.");
    }
 
    public async readJson<T>(key: string): Promise<T> {
@@ -96,6 +100,11 @@ export class S3Backend extends StorageBackend {
 
          });
       });
+   }
+
+   public async deletePrefix(dirPrefix: string): Promise<void> {
+      // TODO: implement
+      throw new Error("Method not implemented.");
    }
 
 }
