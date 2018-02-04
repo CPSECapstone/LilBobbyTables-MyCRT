@@ -1,7 +1,15 @@
 
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
 
-export enum ChildProgramStatus { DEAD = 'dead', LIVE = 'live', STARTING = 'starting'}
+/** The status of a capture/replay */
+export enum ChildProgramStatus {
+   SCHEDULED = 'scheduled',   /** The process has been scheduled for a future time */
+   STARTING = 'starting',     /** The process is initializing and will start soon */
+   RUNNING = 'running',       /** The process is running normally */
+   STOPPING = 'stopping',     /** The process has finished and is wrapping up */
+   DONE = 'done',             /** The process has wrapped up and does no longer exist */
+   FAILED = 'failed',         /** A fatal error occurred and the process no longer exists */
+}
 
 /** Capture/Replay */
 export interface IChildProgram {
@@ -11,6 +19,10 @@ export interface IChildProgram {
    start?: Date;
    end?: Date;
    status?: ChildProgramStatus;
+}
+
+export interface ICapture extends IChildProgram {
+   type: ChildProgramType.CAPTURE;
 }
 
 export interface IReplay extends IChildProgram {

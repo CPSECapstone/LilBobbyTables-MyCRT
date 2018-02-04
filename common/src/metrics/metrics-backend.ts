@@ -29,17 +29,26 @@ export class MetricsBackend {
          Promise<IMetricsList | IMetricsList[]> {
 
       switch (childProgram.status) {
-         case ChildProgramStatus.LIVE:
+
+         case ChildProgramStatus.SCHEDULED:
+         case ChildProgramStatus.STARTING:
+            throw new Error(`Its too early to get metrics`);
+
+         case ChildProgramStatus.RUNNING:
+         case ChildProgramStatus.STOPPING:
             return this.readMetricsStatusLive(childProgram, metricType);
-         case ChildProgramStatus.DEAD:
+
+         case ChildProgramStatus.DONE:
+         case ChildProgramStatus.FAILED:
             return this.readMetricsStatusDead(childProgram, metricType);
+
          default:
-            throw new Error(`Bad Child Program Status: ${childProgram.status}`);
+            throw new Error(`Bad ChildProgramStatus: ${childProgram.status}`);
       }
 
    }
 
-   private readMetricsStatusLive(childProgram: IChildProgram, metricType: MetricType | undefined):
+   private async readMetricsStatusLive(childProgram: IChildProgram, metricType: MetricType | undefined):
          Promise<IMetricsList | IMetricsList[]> {
 
       throw new Error('NOT IMPLEMENTED');
@@ -51,11 +60,11 @@ export class MetricsBackend {
 
       const key = MetricsBackend.getDoneMetricsKey(childProgram);
       if (metricType === undefined) {
-         return this.readFromBackend<IMetricsList[]>(key);
+         return this.backend.readJson<IMetricsList[]>(key);
       }
 
       return new Promise<IMetricsList>(async (resolve, reject) => {
-         const metrics = await this.readFromBackend<IMetricsList[]>(key);
+         const metrics = await this.backend.readJson<IMetricsList[]>(key);
          for (const metric of metrics) {
             if (metric.type === metricType) {
                resolve(metric);
@@ -65,10 +74,6 @@ export class MetricsBackend {
          reject(`No metrics for ${metricType}`);
       });
 
-   }
-
-   private readFromBackend<T>(key: string): Promise<T> {
-      return this.backend.readJson<T>(key);
    }
 
 }
