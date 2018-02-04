@@ -14,8 +14,8 @@ describe("MetricsBackend", () => {
       name: "c1",
       type: ChildProgramType.CAPTURE,
       status: ChildProgramStatus.DEAD,
-      start: new Date().toString(),
-      end: new Date().toString(),
+      start: new Date(),
+      end: new Date(),
    };
 
    const c2: IChildProgram = {
@@ -23,8 +23,8 @@ describe("MetricsBackend", () => {
       name: "c2",
       type: ChildProgramType.CAPTURE,
       status: ChildProgramStatus.DEAD,
-      start: new Date().toString(),
-      end: new Date().toString(),
+      start: new Date(),
+      end: new Date(),
    };
 
    const dummyMetrics: IMetricsList[] = [

@@ -1,9 +1,8 @@
-import { CloudWatch, S3 } from 'aws-sdk';
-
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
-import { CaptureIpcNode, ICaptureIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
+import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-mycrt/common';
+import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
 import { MetricConfiguration } from '@lbt-mycrt/common/dist/metrics/metrics';
 import { MetricsBackend } from '@lbt-mycrt/common/dist/metrics/metrics-backend';
@@ -14,7 +13,7 @@ import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
 
 const logger = Logging.defaultLogger(__dirname);
 
-export class Capture implements ICaptureIpcNodeDelegate {
+export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
    public static updateCaptureStatus(id: number, status: string): Promise<any> {
       const localDbConfig = require('../db/config.json');
@@ -85,82 +84,82 @@ export class Capture implements ICaptureIpcNodeDelegate {
       });
    }
 
-   private done: boolean = false;
-   private loopTimeoutId: NodeJS.Timer | null = null;
-   private readonly startTime: Date = new Date();
+   private ipcNode: IpcNode;
 
-   private ipcNode: CaptureIpcNode;
-   private metricConfig: MetricConfiguration;
-   private cloudwatch: CloudWatch;
-   private storage: StorageBackend;
-
-   constructor(public config: CaptureConfig, storage: StorageBackend) {
+   constructor(public config: CaptureConfig, storage: StorageBackend, metrics: MetricConfiguration) {
+      super(storage, metrics);
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
-      this.storage = storage;
-      this.cloudwatch = new CloudWatch({ region: 'us-east-2' });
-      this.metricConfig = new MetricConfiguration(this.cloudwatch, 'DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
-
    }
 
-   public get id(): number {
+   get id(): number {
       return this.config.id;
    }
 
-   public asIChildProgram(): IChildProgram {
-      return {
-         type: ChildProgramType.CAPTURE,
-         id: this.id,
-         name: "",
-         start: this.startTime.toJSON(),
-         end: null,
-         status: ChildProgramStatus.DEAD,
-      };
-   }
-
-   public run(): void {
-      this.setup();
-      if (!this.config.supervised) {
-         throw new Error("unsupervised capture mode has not been implemented yet!");
-      }
-      logger.info(`Capture ${this.id} is looping!`);
-      this.loopTimeoutId = setInterval(() => {
-         this.loop();
-      }, this.config.interval);
+   get interval(): number {
+      return this.config.interval;
    }
 
    public async onStop(): Promise<any> {
       logger.info(`Capture ${this.id} received stop signal!`);
-      this.done = true;
-      this.loop();
+      this.stop(true);
    }
 
-   private async setup(): Promise<void> {
-      logger.info(`Performing setup for Capture ${this.id}`);
-      this.ipcNode.start();
+   public asIChildProgram(): IChildProgram {
+      return {
+         id: this.id,
+         type: ChildProgramType.CAPTURE,
+         status: this.status,
+         start: this.startTime || undefined,
+      };
+   }
 
-      logger.info(`Setting Capture ${this.id} startTime = ${this.startTime.toJSON()} . . . `);
-      await Capture.updateCaptureStartTime(this.id).catch((reason) => {
-         logger.error(`Failed to update start time: ${reason}`);
-      });
-      logger.info(`Setting Capture ${this.id} status to 'live'`);
-      await Capture.updateCaptureStatus(this.id, "live").catch((reason) => {
-         logger.error(`Failed to update status: ${reason}`);
-      });
+   protected async setup(): Promise<void> {
+      try {
+         logger.info(`Performing setup for Capture ${this.id}`);
+         this.ipcNode.start();
 
-      logger.info(`Starting RDS logging`);
-      // TODO: abstract Rds communication
-      if (!this.config.mock) {
-         startRdsLogging();
+         logger.info(`Setting Capture ${this.id} startTime = ${this.startTime!.toJSON()}`);
+         await Capture.updateCaptureStartTime(this.id);
+
+         logger.info(`Setting Capture ${this.id} status to 'live'`);
+         await Capture.updateCaptureStatus(this.id, "live");
+
+         logger.info(`Starting RDS logging`);
+         // TODO: abstract Rds communication
+         if (!this.config.mock) {
+            startRdsLogging();
+         }
+      } catch (error) {
+         logger.error(`Failed to setup capture: ${error}`);
       }
    }
 
-   private loop(): void {
+   protected loop(): void {
       logger.info(`Capture ${this.id}: loop start`);
+   }
 
-      if (this.done) {
-         clearInterval(this.loopTimeoutId!);
-         this.teardown();
-      }
+   protected async teardown(): Promise<void> {
+      logger.info(`Performing teardown for Capture ${this.id}`);
+
+      logger.info("set status to dead");
+      await Capture.updateCaptureStatus(this.id, "dead").catch((reason) => {
+         logger.error(`Failed to set status to dead: ${reason}`);
+      });
+
+      logger.info("record end time");
+      await Capture.updateCaptureEndTime(this.id).catch((reason) => {
+         logger.error(`Failed to record end time: ${reason}`);
+      });
+
+      logger.info("save workload");
+      const s3res = await stopRdsLoggingAndUploadToS3().catch((reason) => {
+         logger.error(`Failed to upload RDS log to S3: ${reason}`);
+      });
+      logger.info(`Got S3 location!: ${s3res}`);
+
+      await this.sendMetricsToS3(this.storage, this.startTime!, new Date());
+
+      this.ipcNode.stop();
    }
 
    // private loopSend(startTime: Date): void {
@@ -186,9 +185,9 @@ export class Capture implements ICaptureIpcNodeDelegate {
       }
 
       logger.info("Retrieving metrics");
-      const CPUdata = await this.metricConfig.getCPUMetrics(startTime, endTime);
-      const MEMdata = await this.metricConfig.getMemoryMetrics(startTime, endTime);
-      const IOdata = await this.metricConfig.getIOMetrics(startTime, endTime);
+      const CPUdata = await this.metrics.getCPUMetrics(startTime, endTime);
+      const MEMdata = await this.metrics.getMemoryMetrics(startTime, endTime);
+      const IOdata = await this.metrics.getIOMetrics(startTime, endTime);
       const allData = [CPUdata, MEMdata, IOdata];
 
       const baseKey = MetricsBackend.getDoneMetricsKey(this.asIChildProgram());
@@ -213,29 +212,5 @@ export class Capture implements ICaptureIpcNodeDelegate {
    //    const millisecPerMin = 60000;
    //    return new Date(startDate.valueOf() - (minutes * millisecPerMin));
    // }
-
-   private async teardown() {
-      logger.info(`Performing teardown for Capture ${this.id}`);
-
-      logger.info("set status to dead");
-      await Capture.updateCaptureStatus(this.id, "dead").catch((reason) => {
-         logger.error(`Failed to set status to dead: ${reason}`);
-      });
-
-      logger.info("record end time");
-      await Capture.updateCaptureEndTime(this.id).catch((reason) => {
-         logger.error(`Failed to record end time: ${reason}`);
-      });
-
-      logger.info("save workload");
-      const s3res = await stopRdsLoggingAndUploadToS3().catch((reason) => {
-         logger.error(`Failed to upload RDS log to S3: ${reason}`);
-      });
-      logger.info(`Got S3 location!: ${s3res}`);
-
-      await this.sendMetricsToS3(this.storage, this.startTime, new Date());
-
-      this.ipcNode.stop();
-   }
 
 }

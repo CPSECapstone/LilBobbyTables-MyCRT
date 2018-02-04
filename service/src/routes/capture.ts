@@ -51,8 +51,8 @@ export default class CaptureRouter extends SelfAwareRouter {
                name: "name",
                status: ChildProgramStatus.DEAD,
                type: ChildProgramType.CAPTURE,
-               start: new Date().toString(),
-               end: new Date().toString(),
+               start: new Date(),
+               end: new Date(),
             }, type).catch((reason) => {
                response.status(http.INTERNAL_SERVER_ERROR).json({reason}).end();
             });

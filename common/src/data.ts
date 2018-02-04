@@ -5,11 +5,11 @@ export enum ChildProgramStatus { DEAD = 'dead', LIVE = 'live', STARTING = 'start
 
 /** Capture/Replay */
 export interface IChildProgram {
-   type: ChildProgramType;
-   id: number;
-   name: string;
-   start?: string;
-   end?: string | null;
+   type?: ChildProgramType;
+   id?: number;
+   name?: string;
+   start?: Date;
+   end?: Date;
    status?: ChildProgramStatus;
 }
 

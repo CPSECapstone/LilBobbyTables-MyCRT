@@ -1,29 +1,9 @@
-import * as child_process from 'child_process';
+import { launch as spawn } from '@lbt-mycrt/common/dist/capture-replay/launch';
 
-import { Logging } from '@lbt-mycrt/common';
+import { ReplayConfig } from './args';
 
-import { IReplayConfig } from './replay';
-
-const logger = Logging.getLogger(true, Logging.simpleFormatter);
-
-export const launch = (config: IReplayConfig) => {
-
-   logger.info("launching replay");
-
-   child_process.spawn('mycrt-replay', [`${config.id}`])
-
-      .stdout.on('data', (data: string) => {
-         logger.info("[replay stdout] " + data.toString().trim());
-      })
-
-      .on('close', (code: any) => {
-         logger.info("[replay]  exited with code " + code);
-      })
-
-      .on('error', (error: string) => {
-         logger.error(`Replay ${config.id} errorred: ${error.toString().trim()}`);
-      })
-
-   ;
-
+export const launch = (config: ReplayConfig) => {
+   const name = 'mycrt-replay';
+   const args = config.toArgList();
+   spawn(name, args);
 };

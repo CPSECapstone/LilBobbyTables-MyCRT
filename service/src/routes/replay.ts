@@ -4,10 +4,12 @@ import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 
 import { Logging } from '@lbt-mycrt/common';
-import { launch } from '@lbt-mycrt/replay';
+import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
+import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
 import ConnectionPool from './util/cnnPool';
+
 // import { captureExists } from './validators/replay-validators';
 
 export default class ReplayRouter extends SelfAwareRouter {
@@ -63,7 +65,11 @@ export default class ReplayRouter extends SelfAwareRouter {
             /* Add validation for insert */
             ConnectionPool.query(response, insertStr, (error, result) => {
                logger.info(`Launching replay with id ${result.insertId}`);
-               launch({ id: result.insertId });
+
+               const config = new ReplayConfig(result.insertId, replay.captureId);
+               config.mock = settings.replays.mock;
+               config.interval = settings.replays.interval;
+               launch(config);
 
                logger.info(`Successfully created replay!`);
                response.json(result.insertId);
