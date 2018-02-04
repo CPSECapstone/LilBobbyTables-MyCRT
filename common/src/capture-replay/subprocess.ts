@@ -1,6 +1,6 @@
 import { ChildProgramStatus, IChildProgram } from '../data';
 import { IpcNode } from '../ipc/ipc-node';
-import { MetricConfiguration } from '../metrics/metrics';
+import { MetricsBackend } from '../metrics/metrics-backend';
 import { StorageBackend } from '../storage/backend';
 
 export abstract class Subprocess {
@@ -10,7 +10,7 @@ export abstract class Subprocess {
    private loopTimeoutId: NodeJS.Timer | null = null;
    private isDone: boolean = false;
 
-   constructor(protected storage: StorageBackend, protected metrics: MetricConfiguration) {
+   constructor(protected storage: StorageBackend, protected metrics: MetricsBackend) {
 
    }
 

@@ -4,8 +4,10 @@ import * as mysql from 'mysql';
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
 import { ChildProgramStatus, ChildProgramType, IMetric,
-         IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
+         IMetricsList, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
+import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
+import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
@@ -44,12 +46,13 @@ export default class CaptureRouter extends SelfAwareRouter {
             const typeQuery: any = request.query.type;
             const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
 
-            const backend: MetricsBackend = new MetricsBackend(new S3Backend(new S3(), 'lil-test-environment'));
+            // const storage: MetricsStorage = new MetricsStorage(new S3Backend(new S3(), 'lil-test-environment'));
+            const storage = new MetricsStorage(new LocalBackend(getSandboxPath()));
 
-            const result = await backend.readMetrics({
+            const result = await storage.readMetrics({
                id: parseInt(request.params.id),
                name: "name",
-               status: ChildProgramStatus.DEAD,
+               status: ChildProgramStatus.DONE,
                type: ChildProgramType.CAPTURE,
                start: new Date(),
                end: new Date(),

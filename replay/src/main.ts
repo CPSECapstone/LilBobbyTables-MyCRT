@@ -2,8 +2,7 @@
 
 import { CloudWatch, S3 } from 'aws-sdk';
 
-import { Logging } from '@lbt-mycrt/common';
-import { MetricConfiguration } from '@lbt-mycrt/common/dist/metrics/metrics';
+import { CloudWatchMetricsBackend, Logging, MetricsBackend, MockMetricsBackend } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
@@ -14,17 +13,26 @@ import { Replay } from './replay';
 
 if (typeof(require) !== 'undefined' && require.main === module) {
 
-   const logger = Logging.getLogger(true, Logging.simpleFormatter);
+   const logger = Logging.defaultLogger(__dirname);
 
    logger.info("Configuring MyCRT Replay Program");
    const config = ReplayConfig.fromCmdArgs();
    logger.info(config.toString());
 
-   const storage: StorageBackend = config.mock ? new LocalBackend(getSandboxPath())
-      : new S3Backend(new S3(), 'lil-test-environment'); // TODO: get bucket name from the environment
-   const metrics = new MetricConfiguration(new CloudWatch({region: 'us-east-2'}), 'DBInstanceIdentifier', 'nfl2015', 60,
-      ['Maximum']);
-   const replay = new Replay(config, storage, metrics);
+   const buildReplay = (): Replay => {
+      const storage = new S3Backend(new S3(), 'lil-test-environment'); // TODO: get bucket name from the environment
+      const metrics = new CloudWatchMetricsBackend(new CloudWatch({region: 'us-east-2'}), 'DBInstanceIdentifier',
+         'nfl2015', 60, ['Maximum']);
+      return new Replay(config, storage, metrics);
+   };
+
+   const buildMockReplay = (): Replay => {
+      const storage = new LocalBackend(getSandboxPath());
+      const metrics = new MockMetricsBackend(5);
+      return new Replay(config, storage, metrics);
+   };
+
+   const replay = config.mock ? buildMockReplay() : buildReplay();
 
    logger.info("Running MyCRT Replay Program");
    replay.run();

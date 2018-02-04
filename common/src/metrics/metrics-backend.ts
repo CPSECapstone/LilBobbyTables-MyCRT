@@ -1,79 +1,54 @@
-import { ChildProgramStatus, ChildProgramType, IChildProgram, IMetric, IMetricsList, MetricType } from '../data';
-import { defaultLogger } from '../logging';
-import { StorageBackend } from '../storage/backend';
+import { CloudWatch } from 'aws-sdk';
 
-const logger = defaultLogger(__dirname);
+import { IMetricsList, MetricType } from '../data';
 
-/**
- * Reads/Write metrics to the backend.
- */
-export class MetricsBackend {
+// Metrics to retrieve
+export const CPU = 'CPUUtilization';
+export const IO = 'ReadLatency';
+export const MEMORY = 'FreeableMemory';
 
-   public static getDoneMetricsKey(childProgram: IChildProgram): string {
-      const childType = childProgram.type === ChildProgramType.CAPTURE ? "capture" : "replay";
-      return `${childType}${childProgram.id}/metrics.json`;
+export const cpuUnit = 'Percent';
+export const ioUnit = 'Seconds';
+export const memoryUnit = 'Bytes';
+
+export const nameToType = (name: string): MetricType => {
+   switch (name) {
+      case CPU:
+         return MetricType.CPU;
+      case IO:
+         return MetricType.IO;
+      case MEMORY:
+         return MetricType.MEMORY;
+      default:
+         throw new Error(`Unknown metric name: ${name}`);
+   }
+};
+
+export const toIMetricsList = (data: CloudWatch.GetMetricStatisticsOutput): IMetricsList => {
+   const labelStr = data.Label || CPU;
+   return {
+      label: labelStr,
+      type: nameToType(labelStr),
+      displayName: nameToType(labelStr),
+      dataPoints: (data.Datapoints || []) as any,
+   };
+};
+
+export abstract class MetricsBackend {
+
+   public getCPUMetrics(startTime: Date, endTime: Date) {
+      return this.getMetrics(CPU, cpuUnit, startTime, endTime);
    }
 
-   public static specificMetricFromList(list: IMetricsList[], type: MetricType): IMetricsList {
-      for (const metric of list) {
-         if (metric.type === type) {
-            return metric;
-         }
-      }
-      throw new Error(`Bad Metric Type: ${type}`);
+   public getIOMetrics(startTime: Date, endTime: Date) {
+      return this.getMetrics(IO, ioUnit, startTime, endTime);
    }
 
-   constructor(private backend: StorageBackend) {}
-
-   public readMetrics(childProgram: IChildProgram, metricType?: MetricType | undefined):
-         Promise<IMetricsList | IMetricsList[]> {
-
-      switch (childProgram.status) {
-
-         case ChildProgramStatus.SCHEDULED:
-         case ChildProgramStatus.STARTING:
-            throw new Error(`Its too early to get metrics`);
-
-         case ChildProgramStatus.RUNNING:
-         case ChildProgramStatus.STOPPING:
-            return this.readMetricsStatusLive(childProgram, metricType);
-
-         case ChildProgramStatus.DONE:
-         case ChildProgramStatus.FAILED:
-            return this.readMetricsStatusDead(childProgram, metricType);
-
-         default:
-            throw new Error(`Bad ChildProgramStatus: ${childProgram.status}`);
-      }
-
+   public getMemoryMetrics(startTime: Date, endTime: Date) {
+      return this.getMetrics(MEMORY, memoryUnit, startTime, endTime);
    }
 
-   private async readMetricsStatusLive(childProgram: IChildProgram, metricType: MetricType | undefined):
-         Promise<IMetricsList | IMetricsList[]> {
-
-      throw new Error('NOT IMPLEMENTED');
-
-   }
-
-   private async readMetricsStatusDead(childProgram: IChildProgram, metricType: MetricType | undefined):
-         Promise<IMetricsList | IMetricsList[]> {
-
-      const key = MetricsBackend.getDoneMetricsKey(childProgram);
-      if (metricType === undefined) {
-         return this.backend.readJson<IMetricsList[]>(key);
-      }
-
-      return new Promise<IMetricsList>(async (resolve, reject) => {
-         const metrics = await this.backend.readJson<IMetricsList[]>(key);
-         for (const metric of metrics) {
-            if (metric.type === metricType) {
-               resolve(metric);
-               return;
-            }
-         }
-         reject(`No metrics for ${metricType}`);
-      });
-
-   }
+   protected abstract getMetrics(metricName: string, unit: string, startTime: Date, endTime: Date):
+      Promise<IMetricsList>;
 
 }

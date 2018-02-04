@@ -52,7 +52,7 @@ export interface IMetric {
 export interface IMetricsList {
    label: string;
    type: MetricType;
-   displayName: string;
-   live: boolean;
+   displayName?: string;
+   complete?: boolean;
    dataPoints: IMetric[];
 }

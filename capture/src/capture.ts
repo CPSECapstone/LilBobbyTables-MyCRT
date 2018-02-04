@@ -2,10 +2,10 @@ import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
 import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-mycrt/common';
+import { MetricsBackend } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
-import { MetricConfiguration } from '@lbt-mycrt/common/dist/metrics/metrics';
-import { MetricsBackend } from '@lbt-mycrt/common/dist/metrics/metrics-backend';
+import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { CaptureConfig } from './args';
@@ -86,7 +86,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
    private ipcNode: IpcNode;
 
-   constructor(public config: CaptureConfig, storage: StorageBackend, metrics: MetricConfiguration) {
+   constructor(public config: CaptureConfig, storage: StorageBackend, metrics: MetricsBackend) {
       super(storage, metrics);
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
    }
@@ -124,11 +124,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info(`Setting Capture ${this.id} status to 'live'`);
          await Capture.updateCaptureStatus(this.id, "live");
 
-         logger.info(`Starting RDS logging`);
          // TODO: abstract Rds communication
-         if (!this.config.mock) {
-            startRdsLogging();
-         }
+         // logger.info(`Starting RDS logging`);
+         // startRdsLogging();
+
       } catch (error) {
          logger.error(`Failed to setup capture: ${error}`);
       }
@@ -139,27 +138,27 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
    }
 
    protected async teardown(): Promise<void> {
-      logger.info(`Performing teardown for Capture ${this.id}`);
+      try {
+         logger.info(`Performing teardown for Capture ${this.id}`);
 
-      logger.info("set status to dead");
-      await Capture.updateCaptureStatus(this.id, "dead").catch((reason) => {
-         logger.error(`Failed to set status to dead: ${reason}`);
-      });
+         logger.info("set status to dead");
+         await Capture.updateCaptureStatus(this.id, "dead");
 
-      logger.info("record end time");
-      await Capture.updateCaptureEndTime(this.id).catch((reason) => {
-         logger.error(`Failed to record end time: ${reason}`);
-      });
+         logger.info("record end time");
+         await Capture.updateCaptureEndTime(this.id);
 
-      logger.info("save workload");
-      const s3res = await stopRdsLoggingAndUploadToS3().catch((reason) => {
-         logger.error(`Failed to upload RDS log to S3: ${reason}`);
-      });
-      logger.info(`Got S3 location!: ${s3res}`);
+         // TODO: abstract rds communication
+         // logger.info("save workload");
+         // const s3res = await stopRdsLoggingAndUploadToS3();
+         // logger.info(`Got S3 location!: ${s3res}`);
 
-      await this.sendMetricsToS3(this.storage, this.startTime!, new Date());
+         await this.sendMetricsToS3(this.storage, this.startTime!, new Date());
 
-      this.ipcNode.stop();
+         this.ipcNode.stop();
+      } catch (error) {
+         logger.error(`teardown failed: ${error}`);
+         // TODO: set capture status to failed
+      }
    }
 
    // private loopSend(startTime: Date): void {
@@ -177,12 +176,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
    // }
 
    // pull metric from cloudwatch and send them to S3
-   private async sendMetricsToS3(s3: StorageBackend, startTime: Date, endTime: Date) {
-      // TODO: handle properly after metrics are using DI
-      if (this.config.mock) {
-         logger.warn("MOCK MODE: not sending metrics");
-         return;
-      }
+   private async sendMetricsToS3(storage: StorageBackend, startTime: Date, endTime: Date) {
 
       logger.info("Retrieving metrics");
       const CPUdata = await this.metrics.getCPUMetrics(startTime, endTime);
@@ -190,9 +184,9 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       const IOdata = await this.metrics.getIOMetrics(startTime, endTime);
       const allData = [CPUdata, MEMdata, IOdata];
 
-      const baseKey = MetricsBackend.getDoneMetricsKey(this.asIChildProgram());
+      const baseKey = MetricsStorage.getDoneMetricsKey(this.asIChildProgram());
       logger.info(`Saving metrics to ${baseKey}`);
-      await s3.writeJson(baseKey, allData).catch((reason) => {
+      await storage.writeJson(baseKey, allData).catch((reason) => {
          logger.error(`Could not save metrics: ${reason}`);
       });
    }

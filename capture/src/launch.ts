@@ -5,5 +5,5 @@ import { CaptureConfig } from './args';
 export const launch = (config: CaptureConfig) => {
    const name = 'mycrt-capture';
    const args = config.toArgList();
-   spawn(name, args);
+   spawn(`capture ${config.id}`, name, args);
 };

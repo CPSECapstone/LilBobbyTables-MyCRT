@@ -2,7 +2,7 @@ import { CloudWatch } from 'aws-sdk';
 import { expect } from 'chai';
 import 'mocha';
 import mockito from 'ts-mockito';
-import { CPU, IO, MEMORY, MetricConfiguration } from '../../main';
+import { CloudWatchMetricsBackend, CPU, IO, MEMORY } from '../../main';
 import { dummyCPU, dummyIO, dummyMemory } from './data';
 
 import Logging = require('./../../logging');
@@ -13,12 +13,12 @@ describe("CloudwatchMetricsBackend", () => {
 
     let cloudwatch: CloudWatch;
     let spiedCloudwatch: CloudWatch;
-    let metrics: MetricConfiguration;
+    let metrics: CloudWatchMetricsBackend;
 
     before(() => {
         cloudwatch = new CloudWatch({ region: 'us-east-2' });
         spiedCloudwatch = mockito.spy(cloudwatch);
-        metrics = new MetricConfiguration(cloudwatch, 'DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
+        metrics = new CloudWatchMetricsBackend(cloudwatch, 'DBInstanceIdentifier', 'nfl2015', 60, ['Maximum']);
     });
 
     it("should get CPU metrics", async () => {
