@@ -22,6 +22,10 @@ export class CaptureModal extends React.Component<any, any>  {
             logger.error("Could not start capture");
         } else {
             logger.info(`${captureObj.name} was made with id ${captureObj.id}`);
+            const cancelBtn = document.getElementById("cancelBtn");
+            if (cancelBtn) {
+                cancelBtn.click();
+            }
         }
     }
 
@@ -64,7 +68,7 @@ export class CaptureModal extends React.Component<any, any>  {
                             </form>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary"
+                            <button type="button" className="btn btn-secondary" id="cancelBtn"
                                 data-dismiss="modal">Cancel</button>
                             <button type="button" className="btn btn-info"
                                     onClick = { (e) => this.handleClick(e) }>Save Capture</button>

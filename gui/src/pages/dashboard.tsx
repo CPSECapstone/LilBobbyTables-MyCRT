@@ -1,7 +1,7 @@
 import React = require('react');
 import ReactDom = require('react-dom');
 
-import { IChildProgram } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, IChildProgram } from '@lbt-mycrt/common/dist/data';
 
 import './common';
 
@@ -32,14 +32,19 @@ class DashboardApp extends React.Component<any, any> {
    }
 
    public render() {
-      const captures: JSX.Element[] = [];
+      const liveCaptures: JSX.Element[] = [];
+      const pastCaptures: JSX.Element[] = [];
       if (this.state.captures) {
          for (const capture of this.state.captures) {
             let name = `${capture.name}`;
             if (!name) {
                 name = `capture ${capture.id}`;
             }
-            captures.push((<CapturePanel title={name} capture={capture} />));
+            if (capture.status === ChildProgramStatus.LIVE) {
+                liveCaptures.push((<CapturePanel title={name} capture={capture} />));
+            } else {
+                pastCaptures.push((<CapturePanel title={name} capture={capture} />));
+            }
          }
       }
       return (
@@ -57,6 +62,7 @@ class DashboardApp extends React.Component<any, any> {
                      <h1>Environment Dashboard</h1>
                   </div>
                </div>
+               <br></br>
                <div className="row">
                   <div className="col-xs-12 col-md-6 mb-r">
                      <div>
@@ -67,7 +73,12 @@ class DashboardApp extends React.Component<any, any> {
                         </a>
                         <CaptureModal id="captureModal"/>
                      </div>
-                     {captures}
+                     {liveCaptures.length === 0 ? null : <h4>Live</h4>}
+                     {liveCaptures}
+                     <br></br>
+                     {pastCaptures.length === 0 ? null : <h4>Past</h4>}
+                     {pastCaptures}
+                     <br></br>
                   </div>
                   <div className="col-xs-12 col-md-6 mb-r">
                      <div>
@@ -78,9 +89,12 @@ class DashboardApp extends React.Component<any, any> {
                         </a>
                         <ReplayModal id="replayModal" captures={this.state.captures}/>
                      </div>
+                     <br></br>
+                     <h4>Past</h4>
                      <ReplayPanel title="Lil Replay" />
                      <ReplayPanel title="Sample Replay #2" />
                      <ReplayPanel title="Sample Replay #3" />
+                     <br></br>
                   </div>
                </div>
 
