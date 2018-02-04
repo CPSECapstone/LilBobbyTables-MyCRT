@@ -1,7 +1,6 @@
-import { IReplayIpcNodeDelegate, Logging, ReplayIpcNode } from '@lbt-mycrt/common';
+import { IReplayIpcNodeDelegate, Logging, MetricsBackend, ReplayIpcNode } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
-import { MetricConfiguration } from '@lbt-mycrt/common/dist/metrics/metrics';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { ReplayConfig } from './args';
@@ -12,7 +11,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    private ipcNode: ReplayIpcNode;
 
-   constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricConfiguration) {
+   constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend) {
       super(storage, metrics);
       this.ipcNode = new ReplayIpcNode(this.id, logger, this);
    }
@@ -40,7 +39,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    }
 
    protected loop(): void {
-      logger.info(`Replay loop!`);
+      logger.info(`Replay ${this.id}: loop`);
       this.stop(false); // just once for now
    }
 

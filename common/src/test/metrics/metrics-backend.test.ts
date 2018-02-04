@@ -3,7 +3,7 @@ import 'mocha';
 import mockito from 'ts-mockito';
 
 import { ChildProgramStatus, ChildProgramType, IChildProgram, IMetric, IMetricsList, MetricType } from '../../data';
-import { MetricsBackend } from '../../metrics/metrics-backend';
+import { MetricsStorage } from '../../metrics/metrics-storage';
 import { StorageBackend } from '../../storage/backend';
 import { LocalBackend } from '../../storage/local-backend';
 
@@ -13,7 +13,7 @@ describe("MetricsBackend", () => {
       id: 0,
       name: "c1",
       type: ChildProgramType.CAPTURE,
-      status: ChildProgramStatus.DEAD,
+      status: ChildProgramStatus.DONE,
       start: new Date(),
       end: new Date(),
    };
@@ -22,7 +22,7 @@ describe("MetricsBackend", () => {
       id: 1,
       name: "c2",
       type: ChildProgramType.CAPTURE,
-      status: ChildProgramStatus.DEAD,
+      status: ChildProgramStatus.DONE,
       start: new Date(),
       end: new Date(),
    };
@@ -32,37 +32,37 @@ describe("MetricsBackend", () => {
          label: "NetworkIn",
          type: MetricType.IO,
          displayName: "IO",
-         live: false,
          dataPoints: [],
       },
       {
          label: "FreeableMemory",
          type: MetricType.MEMORY,
          displayName: "MEMORY",
-         live: false,
          dataPoints: [],
       },
       {
          label: "CPUUtilization",
          type: MetricType.CPU,
          displayName: "CPU",
-         live: false,
          dataPoints: [],
       },
    ];
 
    let backend: StorageBackend;
-   let metrics: MetricsBackend;
+   let metrics: MetricsStorage;
 
    before(() => {
       backend = mockito.mock(LocalBackend);
 
-      const key = MetricsBackend.getDoneMetricsKey(c1);
+      const key = MetricsStorage.getDoneMetricsKey(c1);
+      mockito.when(backend.exists(key)).thenReturn(new Promise((resolve, reject) => {
+         resolve(true);
+      }));
       mockito.when(backend.readJson<IMetricsList[]>(key)).thenReturn(new Promise((resolve, reject) => {
          resolve(dummyMetrics);
       }));
 
-      metrics = new MetricsBackend(mockito.instance(backend));
+      metrics = new MetricsStorage(mockito.instance(backend));
    });
 
    it("should read capture CPU metrics", async () => {
@@ -86,9 +86,9 @@ describe("MetricsBackend", () => {
    it("should read all capture metrics", async () => {
       const result = await metrics.readMetrics(c1) as IMetricsList[];
       expect(result.length).to.equal(3);
-      const cpu = MetricsBackend.specificMetricFromList(result, MetricType.CPU);
-      const io = MetricsBackend.specificMetricFromList(result, MetricType.IO);
-      const memory = MetricsBackend.specificMetricFromList(result, MetricType.MEMORY);
+      const cpu = MetricsStorage.specificMetricFromList(result, MetricType.CPU);
+      const io = MetricsStorage.specificMetricFromList(result, MetricType.IO);
+      const memory = MetricsStorage.specificMetricFromList(result, MetricType.MEMORY);
       expect(cpu.type).to.equal(MetricType.CPU);
       expect(io.type).to.equal(MetricType.IO);
       expect(memory.type).to.equal(MetricType.MEMORY);

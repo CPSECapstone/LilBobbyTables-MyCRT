@@ -1,30 +1,31 @@
 import * as child_process from 'child_process';
 
-import { defaultLogger } from '../logging';
+import { defaultLogger, noopLogger } from '../logging';
 
 const logger = defaultLogger(__dirname);
 
-export const launch = (name: string, args: string[]) => {
+export const launch = (id: string, cmd: string, args: string[]) => {
 
-   logger.info(`launching ${name}`);
-   logger.info(`   ${name} ${args.join(' ')}`);
+   logger.info(`launching ${cmd}`);
+   logger.info(`   ${cmd} ${args.join(' ')}`);
 
-   const process = child_process.spawn(name, args);
+   const process = child_process.spawn(cmd, args);
+   const childLogger = noopLogger(__dirname);
 
    process.stdout.on('data', (data: string) => {
-      logger.info(`[${name} stdout] ${data.toString().trim()}`);
+      childLogger.info(`[${id} stdout] ${data.toString().trim()}`);
    });
 
    process.stderr.on('data', (data: string) => {
-      logger.error(`[${name} stderr] ${data.toString().trim()}`);
+      childLogger.error(`[${id} stderr] ${data.toString().trim()}`);
    });
 
    process.on('close', (code: any) => {
-      logger.info(`[${name} exited] ${code}`);
+      logger.info(`[${id} exited] ${code}`);
    });
 
    process.on('error', (error: string) => {
-      logger.error(`[${name} ERROR] ${error.toString().trim()}`);
+      logger.error(`[${id} ERROR] ${error.toString().trim()}`);
    });
 
 };

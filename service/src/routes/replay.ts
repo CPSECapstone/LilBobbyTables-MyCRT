@@ -69,6 +69,7 @@ export default class ReplayRouter extends SelfAwareRouter {
                const config = new ReplayConfig(result.insertId, replay.captureId);
                config.mock = settings.replays.mock;
                config.interval = settings.replays.interval;
+               config.intervalOverlap = settings.replays.intervalOverlap;
                launch(config);
 
                logger.info(`Successfully created replay!`);
