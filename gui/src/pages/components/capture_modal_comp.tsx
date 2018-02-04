@@ -23,6 +23,7 @@ export class CaptureModal extends React.Component<any, any>  {
         } else {
             logger.info(`${captureObj.name} was made with id ${captureObj.id}`);
             const cancelBtn = document.getElementById("cancelBtn");
+            this.props.update();
             if (cancelBtn) {
                 cancelBtn.click();
             }

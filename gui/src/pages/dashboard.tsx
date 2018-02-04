@@ -18,6 +18,7 @@ class DashboardApp extends React.Component<any, any> {
 
    public constructor(props: any) {
       super(props);
+      this.componentWillMount = this.componentWillMount.bind(this);
       this.state = {captures: []};
    }
 
@@ -36,11 +37,12 @@ class DashboardApp extends React.Component<any, any> {
       const pastCaptures: JSX.Element[] = [];
       if (this.state.captures) {
          for (const capture of this.state.captures) {
+            logger.info(JSON.stringify(capture));
             let name = `${capture.name}`;
             if (!name) {
                 name = `capture ${capture.id}`;
             }
-            if (capture.status === ChildProgramStatus.LIVE) {
+            if (capture.status === ChildProgramStatus.LIVE || capture.status === "queued") {
                 liveCaptures.push((<CapturePanel title={name} capture={capture} />));
             } else {
                 pastCaptures.push((<CapturePanel title={name} capture={capture} />));
@@ -71,7 +73,7 @@ class DashboardApp extends React.Component<any, any> {
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
-                        <CaptureModal id="captureModal"/>
+                        <CaptureModal id="captureModal" update={this.componentWillMount}/>
                      </div>
                      {liveCaptures.length === 0 ? null : <h4>Live</h4>}
                      {liveCaptures}

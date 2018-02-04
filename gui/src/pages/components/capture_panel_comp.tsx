@@ -12,7 +12,8 @@ export class CapturePanel extends React.Component<any, any>  {
         super(props);
         this.handleClick = this.handleClick.bind(this);
         this.stopCapture = this.stopCapture.bind(this);
-        this.state = {live: this.props.capture.status === ChildProgramStatus.LIVE, capture: this.props.capture};
+        this.state = {live: this.props.capture.status === ChildProgramStatus.LIVE ||
+            this.props.capture.status === "queued", capture: this.props.capture};
         logger.info(this.props.capture.status);
     }
 
