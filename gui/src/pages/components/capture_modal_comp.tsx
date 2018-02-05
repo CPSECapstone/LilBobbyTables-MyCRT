@@ -12,6 +12,7 @@ export class CaptureModal extends React.Component<any, any>  {
 
     constructor(props: any) {
         super(props);
+        this.handleClick = this.handleClick.bind(this);
         this.state = { captureName: "" };
     }
 

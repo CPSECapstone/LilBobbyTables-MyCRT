@@ -45,6 +45,8 @@ class MetricsApp extends React.Component<any, any> {
 
     public formatData(data: IMetricsList) {
         for (const dataPoint of data.dataPoints) {
+            const time = new Date(dataPoint.Timestamp);
+            dataPoint.Timestamp = time.toLocaleString();
             dataPoint.Maximum1 = dataPoint.Maximum * 1.5;
             dataPoint.Maximum2 = dataPoint.Maximum * 2;
         }

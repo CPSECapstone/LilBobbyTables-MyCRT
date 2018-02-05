@@ -19,17 +19,32 @@ class DashboardApp extends React.Component<any, any> {
    public constructor(props: any) {
       super(props);
       this.componentWillMount = this.componentWillMount.bind(this);
-      this.state = {captures: []};
+      this.state = {captures: [], replays: []};
    }
 
+   public async setCaptures() {
+       const capturesResponse = await mycrt.getCaptures();
+       logger.info(JSON.stringify(capturesResponse));
+       if (capturesResponse !== null) {
+           this.setState({
+               captures: capturesResponse,
+           });
+       }
+   }
+
+   public async setReplays() {
+    const replaysResponse = await mycrt.getReplays();
+    logger.info(JSON.stringify(replaysResponse));
+    if (replaysResponse !== null) {
+        this.setState({
+            replays: replaysResponse,
+        });
+    }
+}
+
    public async componentWillMount() {
-      const capturesResponse = await mycrt.getCaptures();
-      logger.info(JSON.stringify(capturesResponse));
-      if (capturesResponse !== null) {
-         this.setState({
-            captures: capturesResponse,
-         });
-      }
+       this.setCaptures();
+       this.setReplays();
    }
 
    public render() {
@@ -46,6 +61,27 @@ class DashboardApp extends React.Component<any, any> {
                 liveCaptures.push((<CapturePanel title={name} capture={capture} />));
             } else {
                 pastCaptures.push((<CapturePanel title={name} capture={capture} />));
+            }
+         }
+      }
+      const liveReplays: JSX.Element[] = [];
+      const pastReplays: JSX.Element[] = [];
+      if (this.state.replays) {
+         for (const replay of this.state.replays) {
+            logger.info(JSON.stringify(replay));
+            let name = `${replay.name}`;
+            if (!name) {
+                name = `replay ${replay.id}`;
+            }
+            let captureObj = null;
+            if (this.state.captures) {
+                captureObj = this.state.captures.find((item: IChildProgram) => item.id === replay.captureId);
+                logger.info(JSON.stringify(captureObj));
+            }
+            if (replay.status === ChildProgramStatus.LIVE) {
+                liveReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
+            } else {
+                pastReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
             }
          }
       }
@@ -89,13 +125,13 @@ class DashboardApp extends React.Component<any, any> {
                             data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
-                        <ReplayModal id="replayModal" captures={this.state.captures}/>
+                        <ReplayModal id="replayModal" captures={this.state.captures} update={this.componentWillMount}/>
                      </div>
+                     {liveReplays.length === 0 ? null : <h4>Live</h4>}
+                     {liveReplays}
                      <br></br>
-                     <h4>Past</h4>
-                     <ReplayPanel title="Lil Replay" />
-                     <ReplayPanel title="Sample Replay #2" />
-                     <ReplayPanel title="Sample Replay #3" />
+                     {pastReplays.length === 0 ? null : <h4>Past</h4>}
+                     {pastReplays}
                      <br></br>
                   </div>
                </div>

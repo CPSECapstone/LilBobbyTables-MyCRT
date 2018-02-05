@@ -46,9 +46,17 @@ class CaptureApp extends React.Component<any, any> {
       public async getData(id: number, name: string, type: MetricType) {
             const passedData = await mycrt.getCaptureMetrics(id, type);
             if (passedData != null) {
+                  this.formatData(passedData);
                   this.setState({ [name]: passedData });
             }
       }
+
+      public formatData(data: IMetricsList) {
+            for (const dataPoint of data.dataPoints) {
+                const time = new Date(dataPoint.Timestamp);
+                dataPoint.Timestamp = time.toLocaleString();
+            }
+        }
 
       public render() {
             const metricsTarget = `./metrics?id=${this.state.captureId}`;
@@ -58,7 +66,8 @@ class CaptureApp extends React.Component<any, any> {
                               <ol className="breadcrumb">
                                     <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
                   <li className="breadcrumb-item"><a href="./dashboard">Dashboard</a></li>
-                  <li className="breadcrumb-item active">Capture</li>
+                  <li className="breadcrumb-item active">{ this.state.capture ? this.state.capture.name :
+                        `Capture ${this.state.captureId}` }</li>
                </ol>
             </nav>
 
@@ -67,7 +76,7 @@ class CaptureApp extends React.Component<any, any> {
                   <div className="col-sm-12 mb-r">
 
                      <div className="page-header">
-                        <h1>Capture { this.state.captureId }</h1>
+                        <h1>{ this.state.capture ? this.state.capture.name : `Capture ${this.state.captureId}` }</h1>
                      </div>
                      <div className="modal-body">
                         <div className="page-header">
@@ -90,12 +99,6 @@ class CaptureApp extends React.Component<any, any> {
                            <h2>Replays</h2>
                         </div>
                         <div className="card-columns">
-                           <ReplayPanel title="Lil Replay #1" />
-                           <ReplayPanel title="Sample Replay #2" />
-                           <ReplayPanel title="Sample Replay #3" />
-                           <ReplayPanel title="Sample Replay #4" />
-                           <ReplayPanel title="Sample Replay #5" />
-                           <ReplayPanel title="Sample Replay #6" />
                         </div>
                      </div>
                   </div>

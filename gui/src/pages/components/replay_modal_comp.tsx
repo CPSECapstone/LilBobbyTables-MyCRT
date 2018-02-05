@@ -1,9 +1,40 @@
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
 export class ReplayModal extends React.Component<any, any>  {
+
+    constructor(props: any) {
+        super(props);
+        this.state = { replayName: "", captureId: "" };
+    }
+
+    public async handleClick(event: any) {
+        logger.info(this.state.captureName);
+        const replayObj = await mycrt.startReplay({captureId: this.state.captureId, name: this.state.replayName});
+        if (!replayObj) {
+            logger.error("Could not start replay");
+        } else {
+            const cancelBtn = document.getElementById("cancelReplayBtn");
+            this.props.update();
+            if (cancelBtn) {
+                cancelBtn.click();
+            }
+        }
+    }
+
+    public handleNameChange(event: any) {
+        this.setState({replayName: event.target.value});
+    }
+
+    public handleCaptureId(event: any) {
+        const index = event.target.selectedIndex;
+        const optionElement = event.target.childNodes[index];
+        const captureId =  optionElement.getAttribute('id');
+        this.setState({captureId});
+    }
 
     public render() {
         const captures: JSX.Element[] = [];
@@ -13,7 +44,7 @@ export class ReplayModal extends React.Component<any, any>  {
               if (!name) {
                   name = `capture ${capture.id}`;
               }
-              captures.push((<option>{name}</option>));
+              captures.push((<option id={capture.id}>{name}</option>));
            }
         }
         return (
@@ -32,18 +63,21 @@ export class ReplayModal extends React.Component<any, any>  {
                                 <div className="form-group">
                                     <label><b>Replay Name</b></label>
                                     <input type="name" className="form-control" id="replayName"
-                                           aria-describedby="replayName" placeholder="Enter name"></input>
+                                    value={this.state.replayName} onChange={this.handleNameChange.bind(this)}
+                                    aria-describedby="replayName" placeholder="Enter name"></input>
                                         <small id="replayName" className="form-text text-muted"></small>
                                 </div>
-                                {<select className="form-control">
+                                {<select className="form-control" onChange={this.handleCaptureId.bind(this)}>
                                     <option>Select Capture...</option>
                                     {captures}
                                 </select>}
                             </form>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                            <button type="button" className="btn btn-info">Save Replay</button>
+                            <button type="button" className="btn btn-secondary" id="cancelReplayBtn"
+                                    data-dismiss="modal">Cancel</button>
+                            <button type="button" className="btn btn-info"
+                                    onClick={this.handleClick.bind(this)}>Save Replay</button>
                         </div>
                     </div>
                 </div>
