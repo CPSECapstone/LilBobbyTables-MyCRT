@@ -31,9 +31,10 @@ class MetricsApp extends React.Component<any, any> {
    public async componentWillMount() {
       const capture = await mycrt.getCapture(this.state.captureId);
       logger.info(JSON.stringify(capture));
-      const cpuData = this.getData(capture!.id, "cpuData", MetricType.CPU);
-      const memData = this.getData(capture!.id, "memData", MetricType.MEMORY);
-      const ioData = this.getData(capture!.id, "ioData", MetricType.IO);
+      const id = capture!.id!; // TODO: handle the failure case
+      const cpuData = this.getData(id, "cpuData", MetricType.CPU);
+      const memData = this.getData(id, "memData", MetricType.MEMORY);
+      const ioData = this.getData(id, "ioData", MetricType.IO);
    }
 
     public async getData(id: number, name: string, type: MetricType) {

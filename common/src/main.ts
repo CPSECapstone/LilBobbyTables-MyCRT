@@ -23,5 +23,7 @@ export * from './ipc/delegates/capture-delegate';
 export * from './ipc/delegates/replay-delegate';
 
 /* Metrics */
+export * from './metrics/metrics-storage';
 export * from './metrics/metrics-backend';
-export * from './metrics/metrics';
+export * from './metrics/mock-metrics-backend';
+export * from './metrics/cloudwatch-metrics-backend';

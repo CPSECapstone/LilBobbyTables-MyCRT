@@ -15,8 +15,8 @@ export const rawFormatter: FormatFunction = (args: any): string => {
    return `${args.message}`;
 };
 
-export const simpleFormatter: FormatFunction = (args: any): string => {
-   return `${args.level}: ${args.message}`;
+export const noopFormatter: FormatFunction = (args: any): string => {
+   return args.message;
 };
 
 export const detailedFormatter: FormatFunction = (args: any): string => {
@@ -66,6 +66,7 @@ export const getLogger = (console?: boolean, consoleFormat?: FormatFunction | un
 
    if (logFile) {
       transports.push(new winston.transports.File({
+         colorize: false,
          filename: logFile as string,
          formatter: logFormat,
          json: false,
@@ -89,9 +90,19 @@ export const defaultLogger = (appPath: string) => {
       fs.mkdirSync(logDir);
    }
    const logPath = path.join(logDir, `${Date.now()}.log`);
-   return getLogger(true, simpleFormatter, logPath, detailedFormatter);
+   return getLogger(true, undefined, logPath, detailedFormatter);
+};
+
+export const noopLogger = (appPath: string) => {
+   const appRoot = appRootDir();
+   const logDir = path.join(appRoot, 'logs');
+   if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir);
+   }
+   const logPath = path.join(logDir, `${Date.now()}.log`);
+   return getLogger(true, noopFormatter, logPath, detailedFormatter);
 };
 
 export const consoleLogger = () => {
-   return getLogger(true, simpleFormatter);
+   return getLogger(true);
 };

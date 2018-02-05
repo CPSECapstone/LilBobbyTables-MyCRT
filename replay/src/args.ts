@@ -12,7 +12,13 @@ import { Config } from '@lbt-mycrt/common/dist/capture-replay/args';
 export const optionId: OptionDefinition = {
    name: 'id',
    type: Number,
-   description: "The id of this capture, used to communicate with the MyCRT DB and S3 [bold]{REQUIRED}",
+   description: "The id of this replay, used to communicate with the MyCRT DB and S3 [bold]{REQUIRED}",
+};
+
+export const optionCaptureId: OptionDefinition = {
+   name: 'captureId',
+   type: Number,
+   description: "The id of the associated capture that is being replayed [bold]{REQUIRED}",
 };
 
 export const optionMock: OptionDefinition = {
@@ -20,7 +26,7 @@ export const optionMock: OptionDefinition = {
    alias: 'm',
    type: Boolean,
    defaultValue: false,
-   description: "Whether or not the capture should be performed as a mock",
+   description: "Whether or not the replay should be performed as a mock",
 };
 
 export const optionInterval: OptionDefinition = {
@@ -44,22 +50,25 @@ export const optionSupervised: OptionDefinition = {
    alias: 's',
    type: Boolean,
    defaultValue: true,
-   description: "Whether or not this capture is supervised by the MyCRT service",
+   description: "Whether or not this replay is supervised by the MyCRT service",
 };
 
-export const captureOptions: OptionDefinition[] = [optionId, optionMock, optionInterval,
+export const replayOptions: OptionDefinition[] = [optionId, optionCaptureId, optionMock, optionInterval,
    optionIntervalOverlap, optionSupervised];
 
-export class CaptureConfig extends Config {
+export class ReplayConfig extends Config {
 
-   public static fromCmdArgs(): CaptureConfig {
+   public static fromCmdArgs(): ReplayConfig {
 
-      const options = readCmdArgs(captureOptions);
+      const options = readCmdArgs(replayOptions);
       if (!options.id) {
-         throw new Error("No id was provided for the capture");
+         throw new Error("No id was provided for the replay");
+      }
+      if (!options.captureId) {
+         throw new Error("No captureId was provided for the replay");
       }
 
-      const config = new CaptureConfig(options.id);
+      const config = new ReplayConfig(options.id, options.captureId);
       config.mock = options.mock;
       config.interval = options.interval;
       config.intervalOverlap = options.intervalOverlap;
@@ -69,19 +78,22 @@ export class CaptureConfig extends Config {
    }
 
    public id: number;
+   public captureId: number;
    public mock: boolean = optionMock.defaultValue;
    public interval: number = optionInterval.defaultValue;
    public intervalOverlap: number = optionIntervalOverlap.defaultValue;
    public supervised: boolean = optionSupervised.defaultValue;
 
-   constructor(id: number) {
+   constructor(id: number, captureId: number) {
       super();
       this.id = id;
+      this.captureId = captureId;
    }
 
    protected getOptionsMap(): Array<[OptionDefinition, any]> {
       return [
          [optionId, this.id],
+         [optionCaptureId, this.captureId],
          [optionMock, this.mock],
          [optionInterval, this.interval],
          [optionIntervalOverlap, this.intervalOverlap],

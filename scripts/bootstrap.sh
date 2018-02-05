@@ -53,6 +53,14 @@ echo -e "${GREEN}All prerequisites detected!${RESTORE}"
 echo ""
 
 ########################################################################################################################
+# run the clean scripts
+echo -e "${CYAN}Cleaning Repository${RESTORE}"
+cd "$SCRIPTS_MODULE_DIR"
+./clean.sh && ./clean_package_locks.sh
+cd ..
+echo -e "${GREEN}All Clean!${RESTORE}\n"
+
+########################################################################################################################
 
 echo -e "${CYAN}Setting up modules${RESTORE}"
 
