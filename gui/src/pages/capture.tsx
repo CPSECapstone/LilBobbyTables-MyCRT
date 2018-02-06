@@ -85,6 +85,7 @@ class CaptureApp extends React.Component<any, any> {
                               style={{marginBottom: "20px", marginLeft: "20px"}}>
                               <i className="fa fa-line-chart" aria-hidden="true"></i> Compare
                            </a>
+                           <br></br>
                            <Graph title={this.state.cpuData ? this.state.cpuData.displayName : ''}
                                data={this.state.cpuData ? this.state.cpuData.dataPoints : []}
                                id={this.state.captureId} type="CPU" />

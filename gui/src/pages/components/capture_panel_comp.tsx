@@ -12,8 +12,10 @@ export class CapturePanel extends React.Component<any, any>  {
         super(props);
         this.handleClick = this.handleClick.bind(this);
         this.stopCapture = this.stopCapture.bind(this);
-        this.state = {live: this.props.capture.status === ChildProgramStatus.LIVE ||
-            this.props.capture.status === "queued", capture: this.props.capture};
+        this.state = {active: this.props.capture.status === ChildProgramStatus.RUNNING ||
+            this.props.capture.status === ChildProgramStatus.STARTING ||
+            this.props.capture.status === ChildProgramStatus.STARTED,
+            live: this.props.capture.status === ChildProgramStatus.RUNNING, capture: this.props.capture};
     }
 
     public handleClick(event: any): void {
@@ -22,7 +24,7 @@ export class CapturePanel extends React.Component<any, any>  {
     }
 
     public async stopCapture(event: any) {
-        this.setState({ live: false });
+        this.setState({ active: false, live: false });
         let result = await mycrt.stopCapture(this.state.capture.id);
         logger.info(`${result}`);
         if (!result) {
@@ -41,7 +43,7 @@ export class CapturePanel extends React.Component<any, any>  {
     public render() {
         return (
             <div className="card myCRT-panel mt-3">
-                <div className={this.state.live ? "card-header myCRT-panel-running" : "card-header"}>
+                <div className={this.state.active ? "card-header myCRT-panel-running" : "card-header"}>
                     <h5 style={{display: "inline", verticalAlign: "middle"}}>{this.props.title}</h5>
                     {this.state.live ? <button type="button" className="btn btn-danger"
                                                style={{zIndex: 10, float: "right"}}

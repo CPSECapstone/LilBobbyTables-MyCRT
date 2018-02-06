@@ -1,53 +1,49 @@
-import { IReplayIpcNodeDelegate, Logging, ReplayIpcNode } from '@lbt-mycrt/common';
+import { IReplayIpcNodeDelegate, Logging, MetricsBackend, ReplayIpcNode } from '@lbt-mycrt/common';
+import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
+import { ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
+import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
+
+import { ReplayConfig } from './args';
 
 const logger = Logging.defaultLogger(__dirname);
 
-export interface IReplayConfig {
-   readonly id: number;
-   readonly interval?: number;
-   readonly supervised?: boolean;
-}
+export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
-const DEFAULT_INTERVAL: number = 1000 * 5;
-
-export class Replay implements IReplayIpcNodeDelegate {
-
-   private done: boolean = false;
    private ipcNode: ReplayIpcNode;
 
-   constructor(public config: IReplayConfig) {
+   constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend) {
+      super(storage, metrics);
       this.ipcNode = new ReplayIpcNode(this.id, logger, this);
    }
 
-   public get id(): number {
+   get id(): number {
       return this.config.id;
    }
 
-   public run(): void {
-      this.setup();
-      this.loop();
+   get interval(): number {
+      return this.config.interval;
    }
 
-   private setup() {
+   public asIChildProgram(): IChildProgram {
+      return {
+         id: this.id,
+         type: ChildProgramType.REPLAY,
+         status: this.status,
+         start: this.startTime || undefined,
+      };
+   }
+
+   protected async setup(): Promise<void> {
       logger.info(`Replay ${this.id}: setup`);
       this.ipcNode.start();
    }
 
-   private loop() {
-      logger.info(`Replay ${this.id}: loop start`);
-
-      if (this.done) {
-         this.teardown();
-      } else {
-         this.done = true; // just one loop
-         setTimeout(() => {
-            this.loop();
-         }, this.config.interval || DEFAULT_INTERVAL);
-      }
+   protected loop(): void {
+      logger.info(`Replay ${this.id}: loop`);
+      this.stop(false); // just once for now
    }
 
-   private teardown() {
-      logger.info(`Replay ${this.id}: teardown`);
+   protected async teardown(): Promise<void> {
       this.ipcNode.stop();
    }
 

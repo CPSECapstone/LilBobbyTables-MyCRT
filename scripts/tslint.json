@@ -6,6 +6,7 @@
     "jsRules": {},
     "rules": {
        "quotemark": [ false ],
+       "align": false,
        "no-empty": [ false ],
        "no-empty-interface": [ false ],
        "no-unused-expression": false,

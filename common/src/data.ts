@@ -1,16 +1,29 @@
 
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
 
-export enum ChildProgramStatus { DEAD = 'dead', LIVE = 'live', STARTING = 'starting'}
+/** The status of a capture/replay */
+export enum ChildProgramStatus {
+   SCHEDULED = 'SCHEDULED',   /** The process has been scheduled for a future time */
+   STARTED = 'STARTED',       /** The process is being setup by MyCRT, but has not started yet */
+   STARTING = 'STARTING',     /** The process is initializing and will start soon */
+   RUNNING = 'RUNNING',       /** The process is running normally */
+   STOPPING = 'STOPPING',     /** The process has finished and is wrapping up */
+   DONE = 'DONE',             /** The process has wrapped up and does no longer exist */
+   FAILED = 'FAILED',         /** A fatal error occurred and the process no longer exists */
+}
 
 /** Capture/Replay */
 export interface IChildProgram {
    type?: ChildProgramType;
    id?: number;
    name?: string;
-   start?: string;
-   end?: string | null;
+   start?: Date;
+   end?: Date;
    status?: ChildProgramStatus;
+}
+
+export interface ICapture extends IChildProgram {
+   type: ChildProgramType.CAPTURE;
 }
 
 export interface IReplay extends IChildProgram {
@@ -40,7 +53,7 @@ export interface IMetric {
 export interface IMetricsList {
    label: string;
    type: MetricType;
-   displayName: string;
-   live: boolean;
+   displayName?: string;
+   complete?: boolean;
    dataPoints: IMetric[];
 }

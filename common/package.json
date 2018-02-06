@@ -14,6 +14,7 @@
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
     "@types/chai": "^4.0.5",
+    "@types/command-line-args": "^4.0.2",
     "@types/fs-extra": "^5.0.0",
     "@types/mocha": "^2.2.44",
     "@types/node-ipc": "^9.1.0",
@@ -29,6 +30,8 @@
     "@types/node": "8.0.53",
     "@types/winston": "^2.3.7",
     "aws-sdk": "^2.188.0",
+    "child_process": "^1.0.2",
+    "command-line-args": "^5.0.1",
     "fs": "0.0.1-security",
     "fs-extra": "^5.0.0",
     "node-ipc": "^9.1.1",

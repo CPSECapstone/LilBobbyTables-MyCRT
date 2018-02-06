@@ -3,9 +3,11 @@ import * as http from 'http-status-codes';
 import * as mysql from 'mysql';
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
-import { ChildProgramStatus, ChildProgramType, IMetric,
-         IMetricsList, Logging, MetricsBackend, MetricType } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, IChildProgram, IMetric,
+         IMetricsList, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
+import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
+import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
@@ -39,45 +41,67 @@ export default class CaptureRouter extends SelfAwareRouter {
             });
          })
 
-         .get('/:id/metrics', async (request, response) => {
+         .get('/:id/metrics', (request, response) => {
 
-            const typeQuery: any = request.query.type;
+            const typeQuery = request.query.type;
             const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
 
-            const backend: MetricsBackend = new MetricsBackend(new S3Backend(new S3(), 'lil-test-environment'));
+            // TODO: add configuration for choosing the backend
+            // const storage: MetricsStorage = new MetricsStorage(new S3Backend(new S3(), 'lil-test-environment'));
+            const storage = new MetricsStorage(new LocalBackend(getSandboxPath()));
 
-            const result = await backend.readMetrics({
-               id: parseInt(request.params.id),
-               name: "name",
-               status: ChildProgramStatus.DEAD,
-               type: ChildProgramType.CAPTURE,
-               start: new Date().toString(),
-               end: new Date().toString(),
-            }, type).catch((reason) => {
-               response.status(http.INTERNAL_SERVER_ERROR).json({reason}).end();
+            logger.info(`Getting ${type} metrics for capture ${request.params.id}`);
+            const getCaptureQuery = mysql.format("SELECT * FROM Capture WHERE id = ?", [request.params.id]);
+            ConnectionPool.query(response, getCaptureQuery, async (error, rows, fields) => {
+               if (!rows.length) {
+                  logger.error(`Capture ${request.params.id} does not exist`);
+                  response.status(http.NOT_FOUND).end();
+               } else {
+                  const row = rows[0];
+                  const capture: IChildProgram = {
+                     id: parseInt(request.params.id),
+                     name: row.name,
+                     status: row.status.toUpperCase(),
+                     type: ChildProgramType.CAPTURE,
+                     start: new Date(row.start),
+                     end: row.end ? new Date(row.end) : undefined,
+                  };
+
+                  try {
+                     const result = await storage.readMetrics(capture, type);
+                     if (!result) {
+                        logger.error(`Failed to read metrics`);
+                        response.status(http.BAD_REQUEST).end();
+                     } else {
+                        logger.info("Successfully read metrics");
+                        response.json(result);
+                     }
+                  } catch (error) {
+                     logger.error(`Failed to retrieve metrics: ${error}`);
+                     response.status(http.INTERNAL_SERVER_ERROR).end();
+                  }
+               }
             });
 
-            if (result === null) {
-               response.status(http.BAD_REQUEST).end();
-            } else {
-               response.json(result).end();
-            }
          })
 
          .post('/:id/stop', async (request, response) => {
 
-            const captureId = request.params.id;
-            await this.ipcNode.stopCapture(captureId).catch((reason) => {
-               logger.error(`Failed to stop capture ${captureId}: ${reason}`);
-            });
-            logger.info(`Capture ${captureId} stopped!`);
-            response.status(http.OK).end();
+            try {
+               const captureId = request.params.id;
+               await this.ipcNode.stopCapture(captureId);
+               logger.info(`Capture ${captureId} stopped!`);
+               response.status(http.OK).end();
+            } catch (error) {
+               logger.error(`Failed to tell capture to stop: ${error}`);
+               response.status(http.INTERNAL_SERVER_ERROR).end();
+            }
 
          })
 
          .post('/', (request, response) => {
             const capture = request.body;
-            capture.status = "queued";
+            capture.status = ChildProgramStatus.STARTED; // no scheduled captures yet
             const insertStr = mysql.format("INSERT INTO Capture SET ?", capture);
             logger.info('Creating Capture');
 
@@ -88,6 +112,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                const config = new CaptureConfig(result.insertId);
                config.mock = settings.captures.mock;
                config.interval = settings.captures.interval;
+               config.intervalOverlap = settings.captures.intervalOverlap;
 
                launch(config);
 

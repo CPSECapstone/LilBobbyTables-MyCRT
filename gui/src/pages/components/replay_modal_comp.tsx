@@ -1,6 +1,7 @@
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/data';
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
@@ -12,8 +13,10 @@ export class ReplayModal extends React.Component<any, any>  {
     }
 
     public async handleClick(event: any) {
-        logger.info(this.state.captureName);
-        const replayObj = await mycrt.startReplay({captureId: this.state.captureId, name: this.state.replayName});
+        logger.info(this.state.captureId);
+        logger.info(this.state.replayName);
+        const replayObj = await mycrt.startReplay({type: ChildProgramType.REPLAY,
+            captureId: 1, name: this.state.replayName });
         if (!replayObj) {
             logger.error("Could not start replay");
         } else {
@@ -33,6 +36,7 @@ export class ReplayModal extends React.Component<any, any>  {
         const index = event.target.selectedIndex;
         const optionElement = event.target.childNodes[index];
         const captureId =  optionElement.getAttribute('id');
+        logger.info(captureId);
         this.setState({captureId});
     }
 

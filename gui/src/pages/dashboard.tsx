@@ -57,10 +57,10 @@ class DashboardApp extends React.Component<any, any> {
             if (!name) {
                 name = `capture ${capture.id}`;
             }
-            if (capture.status === ChildProgramStatus.LIVE || capture.status === "queued") {
-                liveCaptures.push((<CapturePanel title={name} capture={capture} />));
-            } else {
+            if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE) {
                 pastCaptures.push((<CapturePanel title={name} capture={capture} />));
+            } else {
+                liveCaptures.push((<CapturePanel title={name} capture={capture} />));
             }
          }
       }
@@ -78,10 +78,10 @@ class DashboardApp extends React.Component<any, any> {
                 captureObj = this.state.captures.find((item: IChildProgram) => item.id === replay.captureId);
                 logger.info(JSON.stringify(captureObj));
             }
-            if (replay.status === ChildProgramStatus.LIVE) {
-                liveReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
-            } else {
+            if (replay.status === ChildProgramStatus.STOPPING || replay.status === ChildProgramStatus.DONE) {
                 pastReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
+            } else {
+                liveReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
             }
          }
       }

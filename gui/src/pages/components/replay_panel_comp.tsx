@@ -7,7 +7,7 @@ export class ReplayPanel extends React.Component<any, any>  {
     public constructor(props: any) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
-        this.state = {live: this.props.replay.status === ChildProgramStatus.LIVE, replay: this.props.replay};
+        this.state = {live: this.props.replay.status === ChildProgramStatus.RUNNING, replay: this.props.replay};
     }
 
     public handleClick(event: any): void {
