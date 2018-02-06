@@ -82,3 +82,6 @@ tscommand-*.tmp.txt
 css/
 bundles/
 .sass-cache/
+
+# sonarqube
+.scannerwork/
