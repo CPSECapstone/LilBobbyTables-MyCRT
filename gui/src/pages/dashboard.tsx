@@ -24,42 +24,39 @@ class DashboardApp extends React.Component<any, any> {
 
    public async setCaptures() {
        const capturesResponse = await mycrt.getCaptures();
-       logger.info(JSON.stringify(capturesResponse));
        if (capturesResponse !== null) {
            this.setState({
-               captures: capturesResponse,
-           });
-       }
-   }
-
-   public async setReplays() {
-    const replaysResponse = await mycrt.getReplays();
-    logger.info(JSON.stringify(replaysResponse));
-    if (replaysResponse !== null) {
-        this.setState({
-            replays: replaysResponse,
-        });
+                captures: capturesResponse,
+            });
+        }
     }
-}
 
-   public async componentWillMount() {
-       this.setCaptures();
-       this.setReplays();
-   }
+    public async setReplays() {
+        const replaysResponse = await mycrt.getReplays();
+        if (replaysResponse !== null) {
+            this.setState({
+                replays: replaysResponse,
+            });
+        }
+    }
 
-   public render() {
-      const liveCaptures: JSX.Element[] = [];
-      const pastCaptures: JSX.Element[] = [];
-      if (this.state.captures) {
-         for (const capture of this.state.captures) {
-            logger.info(JSON.stringify(capture));
-            let name = `${capture.name}`;
-            if (!name) {
-                name = `capture ${capture.id}`;
-            }
-            if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE) {
-                pastCaptures.push((<CapturePanel title={name} capture={capture} />));
-            } else {
+    public async componentWillMount() {
+        this.setCaptures();
+        this.setReplays();
+    }
+
+    public render() {
+        const liveCaptures: JSX.Element[] = [];
+        const pastCaptures: JSX.Element[] = [];
+        if (this.state.captures) {
+            for (const capture of this.state.captures) {
+                let name = `${capture.name}`;
+                if (!name) {
+                    name = `capture ${capture.id}`;
+                }
+                if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE) {
+                    pastCaptures.push((<CapturePanel title={name} capture={capture} />));
+                } else {
                 liveCaptures.push((<CapturePanel title={name} capture={capture} />));
             }
          }
@@ -68,7 +65,6 @@ class DashboardApp extends React.Component<any, any> {
       const pastReplays: JSX.Element[] = [];
       if (this.state.replays) {
          for (const replay of this.state.replays) {
-            logger.info(JSON.stringify(replay));
             let name = `${replay.name}`;
             if (!name) {
                 name = `replay ${replay.id}`;
@@ -76,9 +72,8 @@ class DashboardApp extends React.Component<any, any> {
             let captureObj = null;
             if (this.state.captures) {
                 captureObj = this.state.captures.find((item: IChildProgram) => item.id === replay.captureId);
-                logger.info(JSON.stringify(captureObj));
             }
-            if (replay.status === ChildProgramStatus.STOPPING || replay.status === ChildProgramStatus.DONE) {
+            if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
                 pastReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
             } else {
                 liveReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
@@ -111,6 +106,7 @@ class DashboardApp extends React.Component<any, any> {
                         </a>
                         <CaptureModal id="captureModal" update={this.componentWillMount}/>
                      </div>
+                     <br></br>
                      {liveCaptures.length === 0 ? null : <h4>Live</h4>}
                      {liveCaptures}
                      <br></br>
@@ -127,6 +123,7 @@ class DashboardApp extends React.Component<any, any> {
                         </a>
                         <ReplayModal id="replayModal" captures={this.state.captures} update={this.componentWillMount}/>
                      </div>
+                     <br></br>
                      {liveReplays.length === 0 ? null : <h4>Live</h4>}
                      {liveReplays}
                      <br></br>

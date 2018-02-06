@@ -1,9 +1,13 @@
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import * as $ from 'jquery';
+
 import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/data';
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
+
+import { WarningAlert } from './alert_warning_comp';
 
 export class ReplayModal extends React.Component<any, any>  {
 
@@ -12,11 +16,18 @@ export class ReplayModal extends React.Component<any, any>  {
         this.state = { replayName: "", captureId: "" };
     }
 
+    public allFieldsFilled() {
+        return this.state.replayName !== "" && this.state.captureId !== "";
+    }
+
     public async handleClick(event: any) {
-        logger.info(this.state.captureId);
-        logger.info(this.state.replayName);
+        if (!this.allFieldsFilled()) {
+            logger.error("Please fill in all fields");
+            $('#replayWarning').show();
+            return;
+        }
         const replayObj = await mycrt.startReplay({type: ChildProgramType.REPLAY,
-            captureId: 1, name: this.state.replayName });
+            captureId: this.state.captureId, name: this.state.replayName });
         if (!replayObj) {
             logger.error("Could not start replay");
         } else {
@@ -62,6 +73,8 @@ export class ReplayModal extends React.Component<any, any>  {
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
+                        <WarningAlert id="replayWarning" msg="Please fill in all the provided fields."
+                                      style = {{display: "none"}}/>
                         <div className="modal-body">
                             <form>
                                 <div className="form-group">

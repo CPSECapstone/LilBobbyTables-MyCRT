@@ -1,8 +1,11 @@
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import * as $ from 'jquery';
+
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
+import { WarningAlert } from './alert_warning_comp';
 import { Duration } from './duration_comp';
 import { StartDateTime } from './start_date_time_comp';
 
@@ -16,8 +19,16 @@ export class CaptureModal extends React.Component<any, any>  {
         this.state = { captureName: "" };
     }
 
+    public allFieldsFilled() {
+        return this.state.captureName !== ""; // will be extended later
+    }
+
     public async handleClick(event: any) {
-        logger.info(this.state.captureName);
+        if (!this.allFieldsFilled()) {
+            logger.error("Please fill in all fields");
+            $('#captureWarning').show();
+            return;
+        }
         const captureObj = await mycrt.startCapture({ name: this.state.captureName });
         if (!captureObj) {
             logger.error("Could not start capture");
@@ -47,6 +58,8 @@ export class CaptureModal extends React.Component<any, any>  {
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
+                        <WarningAlert id="captureWarning" msg="Please fill in all the provided fields."
+                                      style = {{display: "none"}}/>
                         <div className="modal-body">
                             <form>
                                 <div className="form-group">
