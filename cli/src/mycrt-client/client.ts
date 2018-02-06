@@ -72,7 +72,7 @@ export class MyCrtClient {
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
 
       const fullUrl: URL = new URL(`${this.host}/api${url}`);
-      if (params !== undefined) {
+      if (params instanceof Object) {
          Object.keys(params).forEach((key) => { fullUrl.searchParams.append(key, params[key]); });
       }
 

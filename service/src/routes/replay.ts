@@ -59,6 +59,7 @@ export default class ReplayRouter extends SelfAwareRouter {
             // const replay = matchedData(request);
             const replay = request.body;
             replay.status = 'queued';
+            delete replay.type; // should be removed in a better way
             const insertStr = mysql.format('INSERT INTO Replay SET ?', [replay]);
             logger.info('Creating Replay');
 

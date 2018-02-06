@@ -22,11 +22,11 @@ export class Graph extends React.Component<any, any>  {
                <CartesianGrid strokeDasharray="3 3" />
                <Tooltip />
                <Legend verticalAlign="bottom" height={36} />
-               <Line name="replay 1" type="monotone" dataKey="Maximum1" stroke="#18BC9C"
+               <Line name="replay 1" type="monotone" dataKey="Maximum" stroke="#18BC9C"
                   activeDot={{ r: 8 }} isAnimationActive={false} />
-               <Line name="replay 2" type="monotone" dataKey="Maximum2" stroke="#2C3E50"
+               <Line name="replay 2" type="monotone" dataKey="Maximum1" stroke="#2C3E50"
                   activeDot={{ r: 8 }} isAnimationActive={false} />
-               <Line name="replay 3" type="monotone" dataKey="Maximum3" stroke="#fd7e14"
+               <Line name="replay 3" type="monotone" dataKey="Maximum2" stroke="#fd7e14"
                   activeDot={{ r: 8 }} isAnimationActive={false} />
             </LineChart>
          </div>

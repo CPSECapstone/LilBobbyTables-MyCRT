@@ -47,9 +47,10 @@ class MetricsApp extends React.Component<any, any> {
 
     public formatData(data: IMetricsList) {
         for (const dataPoint of data.dataPoints) {
-            dataPoint.Maximum1 = dataPoint.Maximum;
-            dataPoint.Maximum2 = dataPoint.Maximum * 1.5;
-            dataPoint.Maximum3 = dataPoint.Maximum * 2;
+            const time = new Date(dataPoint.Timestamp);
+            dataPoint.Timestamp = time.toLocaleString();
+            dataPoint.Maximum1 = dataPoint.Maximum * 1.5;
+            dataPoint.Maximum2 = dataPoint.Maximum * 2;
         }
     }
 
@@ -72,6 +73,7 @@ class MetricsApp extends React.Component<any, any> {
                         <div className="page-header">
                             <h1>Capture Metrics</h1>
                         </div>
+                        <br></br>
                         <Graph title={this.state.cpuData ? this.state.cpuData.displayName : ''}
                                data={this.state.cpuData ? this.state.cpuData.dataPoints : []}
                                id={this.state.captureId} type="CPU" />
