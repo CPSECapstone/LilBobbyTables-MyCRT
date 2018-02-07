@@ -55,10 +55,13 @@ class CaptureApp extends React.Component<any, any> {
             for (const dataPoint of data.dataPoints) {
                 const time = new Date(dataPoint.Timestamp);
                 dataPoint.Timestamp = time.toLocaleString();
+                dataPoint[this.state.capture.name] = dataPoint.Maximum;
+                delete dataPoint.Maximum;
             }
         }
 
       public render() {
+            if (!this.state.capture) { return (<div></div>); }
             const metricsTarget = `./metrics?id=${this.state.captureId}`;
             return (
                   <div>
@@ -66,8 +69,7 @@ class CaptureApp extends React.Component<any, any> {
                               <ol className="breadcrumb">
                                     <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
                   <li className="breadcrumb-item"><a href="./dashboard">Dashboard</a></li>
-                  <li className="breadcrumb-item active">{ this.state.capture ? this.state.capture.name :
-                        `Capture ${this.state.captureId}` }</li>
+                  <li className="breadcrumb-item active">{ this.state.capture ? this.state.capture.name : '' }</li>
                </ol>
             </nav>
 
@@ -76,7 +78,7 @@ class CaptureApp extends React.Component<any, any> {
                   <div className="col-sm-12 mb-r">
 
                      <div className="page-header">
-                        <h1>{ this.state.capture ? this.state.capture.name : `Capture ${this.state.captureId}` }</h1>
+                        <h1>{ this.state.capture ? this.state.capture.name : '' }</h1>
                      </div>
                      <div className="modal-body">
                         <div className="page-header">
@@ -86,15 +88,9 @@ class CaptureApp extends React.Component<any, any> {
                               <i className="fa fa-line-chart" aria-hidden="true"></i> Compare
                            </a>
                            <br></br>
-                           <Graph title={this.state.cpuData ? this.state.cpuData.displayName : ''}
-                               data={this.state.cpuData ? this.state.cpuData.dataPoints : []}
-                               id={this.state.captureId} type="CPU" />
-                           <Graph title={this.state.memData ? this.state.memData.displayName : ''}
-                               data={this.state.memData ? this.state.memData.dataPoints : []}
-                               id={this.state.captureId} type="MEMORY" />
-                           <Graph title={this.state.ioData ? this.state.ioData.displayName : ''}
-                               data={this.state.ioData ? this.state.ioData.dataPoints : []}
-                               id={this.state.captureId} type="IO" />
+                           <Graph data={this.state.cpuData} id={this.state.captureId} type="CPU" />
+                           <Graph data={this.state.memData} id={this.state.captureId} type="MEMORY" />
+                           <Graph data={this.state.ioData} id={this.state.captureId} type="IO" />
                         </div>
                         <div className="page-header">
                            <h2>Replays</h2>
