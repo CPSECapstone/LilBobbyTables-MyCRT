@@ -10,6 +10,15 @@
     color: white;
 }
 
+.myCRT-multi-select {
+    border:2px solid #ccc;
+    width:250px; 
+    height: 150px;
+    overflow-y: scroll;
+    margin-left: 20px;
+    margin-top: 15px;
+}
+
 .myCRT-modal-header {
     background-color: #3498DB;
     color: white;

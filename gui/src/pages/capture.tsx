@@ -7,6 +7,7 @@ import ReactDom = require('react-dom');
 
 import { Graph } from './components/graph_comp';
 
+import { CompareModal } from './components/compare_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 
 import { IMetricsList, MetricType } from '@lbt-mycrt/common/dist/data';
@@ -83,10 +84,11 @@ class CaptureApp extends React.Component<any, any> {
                      <div className="modal-body">
                         <div className="page-header">
                            <h2 style={{display: "inline"}}>Metrics</h2>
-                           <a role="button" href={metricsTarget} className="btn btn-primary"
-                              style={{marginBottom: "20px", marginLeft: "20px"}}>
+                           <a role="button" href="#" className="btn btn-primary" data-toggle="modal"
+                              data-target="#compareModal" style={{marginBottom: "20px", marginLeft: "20px"}}>
                               <i className="fa fa-line-chart" aria-hidden="true"></i> Compare
                            </a>
+                           <CompareModal id="compareModal" target={metricsTarget} capture={this.state.capture}/>
                            <br></br>
                            <Graph data={this.state.cpuData} id={this.state.captureId} type="CPU" />
                            <Graph data={this.state.memData} id={this.state.captureId} type="MEMORY" />
