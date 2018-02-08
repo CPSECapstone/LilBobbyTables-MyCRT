@@ -4,8 +4,30 @@
     cursor: pointer;
 }
 
-.myCRT-card-header {
+.myCRT-panel-running {
     background-image: none;
     background-color: #18BC9C;
     color: white;
+}
+
+.myCRT-multi-select {
+    border:2px solid #ccc;
+    width:250px; 
+    height: 150px;
+    overflow-y: scroll;
+    margin-left: 20px;
+    margin-top: 15px;
+}
+
+.myCRT-modal-header {
+    background-color: #3498DB;
+    color: white;
+}
+
+.myCRT-modal {
+    border: 0;
+}
+
+.hidden {
+    display: none;
 }

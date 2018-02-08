@@ -30,7 +30,7 @@ class MetricsApp extends React.Component<any, any> {
 
    public async componentWillMount() {
       const capture = await mycrt.getCapture(this.state.captureId);
-      logger.info(JSON.stringify(capture));
+      this.setState({capture});
       const id = capture!.id!; // TODO: handle the failure case
       const cpuData = this.getData(id, "cpuData", MetricType.CPU);
       const memData = this.getData(id, "memData", MetricType.MEMORY);
@@ -40,16 +40,20 @@ class MetricsApp extends React.Component<any, any> {
     public async getData(id: number, name: string, type: MetricType) {
         const passedData = await mycrt.getCaptureMetrics(id, type);
         if (passedData != null) {
-            this.formatData(passedData);
+            this.formatData(passedData, 4);
             this.setState({[name]: passedData});
         }
     }
 
-    public formatData(data: IMetricsList) {
+    public formatData(data: IMetricsList, replayNum: any) {
         for (const dataPoint of data.dataPoints) {
-            dataPoint.Maximum1 = dataPoint.Maximum;
-            dataPoint.Maximum2 = dataPoint.Maximum * 1.5;
-            dataPoint.Maximum3 = dataPoint.Maximum * 2;
+            const time = new Date(dataPoint.Timestamp);
+            dataPoint.Timestamp = time.toLocaleString();
+            dataPoint[this.state.capture.name] = dataPoint.Maximum;
+            for (let i = 1; i <= replayNum; i++) {
+                dataPoint['Replay ' + i] = dataPoint.Maximum * (0.3 * i);
+            }
+            delete dataPoint.Maximum;
         }
     }
 
@@ -72,15 +76,10 @@ class MetricsApp extends React.Component<any, any> {
                         <div className="page-header">
                             <h1>Capture Metrics</h1>
                         </div>
-                        <Graph title={this.state.cpuData ? this.state.cpuData.displayName : ''}
-                               data={this.state.cpuData ? this.state.cpuData.dataPoints : []}
-                               id={this.state.captureId} type="CPU" />
-                        <Graph title={this.state.memData ? this.state.memData.displayName : ''}
-                               data={this.state.memData ? this.state.memData.dataPoints : []}
-                               id={this.state.captureId} type="MEMORY" />
-                        <Graph title={this.state.ioData ? this.state.ioData.displayName : ''}
-                               data={this.state.ioData ? this.state.ioData.dataPoints : []}
-                               id={this.state.captureId} type="IO" />
+                        <br></br>
+                        <Graph data={this.state.cpuData} id={this.state.captureId} type="CPU" />
+                        <Graph data={this.state.memData} id={this.state.captureId} type="MEMORY" />
+                        <Graph data={this.state.ioData} id={this.state.captureId} type="IO" />
                     </div>
                     </div>
                 </div>
