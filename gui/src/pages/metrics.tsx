@@ -50,7 +50,7 @@ class MetricsApp extends React.Component<any, any> {
             const time = new Date(dataPoint.Timestamp);
             dataPoint.Timestamp = time.toLocaleString();
             dataPoint[this.state.capture.name] = dataPoint.Maximum;
-            for (let i = replayNum; i >= 1; i--) {
+            for (let i = 1; i <= replayNum; i++) {
                 dataPoint['Replay ' + i] = dataPoint.Maximum * (0.3 * i);
             }
             delete dataPoint.Maximum;
