@@ -27,3 +27,9 @@ export * from './metrics/metrics-storage';
 export * from './metrics/metrics-backend';
 export * from './metrics/mock-metrics-backend';
 export * from './metrics/cloudwatch-metrics-backend';
+
+/* DAO */
+export * from './dao/captureDao';
+export * from './dao/cnnPool';
+export * from './dao/dao';
+export * from './dao/replayDao';
