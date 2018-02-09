@@ -23,6 +23,18 @@ export class CaptureDao extends Dao {
       return await this.getCapture(result.insertId);
    }
 
+   public updateCaptureStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
+      return this.query('UPDATE Capture SET status = ? WHERE id = ?', [status, id]);
+   }
+
+   public updateCaptureStartTime(id: number): Promise<void> {
+      return this.query('UPDATE Capture SET start = NOW() WHERE id = ?', [id]);
+   }
+
+   public updateCaptureEndTime(id: number): Promise<void> {
+      return this.query('UPDATE Capture SET end = NOW() WHERE id = ?', [id]);
+   }
+
    private resultToICapture(captureData: any): data.ICapture {
       return {
          id: captureData.id,
