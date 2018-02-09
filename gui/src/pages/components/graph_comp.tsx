@@ -27,7 +27,7 @@ export class Graph extends React.Component<any, any>  {
             }
         }
         return (
-            <div>
+            <div style={{paddingTop: "20px"}}>
                 <h3 style={{ paddingLeft: "20px", display: "inline" }}>{this.props.data.displayName}</h3>
                 <a role="button" href={downloadLink} className="btn btn-primary"
                     style={{ marginBottom: "10px", marginLeft: "10px" }} download={downloadFileName}>
