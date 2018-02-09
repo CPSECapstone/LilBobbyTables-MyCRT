@@ -18,8 +18,10 @@
     "@types/fs-extra": "^5.0.0",
     "@types/mocha": "^2.2.44",
     "@types/mysql": "^2.15.2",
+    "@types/node": "8.0.53",
     "@types/node-ipc": "^9.1.0",
     "@types/uuid": "^3.4.3",
+    "@types/winston": "^2.3.7",
     "chai": "^4.1.2",
     "mocha": "^4.0.1",
     "ts-mockito": "^2.2.7",
@@ -28,8 +30,6 @@
     "typescript": "^2.5.3"
   },
   "dependencies": {
-    "@types/node": "8.0.53",
-    "@types/winston": "^2.3.7",
     "aws-sdk": "^2.188.0",
     "child_process": "^1.0.2",
     "command-line-args": "^5.0.1",
