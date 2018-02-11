@@ -3,7 +3,7 @@ import ReactDom = require('react-dom');
 
 import { BrowserLogger as logger } from '../../logging';
 
-export class MultiSelectDrop extends React.Component<any, any>  {
+export class GraphSelectDrop extends React.Component<any, any>  {
 
     public constructor(props: any) {
         super(props);
@@ -14,12 +14,13 @@ export class MultiSelectDrop extends React.Component<any, any>  {
      }
 
     public render() {
+        if (!this.props.graphs) { return (<div></div>); }
         const checkboxes: JSX.Element[] = [];
-        for (const value of this.props.data) {
+        for (const graph of this.props.graphs) {
             checkboxes.push(
-                <li><p className="small" data-value={value} tabIndex={-1}
+                <li><p className="small" data-value={graph} tabIndex={-1}
                 style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
-                <input type="checkbox" />&nbsp;&nbsp;&nbsp;{value}</p>
+                <input type="checkbox" />&nbsp;&nbsp;&nbsp;{graph.displayName}</p>
             </li>);
         }
         return (

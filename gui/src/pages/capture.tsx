@@ -8,7 +8,8 @@ import ReactDom = require('react-dom');
 import { Graph } from './components/graph_comp';
 
 import { CompareModal } from './components/compare_modal_comp';
-import { MultiSelectDrop } from './components/dropdown_checkbox_comp';
+import { GraphSelectDrop } from './components/graph_dropdown_comp';
+import { ReplaySelectDrop } from './components/replay_compare_dropdown_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 
 import { IMetricsList, MetricType } from '@lbt-mycrt/common/dist/data';
@@ -21,7 +22,6 @@ class CaptureApp extends React.Component<any, any> {
             super(props);
 
             // FIXME: THIS IS A QUICK AND DIRTY WAY TO DO THIS
-
             let id: any = null;
             const match = window.location.search.match(/.*\?.*id=(\d+)/);
             if (match) {
@@ -31,6 +31,10 @@ class CaptureApp extends React.Component<any, any> {
             this.state = {
                   captureId: id,
                   capture: null,
+                  allReplays: [],
+                  selectedReplays: [],
+                  allGraphs: [],
+                  selectedGraphs: [{}],
             };
       }
 
@@ -38,6 +42,7 @@ class CaptureApp extends React.Component<any, any> {
             if (this.state.captureId) {
                   this.setState({
                         capture: await mycrt.getCapture(this.state.captureId),
+                        allReplays: await mycrt.getReplays(), // error check later
                   });
             }
             const cpuData = this.getData(this.state.captureId, "cpuData", MetricType.CPU);
@@ -48,8 +53,10 @@ class CaptureApp extends React.Component<any, any> {
       public async getData(id: number, name: string, type: MetricType) {
             const passedData = await mycrt.getCaptureMetrics(id, type);
             if (passedData != null) {
-                  this.formatData(passedData);
-                  this.setState({ [name]: passedData });
+                this.formatData(passedData);
+                this.setState((previousState: any) => ({
+                    allGraphs: [...previousState.allGraphs, passedData],
+                }));
             }
       }
 
@@ -64,6 +71,12 @@ class CaptureApp extends React.Component<any, any> {
 
       public render() {
             if (!this.state.capture) { return (<div></div>); }
+            const graphs: JSX.Element[] = [];
+            if (this.state.allGraphs) {
+                for (const graph of this.state.allGraphs) {
+                    graphs.push((<Graph data={graph} id={this.state.captureId} />));
+                }
+            }
             const metricsTarget = `./metrics?id=${this.state.captureId}`;
             return (
                   <div>
@@ -71,7 +84,7 @@ class CaptureApp extends React.Component<any, any> {
                               <ol className="breadcrumb">
                                     <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
                   <li className="breadcrumb-item"><a href="./dashboard">Dashboard</a></li>
-                  <li className="breadcrumb-item active">{ this.state.capture ? this.state.capture.name : '' }</li>
+                  <li className="breadcrumb-item active">{ this.state.capture.name }</li>
                </ol>
             </nav>
 
@@ -80,22 +93,21 @@ class CaptureApp extends React.Component<any, any> {
                   <div className="col-sm-12 mb-r">
 
                      <div className="page-header">
-                        <h1>{ this.state.capture ? this.state.capture.name : '' }</h1>
+                        <h1>{ this.state.capture.name }</h1>
                      </div>
                      <div className="modal-body">
                         <div className="page-header">
                            <h2 style={{display: "inline"}}>Metrics</h2>
-                           <MultiSelectDrop prompt="Graph Types" data={["CPU Load", "Memory", "IO"]}/>
-                           <MultiSelectDrop prompt="Replays" data={["Replay 1", "Replay 2", "Replay 3", "Replay 4"]}/>
+                           <GraphSelectDrop prompt="Graph Types"
+                                graphs={this.state.allGraphs}/>
+                           <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}/>
                            {/* <a role="button" href="#" className="btn btn-primary" data-toggle="modal"
                               data-target="#compareModal" style={{marginBottom: "20px", marginLeft: "20px"}}>
                               <i className="fa fa-line-chart" aria-hidden="true"></i> Compare
                            </a> */}
                            <CompareModal id="compareModal" target={metricsTarget} capture={this.state.capture}/>
                            <br></br>
-                           <Graph data={this.state.cpuData} id={this.state.captureId} type="CPU" />
-                           <Graph data={this.state.memData} id={this.state.captureId} type="MEMORY" />
-                           <Graph data={this.state.ioData} id={this.state.captureId} type="IO" />
+                           {graphs}
                         </div>
                         <div className="page-header">
                            <h2>Replays</h2>

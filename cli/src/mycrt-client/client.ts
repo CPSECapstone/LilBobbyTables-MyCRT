@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
+import { ICapture, IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
 
@@ -35,8 +35,8 @@ export class MyCrtClient {
    }
 
    /** Retrieve all of the captures */
-   public async getCaptures(): Promise<IChildProgram[] | null> {
-      return this.makeRequest<IChildProgram[]>(HttpMethod.GET, '/captures');
+   public async getCaptures(): Promise<ICapture[] | null> {
+      return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures');
    }
 
    /** Retrieve a specific capture */
