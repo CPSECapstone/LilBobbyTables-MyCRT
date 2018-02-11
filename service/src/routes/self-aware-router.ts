@@ -1,5 +1,6 @@
 import { Request, RequestHandler, Response, Router } from 'express';
 import http = require('http-status-codes');
+import * as joi from 'joi';
 
 import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 

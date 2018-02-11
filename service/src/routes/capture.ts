@@ -9,7 +9,8 @@ import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { captureDao } from '../dao/mycrt-dao';
-import { IErrorItem } from '../middleware/request-validation';
+import * as check from '../middleware/request-validation';
+import * as schema from '../request-schema/capture-schema';
 import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
 
@@ -21,19 +22,24 @@ export default class CaptureRouter extends SelfAwareRouter {
       const logger = Logging.defaultLogger(__dirname);
 
       this.router.get('/', this.tryCatch500(async (request, response) => {
+
          const captures = await captureDao.getAllCaptures();
          response.json(captures);
+
       }));
 
-      this.router.get('/:id', this.tryCatch500(async (request, response) => {
+      this.router.get('/:id(\\d+)', check.validParams(schema.idParams), this.tryCatch500(async (request, response) => {
+
          const id = request.params.id;
          const capture = await captureDao.getCapture(id);
          response.json(capture);
+
       }));
 
-      this.router.get('/:id/metrics', this.tryCatch500(async (request, response) => {
-         const typeQuery = request.query.type;
-         const type: MetricType | undefined = typeQuery && typeQuery.toString().toUpperCase() as MetricType;
+      this.router.get('/:id(\\d+)/metrics', check.validParams(schema.idParams),
+            check.validQuery(schema.metricTypeQuery), this.tryCatch500(async (request, response) => {
+
+         const type: MetricType | undefined = request.query.type;
 
          // TODO: add configuration for choosing the backend
          // const storage: MetricsStorage = new MetricsStorage(new S3Backend(new S3(), 'lil-test-environment'));
@@ -43,16 +49,20 @@ export default class CaptureRouter extends SelfAwareRouter {
          const capture = await captureDao.getCapture(request.params.id);
          const result = await storage.readMetrics(capture, type);
          response.json(result);
+
       }));
 
-      this.router.post('/:id/stop', this.tryCatch500(async (request, response) => {
+      this.router.post('/:id(\\d+)/stop', check.validParams(schema.idParams),
+            this.tryCatch500(async (request, response) => {
+
          const captureId = request.params.id;
          await this.ipcNode.stopCapture(captureId);
          logger.info(`Capture ${captureId} stopped`);
          response.status(http.OK).end();
+
       }));
 
-      this.router.post('/', this.tryCatch500(async (request, response) => {
+      this.router.post('/', check.validBody(schema.captureBody), this.tryCatch500(async (request, response) => {
 
          const captureTemplate: ICapture = {
             type: ChildProgramType.CAPTURE,

@@ -23,6 +23,7 @@ const validate = (getter: getThing, setter: setThing, schema: joi.ObjectSchema):
          abortEarly: false,
          allowUnknown: true,
          skipFunctions: true,
+         stripUnknown: true,
       }, (err: joi.ValidationError, value: any) => {
 
          if (err) {
@@ -46,10 +47,14 @@ const validate = (getter: getThing, setter: setThing, schema: joi.ObjectSchema):
    };
 };
 
-export const validateBody = (schema: joi.ObjectSchema): express.RequestHandler => {
+export const validBody = (schema: joi.ObjectSchema): express.RequestHandler => {
    return validate((request) => request.body, (request, thing) => { request.body = thing; }, schema);
 };
 
-export const validateParams = (schema: joi.ObjectSchema): express.RequestHandler => {
+export const validQuery = (schema: joi.ObjectSchema): express.RequestHandler => {
+   return validate((request) => request.query, (request, thing) => { request.query = thing; }, schema);
+};
+
+export const validParams = (schema: joi.ObjectSchema): express.RequestHandler => {
    return validate((request) => request.params, (request, thing) => { request.params = thing; }, schema);
 };
