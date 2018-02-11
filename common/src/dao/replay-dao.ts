@@ -23,6 +23,18 @@ export class ReplayDao extends Dao {
       return await this.getReplay(result.insertId);
    }
 
+   public updateReplayStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
+      return this.query('UPDATE Replay SET status = ? WHERE id = ?', [status, id]);
+   }
+
+   public updateReplayStartTime(id: number): Promise<void> {
+      return this.query('UPDATE Replay SET start = NOW() WHERE id = ?', [id]);
+   }
+
+   public updateReplayEndTime(id: number): Promise<void> {
+      return this.query('UPDATE Replay SET end = NOW() WHERE id = ?', [id]);
+   }
+
    private resultToIReplay(replayData: any): data.IReplay {
       return {
          id: replayData.id,
