@@ -1,4 +1,5 @@
 import CaptureRouter from './capture';
+import EnvironmentRouter from './environment';
 import PingRouter from './ping';
 import ReplayRouter from './replay';
 import SelfAwareRouter from './self-aware-router';
@@ -17,6 +18,7 @@ export default class ApiRouter extends SelfAwareRouter {
       mountRouter(new CaptureRouter(this.ipcNode));
       mountRouter(new ReplayRouter(this.ipcNode));
       mountRouter(new PingRouter(this.ipcNode));
+      mountRouter(new EnvironmentRouter(this.ipcNode));
    }
 
 }
