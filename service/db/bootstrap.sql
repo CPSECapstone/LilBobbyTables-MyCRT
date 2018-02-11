@@ -7,7 +7,7 @@ CREATE TABLE Environment (
    name VARCHAR(32),
    iamId INT(11) REFERENCES IAMReference(id),
    dbId INT(11) REFERENCES DBReference(id),
-   s3id INT(11) REFERENCES S3Reference(id)
+   s3Id INT(11) REFERENCES S3Reference(id)
 );
 
 CREATE TABLE IAMReference (

@@ -47,4 +47,11 @@ export abstract class Subprocess {
       this.loop();
    }
 
+   private getUptime() {
+      if (this.startTime == null) {
+         return 0;
+      } else {
+         return Date.now() - this.startTime.getTime();
+      }
+   }
 }
