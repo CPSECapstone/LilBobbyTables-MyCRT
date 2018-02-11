@@ -4,6 +4,8 @@ import { ChildProgramStatus, ChildProgramType, IReplay, Logging } from '@lbt-myc
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
 import { replayDao } from '../dao/mycrt-dao';
+import * as check from '../middleware/request-validation';
+import * as schema from '../request-schema/replay-schema';
 import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
 
@@ -19,13 +21,13 @@ export default class ReplayRouter extends SelfAwareRouter {
          response.json(replays);
       }));
 
-      this.router.get('/:id', this.tryCatch500(async (request, response) => {
+      this.router.get('/:id(\\d+)', check.validParams(schema.idParams), this.tryCatch500(async (request, response) => {
          const id = request.params.id;
          const replay = await replayDao.getReplay(id);
          response.json(replay);
       }));
 
-      this.router.post('/', this.tryCatch500(async (request, response) => {
+      this.router.post('/', check.validBody(schema.replayBody), this.tryCatch500(async (request, response) => {
 
          const replayTemplate: IReplay = {
             name: request.body.name,
