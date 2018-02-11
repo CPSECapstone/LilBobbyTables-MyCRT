@@ -1,9 +1,10 @@
 import * as http from 'http-status-codes';
-import * as mysql from 'mysql';
 
 import { Logging } from '@lbt-mycrt/common';
+import * as data from '@lbt-mycrt/common/dist/data';
+
+import { environmentDao } from '../dao/mycrt-dao';
 import SelfAwareRouter from './self-aware-router';
-import ConnectionPool from './util/cnnPool';
 
 export default class EnvironmentRouter extends SelfAwareRouter {
    public name: string = 'environment';
@@ -12,83 +13,49 @@ export default class EnvironmentRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router
-         .get('/', (request, response) => {
-            const queryStr = mysql.format('SELECT * FROM Environment', []);
-            ConnectionPool.query(response, queryStr, (error, rows, fields) => {
-               response.json(rows);
-            });
-         })
+      this.router.get('/', this.tryCatch500(async (request, response) => {
+         const environments = await environmentDao.getAllEnvironments();
+         response.json(environments);
+      }));
 
-         .get('/:id', (request, response) => {
-            const id = request.params.id;
-            const queryStr = mysql.format("SELECT * FROM Environment WHERE id = ?", [id]);
-            ConnectionPool.query(response, queryStr, (error, row, fields) => {
-               if (row.length) {
-                  response.json(row[0]);
-               } else {
-                  response.sendStatus(http.NOT_FOUND);
-               }
-            });
-         })
+      this.router.get('/:id', this.tryCatch500(async (request, response) => {
+         const id = request.params.id;
+         const environment = await environmentDao.getEnvironment(id);
+         response.json(environment);
+      }));
 
-         .post('/', (request, response) => {
-            /* Add validation to check that all fields exist */
-            try {
-               const iamReference: any = {
-                  accessKey : request.body.accessKey,
-                  secretKey : request.body.secretKey,
-                  region : request.body.region,
-               };
-               const s3Reference: any = {
-                  bucket : request.body.bucket,
-               };
-               const dbReference: any = {
-                  name : request.body.dbName,
-                  host : request.body.host,
-                  user : request.body.user,
-                  pass : request.body.pass,
-               };
+      this.router.post('/', this.tryCatch500(async (request, response) => {
 
-               const insertIamStr = mysql.format("INSERT INTO IAMReference SET ?", iamReference);
-               const insertS3Str = mysql.format("INSERT INTO S3Reference SET ?", s3Reference);
-               const insertDbStr = mysql.format("INSERT INTO DBReference SET ?", dbReference);
+         let iamReference: data.IIamReference = {
+            accessKey: request.body.accessKey,
+            secretKey: request.body.secretKey,
+            region: request.body.region,
+         };
+         let s3Reference: data.IS3Reference = {
+            bucket: request.body.bucket,
+         };
+         let dbReference: data.IDbReference = {
+            name: request.body.dbName,
+            host: request.body.host,
+            user: request.body.user,
+            pass: request.body.pass,
+         };
 
-               let iamInsertId: number = 0;
-               let s3InsertId: number = 0;
-               let dbInsertId: number = 0;
+         iamReference = await environmentDao.makeIamReference(iamReference);
+         s3Reference = await environmentDao.makeS3Reference(s3Reference);
+         dbReference = await environmentDao.makeDbReference(dbReference);
 
-               ConnectionPool.query(response, insertIamStr, (iamError, iamResult) => {
-                  logger.info("Inserting IAM Reference to db with id " + iamResult.insertId);
-                  iamInsertId = iamResult.insertId;
+         let environment: data.IEnvironment = {
+            name: request.body.envName,
+            iamId: iamReference.id!,
+            s3Id: s3Reference.id!,
+            dbId: dbReference.id!,
+         };
 
-                  ConnectionPool.query(response, insertS3Str, (s3Error, s3Result) => {
-                     logger.info("Inserting S3 Reference to db with id " + s3Result.insertId);
-                     s3InsertId = s3Result.insertId;
+         environment = await environmentDao.makeEnvironment(environment);
+         response.json(environment);
 
-                     ConnectionPool.query(response, insertDbStr, (dbError, dbResult) => {
-                        logger.info("Inserting DB Reference to db with id " + dbResult.insertId);
-                        dbInsertId = dbResult.insertId;
+      }));
 
-                        const environment: any = {
-                           name : request.body.envName,
-                           iamId : iamInsertId,
-                           s3Id : s3InsertId,
-                           dbId : dbInsertId,
-                        };
-                        const insertEnvStr = mysql.format("INSERT INTO Environment SET ?", environment);
-
-                        ConnectionPool.query(response, insertEnvStr, (error, result) => {
-                           logger.info("Inserting Environment to db with id " + result.insertId);
-                           response.json({id: result.insertId});
-                        });
-                     });
-                  });
-               });
-            } catch (e) {
-               response.sendStatus(http.BAD_REQUEST);
-            }
-         })
-      ;
    }
 }
