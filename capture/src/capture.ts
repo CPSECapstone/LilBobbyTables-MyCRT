@@ -9,83 +9,12 @@ import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { CaptureConfig } from './args';
+import { captureDao } from './dao';
 import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
 
 const logger = Logging.defaultLogger(__dirname);
 
 export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
-
-   // TODO: move to an auxiliary helper file
-   public static updateCaptureStatus(id: number, status: ChildProgramStatus): Promise<any> {
-      const localDbConfig = require('../db/config.json');
-      const conn = mysql.createConnection(localDbConfig);
-
-      return new Promise<any>((resolve, reject) => {
-         conn.connect((connErr) => {
-            if (connErr) {
-               reject(connErr);
-            } else {
-               const updateStr = mysql.format("UPDATE Capture SET status = ? WHERE id = ?", [status, id]);
-               conn.query(updateStr, (updateErr, rows) => {
-                  conn.end();
-                  if (updateErr) {
-                     reject(updateErr);
-                  } else {
-                     resolve(rows);
-                  }
-               });
-            }
-         });
-      });
-   }
-
-   // TODO: move to an auxiliary helper file
-   public static updateCaptureStartTime(id: number): Promise<any> {
-      const localDbConfig = require('../db/config.json');
-      const conn = mysql.createConnection(localDbConfig);
-
-      return new Promise<any>((resolve, reject) => {
-         conn.connect((connErr) => {
-            if (connErr) {
-               reject(connErr);
-            } else {
-               const updateStr = mysql.format("UPDATE Capture SET start = NOW() WHERE id = ?", [id]);
-               conn.query(updateStr, (updateErr, rows) => {
-                  conn.end();
-                  if (updateErr) {
-                     reject(updateErr);
-                  } else {
-                     resolve(rows);
-                  }
-               });
-            }
-         });
-      });
-   }
-
-   // TODO: move to an auxiliary helper file
-   public static updateCaptureEndTime(id: number) {
-      const localDbConfig = require('../db/config.json');
-      const conn = mysql.createConnection(localDbConfig);
-
-      return new Promise<any>((resolve, reject) => {
-         conn.connect((connErr) => {
-            if (connErr) {
-               reject(connErr);
-            } else {
-               const updateStr = mysql.format("UPDATE Capture SET end = NOW() WHERE id = ?", [id]);
-               conn.query(updateStr, (updateErr, rows) => {
-                  conn.end();
-                  if (updateErr) {
-                     reject(updateErr);
-                  } else {
-                     resolve(rows);
-                  }
-               });
-            }
-         });
-      });
-   }
 
    private ipcNode: IpcNode;
 
@@ -121,7 +50,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info(`Performing setup for Capture ${this.id}`);
 
          logger.info(`Setting Capture ${this.id} status to 'starting'`);
-         await Capture.updateCaptureStatus(this.id, ChildProgramStatus.STARTING);
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STARTING);
 
          logger.info(`Start ipc node`);
          await this.ipcNode.start();
@@ -133,14 +62,14 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          }
 
          logger.info(`Setting Capture ${this.id} startTime = ${this.startTime!.toJSON()}`);
-         await Capture.updateCaptureStartTime(this.id);
+         await captureDao.updateCaptureStartTime(this.id);
 
          logger.info(`Setting Capture ${this.id} status to 'live'`);
-         await Capture.updateCaptureStatus(this.id, ChildProgramStatus.RUNNING);
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.RUNNING);
 
       } catch (error) {
          logger.error(`Failed to setup capture: ${error}`);
-         await Capture.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
       }
    }
 
@@ -161,10 +90,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       try {
          logger.info(`Performing teardown for Capture ${this.id}`);
          logger.info("set status to 'stopping'");
-         await Capture.updateCaptureStatus(this.id, ChildProgramStatus.STOPPING);
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STOPPING);
 
          logger.info("record end time");
-         await Capture.updateCaptureEndTime(this.id);
+         await captureDao.updateCaptureEndTime(this.id);
 
          // TODO: abstract rds communication
          if (!this.config.mock) {
@@ -177,11 +106,11 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          await this.ipcNode.stop();
 
          logger.info("Setting status to 'done'");
-         await Capture.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
 
       } catch (error) {
          logger.error(`teardown failed: ${error}`);
-         await Capture.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
       }
    }
 

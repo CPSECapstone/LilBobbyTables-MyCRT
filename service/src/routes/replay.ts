@@ -1,16 +1,13 @@
-// import { check, validationResult } from 'express-validator/check';
-// import { matchedData } from 'express-validator/filter';
 import * as http from 'http-status-codes';
-import * as mysql from 'mysql';
 
-import { Logging } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, IReplay, Logging } from '@lbt-mycrt/common';
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
+import { replayDao } from '../dao/mycrt-dao';
+import * as check from '../middleware/request-validation';
+import * as schema from '../request-schema/replay-schema';
 import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
-import ConnectionPool from './util/cnnPool';
-
-// import { captureExists } from './validators/replay-validators';
 
 export default class ReplayRouter extends SelfAwareRouter {
    public name: string = 'replay';
@@ -19,66 +16,39 @@ export default class ReplayRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router
-         .get('/', (request, response) => {
-            const queryStr = mysql.format('SELECT * FROM Replay', []);
-            ConnectionPool.query(response, queryStr, (error, rows, fields) => {
-               if (error) {
-                  response.status(http.INTERNAL_SERVER_ERROR).json({error}).end();
-               } else {
-                  response.json(rows).end();
-               }
-            });
-         })
+      this.router.get('/', this.tryCatch500(async (request, response) => {
+         const replays = await replayDao.getAllReplays();
+         response.json(replays);
+      }));
 
-         .get('/:id', (request, response) => {
-            const id = request.params.id;
-            const queryStr = mysql.format('SELECT * FROM Replay WHERE id = ?', [id]);
-            ConnectionPool.query(response, queryStr, (error, row, fields) => {
-               if (error) {
-                  response.status(http.INTERNAL_SERVER_ERROR).json({error}).end();
-               } else if (row.length) {
-                  response.json(row[0]).end();
-               } else {
-                  response.status(http.NOT_FOUND).end();
-               }
-            });
-         })
+      this.router.get('/:id(\\d+)', check.validParams(schema.idParams), this.tryCatch500(async (request, response) => {
+         const id = request.params.id;
+         const replay = await replayDao.getReplay(id);
+         response.json(replay);
+      }));
 
-         .post('/',
-            // check('name').exists(),
-            // check('captureId').isNumeric().custom(captureExists),
-         (request, response) => {
+      this.router.post('/', check.validBody(schema.replayBody), this.tryCatch500(async (request, response) => {
 
-            // const errors = validationResult(request);
-            // if (!errors.isEmpty()) {
-            //    response.status(http.BAD_REQUEST).json(errors.array());
-            //    return;
-            // }
+         const replayTemplate: IReplay = {
+            name: request.body.name,
+            captureId: request.body.captureId,
+            type: ChildProgramType.REPLAY,
+            status: ChildProgramStatus.STARTED, // no scheduled replays yet
+         };
 
-            // const replay = matchedData(request);
-            const replay = request.body;
-            replay.status = 'queued';
-            delete replay.type; // should be removed in a better way
-            const insertStr = mysql.format('INSERT INTO Replay SET ?', [replay]);
-            logger.info('Creating Replay');
+         const replay = await replayDao.makeReplay(replayTemplate);
 
-            /* Add validation for insert */
-            ConnectionPool.query(response, insertStr, (error, result) => {
-               logger.info(`Launching replay with id ${result.insertId}`);
+         logger.info(`Launching replay with id ${replay.id!} for capture ${replay.captureId!}`);
+         const config = new ReplayConfig(replay.id!, replay.captureId!);
+         config.mock = settings.replays.mock;
+         config.interval = settings.replays.interval;
+         config.intervalOverlap = settings.replays.intervalOverlap;
 
-               const config = new ReplayConfig(result.insertId, replay.captureId);
-               config.mock = settings.replays.mock;
-               config.interval = settings.replays.interval;
-               config.intervalOverlap = settings.replays.intervalOverlap;
-               launch(config);
+         launch(config);
+         response.json(replay);
+         logger.info(`Successfully created replay!`);
 
-               logger.info(`Successfully created replay!`);
-               response.json(result.insertId);
-            });
+      }));
 
-         })
-
-      ;
    }
 }

@@ -1,6 +1,12 @@
-import { Request, Response, Router } from 'express';
+import { Request, RequestHandler, Response, Router } from 'express';
+import http = require('http-status-codes');
+import * as joi from 'joi';
 
-import { ServerIpcNode } from '@lbt-mycrt/common';
+import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
+
+import { IErrorItem } from '../middleware/request-validation';
+
+const logger = Logging.defaultLogger(__dirname);
 
 export default abstract class SelfAwareRouter {
 
@@ -14,5 +20,17 @@ export default abstract class SelfAwareRouter {
    }
 
    protected abstract mountRoutes(): void;
+
+   protected tryCatch500(handler: RequestHandler): RequestHandler {
+      return (request, response, next) => {
+         try {
+            handler(request, response, next);
+         } catch (error) {
+            logger.error(error);
+            const info: IErrorItem = {message: error};
+            response.status(http.INTERNAL_SERVER_ERROR).json(info);
+         }
+      };
+   }
 
 }

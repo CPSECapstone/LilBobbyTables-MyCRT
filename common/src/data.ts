@@ -35,7 +35,32 @@ export interface IReplay extends IChildProgram {
 export interface IEnvironment {
    id?: number;
    name?: string;
-   s3Bucket?: string;
+   iamId?: number;
+   dbId?: number;
+   s3Id?: number;
+}
+
+/** IAM Profile */
+export interface IIamReference {
+   id?: number;
+   accessKey?: string;
+   secretKey?: string;
+   region?: string;
+}
+
+/** Database Connection */
+export interface IDbReference {
+   id?: number;
+   name?: string;
+   host?: string;
+   user?: string;
+   pass?: string;
+}
+
+/** S3 Reference */
+export interface IS3Reference {
+   id?: number;
+   bucket?: string;
 }
 
 /** The type of data */
