@@ -1,6 +1,6 @@
 import mysql = require('mysql');
 
-import { IpcNode, IReplayIpcNodeDelegate, Logging, ReplayIpcNode } from '@lbt-mycrt/common';
+import { IpcNode, IReplayIpcNodeDelegate, Logging, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
 import { MetricsBackend } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
@@ -8,6 +8,7 @@ import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { ReplayConfig } from './args';
+import { replayDao } from './dao';
 
 const logger = Logging.defaultLogger(__dirname);
 
@@ -17,40 +18,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       // return Replay.queryDatabase("SELECT workload from Capture WHERE id = ?", [id]);
       // this is hardcoded for now
       return "nfllogbucket/mylog.json";
-   }
-   public static updateReplayStatus(id: number, status: string): Promise<any> {
-      return Replay.queryDatabase("UPDATE Replay SET status = ? WHERE id = ?", [status, id]);
-   }
-
-   public static updateReplayStartTime(id: number): Promise<any> {
-      return Replay.queryDatabase("UPDATE Replay SET start = NOW() WHERE id = ?", [id]);
-   }
-
-   public static updateReplayEndTime(id: number): Promise<any> {
-      return Replay.queryDatabase("UPDATE Replay SET end = NOW() WHERE id = ?", [id]);
-   }
-
-   public static queryDatabase(sql: string, values?: any[]) {
-      const localDbConfig = require('../db/config.json');
-      const conn = mysql.createConnection(localDbConfig);
-
-      return new Promise<any>((resolve, reject) => {
-         conn.connect((connErr) => {
-            if (connErr) {
-               reject(connErr);
-            } else {
-               const updateStr = mysql.format(sql, values || []);
-               conn.query(updateStr, (updateErr, rows) => {
-                  conn.end();
-                  if (updateErr) {
-                     reject(updateErr);
-                  } else {
-                     resolve(rows);
-                  }
-               });
-            }
-         });
-      });
    }
 
    private ipcNode: IpcNode;
@@ -86,27 +53,22 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    protected async setup(): Promise<void> {
       try {
+         logger.info(`Setting Replay ${this.id} startTime = ${this.startTime!.toJSON()}...`);
+         await replayDao.updateReplayStartTime(this.id);
+
+         logger.info(`Setting Replay ${this.id} status to 'live'`);
+         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.STARTING);
+
          logger.info(`Replay ${this.id}: setup`);
          this.ipcNode.start();
 
-         logger.info(`Setting Replay ${this.id} startTime = ${this.startTime!.toJSON()} . . . `);
-         await Replay.updateReplayStartTime(this.id).catch((reason) => {
-            logger.error(`Failed to update start time: ${reason}`);
-         });
-         logger.info(`Setting Replay ${this.id} status to 'live'`);
-         await Replay.updateReplayStatus(this.id, "live").catch((reason) => {
-            logger.error(`Failed to update status: ${reason}`);
-         });
-
          await this.getWorkload();
 
-         await Replay.updateReplayStatus(this.id, ChildProgramStatus.RUNNING).catch((reason) => {
-            logger.error(`Failed to update status: ${reason}`);
-         });
+         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.RUNNING);
 
       } catch (error) {
          logger.error(`Failed to setup Replay: ${error}`);
-         await Replay.updateReplayStatus(this.id, ChildProgramStatus.FAILED);
+         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED);
       }
    }
 
@@ -148,7 +110,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       logger.info(`Replay ${this.id}: teardown`);
 
       if (this.error === false) {
-         await Replay.updateReplayStatus(this.id, ChildProgramStatus.DONE);
+         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.DONE);
       }
 
       this.ipcNode.stop();

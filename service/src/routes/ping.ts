@@ -8,8 +8,10 @@ export default class PingRouter extends SelfAwareRouter {
    public urlPrefix: string = '/ping';
 
    protected mountRoutes(): void {
-      this.router.get('/', async (request, response) => {
+
+      this.router.get('/', this.tryCatch500(async (request, response) => {
          response.status(http.OK).end();
-      });
+      }));
+
    }
 }
