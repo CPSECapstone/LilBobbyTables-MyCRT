@@ -11,6 +11,7 @@ export class GraphSelectDrop extends React.Component<any, any>  {
 
     public selectGraphTypes(event: any) {
         const target = event.currentTarget;
+        this.props.update(target.checked, JSON.parse(target.value));
      }
 
     public render() {
@@ -19,8 +20,9 @@ export class GraphSelectDrop extends React.Component<any, any>  {
         for (const graph of this.props.graphs) {
             checkboxes.push(
                 <li><p className="small" data-value={graph} tabIndex={-1}
-                style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
-                <input type="checkbox" />&nbsp;&nbsp;&nbsp;{graph.displayName}</p>
+                    style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
+                <input type="checkbox" onChange={(e) => this.selectGraphTypes(e)} value={JSON.stringify(graph)}/>
+                    &nbsp;&nbsp;&nbsp;{graph.displayName}</p>
             </li>);
         }
         return (
@@ -31,7 +33,7 @@ export class GraphSelectDrop extends React.Component<any, any>  {
                     {this.props.prompt}
                     <span className="caret"></span>
                 </button>
-                <ul className="dropdown-menu" onClick={(e) => this.selectGraphTypes(e)}>
+                <ul className="dropdown-menu">
                     {checkboxes}
                 </ul>
             </div>

@@ -5,6 +5,7 @@ import '../../static/css/capture.css';
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { BrowserLogger as logger } from './../logging';
 import { Graph } from './components/graph_comp';
 
 import { CompareModal } from './components/compare_modal_comp';
@@ -20,6 +21,7 @@ class CaptureApp extends React.Component<any, any> {
 
       public constructor(props: any) {
             super(props);
+            this.updateGraphs = this.updateGraphs.bind(this);
 
             // FIXME: THIS IS A QUICK AND DIRTY WAY TO DO THIS
             let id: any = null;
@@ -34,7 +36,7 @@ class CaptureApp extends React.Component<any, any> {
                   allReplays: [],
                   selectedReplays: [],
                   allGraphs: [],
-                  selectedGraphs: [{}],
+                  selectedGraphs: [],
             };
       }
 
@@ -54,8 +56,8 @@ class CaptureApp extends React.Component<any, any> {
             const passedData = await mycrt.getCaptureMetrics(id, type);
             if (passedData != null) {
                 this.formatData(passedData);
-                this.setState((previousState: any) => ({
-                    allGraphs: [...previousState.allGraphs, passedData],
+                this.setState((prevState: any) => ({
+                    allGraphs: [...prevState.allGraphs, passedData],
                 }));
             }
       }
@@ -69,11 +71,26 @@ class CaptureApp extends React.Component<any, any> {
             }
         }
 
+    // fix bugs in this...isn't working right now
+      public updateGraphs(checked: boolean, value: IMetricsList) {
+          if (checked) {
+            this.setState((prevState: any) => ({
+                selectedGraphs: [...prevState.selectedGraphs, value],
+            }));
+          } else {
+            this.setState({
+                selectedGraphs: this.state.selectedGraphs.filter( (graph: IMetricsList) => {
+                    graph !== value;
+                }),
+            });
+          }
+      }
+
       public render() {
             if (!this.state.capture) { return (<div></div>); }
             const graphs: JSX.Element[] = [];
-            if (this.state.allGraphs) {
-                for (const graph of this.state.allGraphs) {
+            if (this.state.selectedGraphs) {
+                for (const graph of this.state.selectedGraphs) {
                     graphs.push((<Graph data={graph} id={this.state.captureId} />));
                 }
             }
@@ -99,7 +116,7 @@ class CaptureApp extends React.Component<any, any> {
                         <div className="page-header">
                            <h2 style={{display: "inline"}}>Metrics</h2>
                            <GraphSelectDrop prompt="Graph Types"
-                                graphs={this.state.allGraphs}/>
+                                graphs={this.state.allGraphs} update={this.updateGraphs}/>
                            <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}/>
                            {/* <a role="button" href="#" className="btn btn-primary" data-toggle="modal"
                               data-target="#compareModal" style={{marginBottom: "20px", marginLeft: "20px"}}>
