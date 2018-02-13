@@ -80,7 +80,7 @@ class CaptureApp extends React.Component<any, any> {
           } else {
             this.setState({
                 selectedGraphs: this.state.selectedGraphs.filter( (graph: IMetricsList) => {
-                    graph !== value;
+                  return graph.type !== value.type;
                 }),
             });
           }

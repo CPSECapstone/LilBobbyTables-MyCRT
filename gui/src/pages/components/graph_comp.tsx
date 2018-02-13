@@ -11,7 +11,6 @@ export class Graph extends React.Component<any, any>  {
 
     public render() {
         if (!this.props.data) { return (<div></div>); }
-        logger.info(JSON.stringify(this.props.data));
         const downloadLink = `/api/captures/${this.props.id}/metrics?type=${this.props.type}`;
         const downloadFileName = `${this.props.type}metrics.json`;
         const lineNum = Object.keys(this.props.data).length;
