@@ -4,6 +4,7 @@ import { Logging } from '@lbt-mycrt/common';
 import * as data from '@lbt-mycrt/common/dist/data';
 
 import { environmentDao } from '../dao/mycrt-dao';
+import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/environment-schema';
 import SelfAwareRouter from './self-aware-router';
@@ -16,15 +17,22 @@ export default class EnvironmentRouter extends SelfAwareRouter {
       const logger = Logging.defaultLogger(__dirname);
 
       this.router.get('/', this.handleHttpErrors(async (request, response) => {
+
          const environments = await environmentDao.getAllEnvironments();
          response.json(environments);
+
       }));
 
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
+
          const id = request.params.id;
          const environment = await environmentDao.getEnvironment(id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND);
+         }
          response.json(environment);
+
       }));
 
       this.router.post('/', check.validBody(schema.environmentBody),
@@ -49,7 +57,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          s3Reference = await environmentDao.makeS3Reference(s3Reference);
          dbReference = await environmentDao.makeDbReference(dbReference);
 
-         let environment: data.IEnvironment = {
+         let environment: data.IEnvironment | null = {
             name: request.body.envName,
             iamId: iamReference.id!,
             s3Id: s3Reference.id!,
@@ -57,7 +65,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          };
 
          environment = await environmentDao.makeEnvironment(environment);
-         response.json(environment);
+         response.json(environment!);
 
       }));
 

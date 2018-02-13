@@ -34,11 +34,10 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const capture = await captureDao.getCapture(id);
-         if (capture === null) {
+         if (!capture) {
             throw new HttpError(http.NOT_FOUND);
-         } else {
-            response.json(capture);
          }
+         response.json(capture);
 
       }));
 
