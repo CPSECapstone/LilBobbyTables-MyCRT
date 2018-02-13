@@ -9,6 +9,7 @@ import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { captureDao } from '../dao/mycrt-dao';
+import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
 import { settings } from '../settings';
@@ -33,7 +34,11 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const capture = await captureDao.getCapture(id);
-         response.json(capture);
+         if (capture === null) {
+            throw new HttpError(http.NOT_FOUND);
+         } else {
+            response.json(capture);
+         }
 
       }));
 
@@ -48,6 +53,16 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          logger.info(`Getting ${type} metrics for capture ${request.params.id}`);
          const capture = await captureDao.getCapture(request.params.id);
+         if (!capture) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const validStatus = capture.status && [ChildProgramStatus.DONE, ChildProgramStatus.RUNNING,
+            ChildProgramStatus.STOPPING].indexOf(capture.status) > -1;
+         if (!validStatus) {
+            throw new HttpError(http.CONFLICT);
+         }
+
          const result = await storage.readMetrics(capture!, type);
          response.json(result);
 
@@ -56,10 +71,34 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/:id(\\d+)/stop', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
-         const captureId = request.params.id;
-         await this.ipcNode.stopCapture(captureId);
-         logger.info(`Capture ${captureId} stopped`);
-         response.status(http.OK).end();
+         const capture = await captureDao.getCapture(request.params.id);
+         if (!capture) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         switch (capture.status) {
+
+            case ChildProgramStatus.RUNNING:
+               await this.ipcNode.stopCapture(capture.id!);
+               logger.info(`Capture ${capture.id!} stopped`);
+               response.status(http.OK).end();
+               return;
+
+            case ChildProgramStatus.SCHEDULED:
+               // TODO: unschedule the capture
+               throw new HttpError(http.NOT_IMPLEMENTED,
+                  "No support for stopping scheduled captures that haven't started");
+
+            case ChildProgramStatus.STARTING:
+            case ChildProgramStatus.STARTED:
+               throw new HttpError(http.CONFLICT, "Cannot stop the capture until it has started completely. "
+                  + "Try again soon.");
+            case ChildProgramStatus.STOPPING:
+            case ChildProgramStatus.DONE:
+               throw new HttpError(http.CONFLICT, "This capture has already been stopped.");
+            case ChildProgramStatus.FAILED:
+               throw new HttpError(http.CONFLICT, "This capture failed and is no longer running.");
+         }
 
       }));
 

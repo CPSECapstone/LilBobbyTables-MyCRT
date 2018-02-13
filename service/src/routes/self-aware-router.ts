@@ -42,7 +42,7 @@ export default abstract class SelfAwareRouter {
                info = {code: httpError.code, message: httpError.message};
                response.status(httpError.code).json(info);
             } else {
-               info = {code: http.INTERNAL_SERVER_ERROR, message: error};
+               info = {code: http.INTERNAL_SERVER_ERROR, message: error.message || error};
                response.status(http.INTERNAL_SERVER_ERROR).json(info);
             }
 
