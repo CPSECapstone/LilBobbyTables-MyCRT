@@ -125,12 +125,16 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
-            this.tryCatch500(async (request, response) => {
+            this.handleHttpErrors(async (request, response) => {
 
-            const id = request.params.id;
-            const capture = await captureDao.deleteCapture(id);
-            response.json(capture);
-         }));
+         const id = request.params.id;
+         const capture = await captureDao.deleteCapture(id);
+         if (!capture) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+         response.json(capture);
+
+      }));
 
    }
 }

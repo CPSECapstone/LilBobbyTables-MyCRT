@@ -27,8 +27,8 @@ export class CaptureDao extends Dao {
    }
 
    public deleteCapture(id: number): Promise<data.ICapture> {
-       // tslint:disable-next-line:max-line-length
-       return this.query<any>('DELETE c.*, r.* from Capture c LEFT JOIN Replay r on r.captureId = c.id where c.id = ?', [id]);
+      return this.query<any>('DELETE c.*, r.* from Capture c LEFT JOIN Replay r on r.captureId = c.id where c.id = ?',
+         [id]);
    }
 
    public updateCaptureStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
