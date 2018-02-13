@@ -1,4 +1,4 @@
-import { CaptureDao, ConnectionPool } from '@lbt-mycrt/common';
+import { CaptureDao, ConnectionPool, Dao } from '@lbt-mycrt/common';
 
 // tslint:disable-next-line:no-var-requires
 const poolConfig = require('../db/config.json');
