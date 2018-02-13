@@ -68,7 +68,7 @@ export class ReplayModal extends React.Component<any, any>  {
                 <div className="modal-dialog" role="document">
                     <div className="modal-content myCRT-modal">
                         <div className="modal-header myCRT-modal-header">
-                            <h5 className="modal-title">New Replay</h5>
+                            <h4 className="modal-title">New Replay</h4>
                             <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
@@ -78,16 +78,20 @@ export class ReplayModal extends React.Component<any, any>  {
                         <div className="modal-body">
                             <form>
                                 <div className="form-group">
-                                    <label><b>Replay Name</b></label>
-                                    <input type="name" className="form-control" id="replayName"
-                                    value={this.state.replayName} onChange={this.handleNameChange.bind(this)}
-                                    aria-describedby="replayName" placeholder="Enter name"></input>
-                                        <small id="replayName" className="form-text text-muted"></small>
+                                    <div className="card card-body bg-light">
+                                        <label><b>Replay Name</b></label>
+                                        <input type="name" className="form-control" id="replayName"
+                                        value={this.state.replayName} onChange={this.handleNameChange.bind(this)}
+                                        aria-describedby="replayName" placeholder="Enter name"></input>
+                                            <small id="replayName" className="form-text text-muted"></small>
+                                        <br/>
+                                        <label><b>Capture</b></label>
+                                        {<select className="form-control" onChange={this.handleCaptureId.bind(this)}>
+                                            <option>Select Capture...</option>
+                                            {captures}
+                                        </select>}
+                                    </div>
                                 </div>
-                                {<select className="form-control" onChange={this.handleCaptureId.bind(this)}>
-                                    <option>Select Capture...</option>
-                                    {captures}
-                                </select>}
                             </form>
                         </div>
                         <div className="modal-footer">
