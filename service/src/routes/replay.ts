@@ -16,18 +16,19 @@ export default class ReplayRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', this.tryCatch500(async (request, response) => {
+      this.router.get('/', this.handleHttpErrors(async (request, response) => {
          const replays = await replayDao.getAllReplays();
          response.json(replays);
       }));
 
-      this.router.get('/:id(\\d+)', check.validParams(schema.idParams), this.tryCatch500(async (request, response) => {
+      this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
+            this.handleHttpErrors(async (request, response) => {
          const id = request.params.id;
          const replay = await replayDao.getReplay(id);
          response.json(replay);
       }));
 
-      this.router.post('/', check.validBody(schema.replayBody), this.tryCatch500(async (request, response) => {
+      this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
 
          const replayTemplate: IReplay = {
             name: request.body.name,

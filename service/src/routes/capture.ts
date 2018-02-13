@@ -21,14 +21,15 @@ export default class CaptureRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', this.tryCatch500(async (request, response) => {
+      this.router.get('/', this.handleHttpErrors(async (request, response) => {
 
          const captures = await captureDao.getAllCaptures();
          response.json(captures);
 
       }));
 
-      this.router.get('/:id(\\d+)', check.validParams(schema.idParams), this.tryCatch500(async (request, response) => {
+      this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
+            this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
          const capture = await captureDao.getCapture(id);
@@ -37,7 +38,7 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.get('/:id(\\d+)/metrics', check.validParams(schema.idParams),
-            check.validQuery(schema.metricTypeQuery), this.tryCatch500(async (request, response) => {
+            check.validQuery(schema.metricTypeQuery), this.handleHttpErrors(async (request, response) => {
 
          const type: MetricType | undefined = request.query.type;
 
@@ -47,13 +48,13 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          logger.info(`Getting ${type} metrics for capture ${request.params.id}`);
          const capture = await captureDao.getCapture(request.params.id);
-         const result = await storage.readMetrics(capture, type);
+         const result = await storage.readMetrics(capture!, type);
          response.json(result);
 
       }));
 
       this.router.post('/:id(\\d+)/stop', check.validParams(schema.idParams),
-            this.tryCatch500(async (request, response) => {
+            this.handleHttpErrors(async (request, response) => {
 
          const captureId = request.params.id;
          await this.ipcNode.stopCapture(captureId);
@@ -62,7 +63,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.post('/', check.validBody(schema.captureBody), this.tryCatch500(async (request, response) => {
+      this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
 
          const captureTemplate: ICapture = {
             type: ChildProgramType.CAPTURE,
@@ -72,8 +73,8 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const capture = await captureDao.makeCapture(captureTemplate);
 
-         logger.info(`Launching capture with id ${capture.id!}`);
-         const config = new CaptureConfig(capture.id!);
+         logger.info(`Launching capture with id ${capture!.id!}`);
+         const config = new CaptureConfig(capture!.id!);
          config.mock = settings.captures.mock;
          config.interval = settings.captures.interval;
          config.intervalOverlap = settings.captures.intervalOverlap;

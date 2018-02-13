@@ -15,18 +15,20 @@ export default class EnvironmentRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', this.tryCatch500(async (request, response) => {
+      this.router.get('/', this.handleHttpErrors(async (request, response) => {
          const environments = await environmentDao.getAllEnvironments();
          response.json(environments);
       }));
 
-      this.router.get('/:id(\\d+)', check.validParams(schema.idParams), this.tryCatch500(async (request, response) => {
+      this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
+            this.handleHttpErrors(async (request, response) => {
          const id = request.params.id;
          const environment = await environmentDao.getEnvironment(id);
          response.json(environment);
       }));
 
-      this.router.post('/', check.validBody(schema.environmentBody), this.tryCatch500(async (request, response) => {
+      this.router.post('/', check.validBody(schema.environmentBody),
+            this.handleHttpErrors(async (request, response) => {
 
          let iamReference: data.IIamReference = {
             accessKey: request.body.accessKey,
