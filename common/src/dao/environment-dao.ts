@@ -28,6 +28,10 @@ export class EnvironmentDao extends Dao {
       return this.query<any>(row1.concat(row2), [id]);
    }
 
+   public async editEnvironment(id: number, changes: data.IEnvironment): Promise<data.IEnvironment | null> {
+      return this.query<any>('UPDATE Environment SET ? WHERE id = ?', [changes, id]);
+   }
+
    public async getIamReference(id: number): Promise<data.IIamReference> {
       const rows = await this.query<any[]>('SELECT * FROM IAMReference WHERE id = ?', [id]);
       return this.rowToIIamReference(rows[0]);
