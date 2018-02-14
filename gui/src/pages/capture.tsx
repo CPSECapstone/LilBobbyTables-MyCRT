@@ -41,7 +41,8 @@ class CaptureApp extends React.Component<any, any> {
             }
             const cpuData = this.getData(this.state.captureId, "cpuData", MetricType.CPU);
             const memData = this.getData(this.state.captureId, "memData", MetricType.MEMORY);
-            const ioData = this.getData(this.state.captureId, "ioData", MetricType.IO);
+            const readData = this.getData(this.state.captureId, "readData", MetricType.READ);
+            const writeData = this.getData(this.state.captureId, "writeData", MetricType.WRITE);
       }
 
       public async getData(id: number, name: string, type: MetricType) {
@@ -92,7 +93,8 @@ class CaptureApp extends React.Component<any, any> {
                            <br></br>
                            <Graph data={this.state.cpuData} id={this.state.captureId} type="CPU" />
                            <Graph data={this.state.memData} id={this.state.captureId} type="MEMORY" />
-                           <Graph data={this.state.ioData} id={this.state.captureId} type="IO" />
+                           <Graph data={this.state.readData} id={this.state.captureId} type="READ" />
+                           <Graph data={this.state.writeData} id={this.state.captureId} type="WRITE" />
                         </div>
                         <div className="page-header">
                            <h2>Replays</h2>

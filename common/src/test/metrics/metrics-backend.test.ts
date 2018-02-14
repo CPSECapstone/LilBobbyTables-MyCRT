@@ -29,10 +29,16 @@ describe("MetricsBackend", () => {
 
    const dummyMetrics: IMetricsList[] = [
       {
-         label: "NetworkIn",
-         type: MetricType.IO,
-         displayName: "IO",
+         label: "ReadLatency",
+         type: MetricType.READ,
+         displayName: "READ",
          dataPoints: [],
+      },
+      {
+        label: "WriteLatency",
+        type: MetricType.WRITE,
+        displayName: "WRITE",
+        dataPoints: [],
       },
       {
          label: "FreeableMemory",
@@ -71,10 +77,16 @@ describe("MetricsBackend", () => {
       expect(result.label).to.equal("CPUUtilization");
    });
 
-   it("should read capture IO metrics", async () => {
-      const result = await metrics.readMetrics(c1, MetricType.IO) as IMetricsList;
-      expect(result.type).to.equal(MetricType.IO);
-      expect(result.label).to.equal("NetworkIn");
+   it("should read capture read IO metrics", async () => {
+      const result = await metrics.readMetrics(c1, MetricType.READ) as IMetricsList;
+      expect(result.type).to.equal(MetricType.READ);
+      expect(result.label).to.equal("ReadLatency");
+   });
+
+   it("should read capture write IO metrics", async () => {
+      const result = await metrics.readMetrics(c1, MetricType.WRITE) as IMetricsList;
+      expect(result.type).to.equal(MetricType.WRITE);
+      expect(result.label).to.equal("WriteLatency");
    });
 
    it("should read capture Memory metrics", async () => {
@@ -85,12 +97,14 @@ describe("MetricsBackend", () => {
 
    it("should read all capture metrics", async () => {
       const result = await metrics.readMetrics(c1) as IMetricsList[];
-      expect(result.length).to.equal(3);
+      expect(result.length).to.equal(4);
       const cpu = MetricsStorage.specificMetricFromList(result, MetricType.CPU);
-      const io = MetricsStorage.specificMetricFromList(result, MetricType.IO);
+      const read = MetricsStorage.specificMetricFromList(result, MetricType.READ);
+      const write = MetricsStorage.specificMetricFromList(result, MetricType.WRITE);
       const memory = MetricsStorage.specificMetricFromList(result, MetricType.MEMORY);
       expect(cpu.type).to.equal(MetricType.CPU);
-      expect(io.type).to.equal(MetricType.IO);
+      expect(read.type).to.equal(MetricType.READ);
+      expect(write.type).to.equal(MetricType.WRITE);
       expect(memory.type).to.equal(MetricType.MEMORY);
    });
 

@@ -64,7 +64,7 @@ export interface IS3Reference {
 }
 
 /** The type of data */
-export enum MetricType { CPU = "CPU", IO = "IO", MEMORY = "MEMORY" }
+export enum MetricType { CPU = "CPU", WRITE = "WRITE", READ = "READ", MEMORY = "MEMORY" }
 
 /** Interface for a single metric measurement */
 export interface IMetric {
