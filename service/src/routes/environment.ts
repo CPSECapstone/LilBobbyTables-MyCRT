@@ -69,5 +69,17 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
       }));
 
+
+      this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            this.handleHttpErrors(async (request, response) => {
+
+         const id = request.params.id;
+         const environment = await environmentDao.deleteEnvironment(id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+         response.json(environment);
+
+      }));
    }
 }

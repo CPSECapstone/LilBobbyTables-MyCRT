@@ -22,6 +22,11 @@ export class EnvironmentDao extends Dao {
       return await this.getEnvironment(row.insertId);
    }
 
+   public async deleteEnvironment(id: number): Promise<data.ICapture> {
+      // tslint:disable-next-line:max-line-length
+      return this.query<any>('DELETE e.*, c.*, r.* FROM Environment e LEFT JOIN Capture c ON e.id = c.envId LEFT JOIN Replay r ON r.captureId = c.id WHERE e.id = ? ', [id]);
+   }
+
    public async getIamReference(id: number): Promise<data.IIamReference> {
       const rows = await this.query<any[]>('SELECT * FROM IAMReference WHERE id = ?', [id]);
       return this.rowToIIamReference(rows[0]);
