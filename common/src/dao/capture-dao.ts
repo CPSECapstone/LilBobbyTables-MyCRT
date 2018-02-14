@@ -7,15 +7,18 @@ export class CaptureDao extends Dao {
    // TODO: should we paginate this?
    public async getAllCaptures(): Promise<data.ICapture[]> {
       const rawCaptures = await this.query<any[]>('SELECT * FROM Capture', []);
-      return rawCaptures.map(this.resultToICapture);
+      return rawCaptures.map(this.rowToICapture);
    }
 
-   public async getCapture(id: number): Promise<data.ICapture> {
-      const result = await this.query<data.ICapture[]>('SELECT * FROM Capture WHERE id = ?', [id]);
-      return this.resultToICapture(result[0]);
+   public async getCapture(id: number): Promise<data.ICapture | null> {
+      const result = await this.query<any[]>('SELECT * FROM Capture WHERE id = ?', [id]);
+      if (result.length === 0) {
+         return null;
+      }
+      return this.rowToICapture(result[0]);
    }
 
-   public async makeCapture(capture: data.ICapture): Promise<data.ICapture> {
+   public async makeCapture(capture: data.ICapture): Promise<data.ICapture | null> {
       const result = await this.query<any>('INSERT INTO Capture SET ?', {
          name: capture.name,
          status: capture.status,
@@ -24,8 +27,8 @@ export class CaptureDao extends Dao {
    }
 
    public deleteCapture(id: number): Promise<data.ICapture> {
-       // tslint:disable-next-line:max-line-length
-       return this.query<any>('DELETE c.*, r.* from Capture c LEFT JOIN Replay r on r.captureId = c.id where c.id = ?', [id]);
+      return this.query<any>('DELETE c.*, r.* from Capture c LEFT JOIN Replay r on r.captureId = c.id where c.id = ?',
+         [id]);
    }
 
    public updateCaptureStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
@@ -40,7 +43,7 @@ export class CaptureDao extends Dao {
       return this.query('UPDATE Capture SET end = NOW() WHERE id = ?', [id]);
    }
 
-   private resultToICapture(captureData: any): data.ICapture {
+   private rowToICapture(captureData: any): data.ICapture {
       return {
          id: captureData.id,
          name: captureData.name,
