@@ -23,8 +23,9 @@ export class EnvironmentDao extends Dao {
    }
 
    public async deleteEnvironment(id: number): Promise<data.ICapture> {
-      // tslint:disable-next-line:max-line-length
-      return this.query<any>('DELETE e.*, c.*, r.* FROM Environment e LEFT JOIN Capture c ON e.id = c.envId LEFT JOIN Replay r ON r.captureId = c.id WHERE e.id = ? ', [id]);
+      const row1 = 'DELETE e.*, c.*, r.* FROM Environment e LEFT JOIN Capture c ON e.id = c.envId LEFT JOIN Replay r';
+      const row2 = ' ON r.captureId = c.id WHERE e.id = ?';
+      return this.query<any>(row1.concat(row2), [id]);
    }
 
    public async getIamReference(id: number): Promise<data.IIamReference> {

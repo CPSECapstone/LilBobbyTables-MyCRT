@@ -69,7 +69,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
       }));
 
-
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
