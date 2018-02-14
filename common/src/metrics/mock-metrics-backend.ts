@@ -1,6 +1,6 @@
 import { IMetric, IMetricsList, MetricType } from '../data';
 import { MetricsBackend } from './metrics-backend';
-import { CPU, IO, MEMORY } from './metrics-backend';
+import { CPU, MEMORY, READ, WRITE } from './metrics-backend';
 
 /**
  * Produce dummy data for catpures/replays running in a mock mode.
@@ -19,8 +19,10 @@ export class MockMetricsBackend extends MetricsBackend {
       switch (metricName) {
          case CPU:
             return this.makeMockData(metricName, MetricType.CPU, unit, 3.0, 6.0, startTime, endTime);
-         case IO:
-            return this.makeMockData(metricName, MetricType.IO, unit, 510000000, 540000000, startTime, endTime);
+         case READ:
+            return this.makeMockData(metricName, MetricType.READ, unit, 510000000, 540000000, startTime, endTime);
+         case WRITE:
+            return this.makeMockData(metricName, MetricType.WRITE, unit, 510000000, 540000000, startTime, endTime);
          case MEMORY:
             return this.makeMockData(metricName, MetricType.MEMORY, unit, 0, 0.003, startTime, endTime);
          default:

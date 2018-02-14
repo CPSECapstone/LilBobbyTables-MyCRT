@@ -2,8 +2,8 @@ import { CloudWatch } from 'aws-sdk';
 import { expect } from 'chai';
 import 'mocha';
 import mockito from 'ts-mockito';
-import { CloudWatchMetricsBackend, CPU, IO, MEMORY } from '../../main';
-import { dummyCPU, dummyIO, dummyMemory } from './data';
+import { CloudWatchMetricsBackend, CPU, MEMORY, READ, WRITE } from '../../main';
+import { dummyCPU, dummyMemory, dummyRead, dummyWrite } from './data';
 
 import Logging = require('./../../logging');
 
@@ -38,19 +38,36 @@ describe("CloudwatchMetricsBackend", () => {
 
     });
 
-    it("should get IO metrics", async () => {
+    it("should get read IO metrics", async () => {
         mockito.when(spiedCloudwatch.getMetricStatistics(mockito.anything(), mockito.anyFunction()))
         .thenCall((params, callback) => {
             callback(null, {
-                Label: dummyIO.Label,
-                Datapoints: dummyIO.Datapoints,
+                Label: dummyRead.Label,
+                Datapoints: dummyRead.Datapoints,
             } as CloudWatch.GetMetricStatisticsOutput);
         });
 
-        await metrics.getIOMetrics(new Date(), new Date())
-         .then((ioMetrics) => {
-            expect(ioMetrics.label).to.equal(dummyIO.Label);
-            expect(ioMetrics.dataPoints).to.deep.equal(dummyIO.Datapoints);
+        await metrics.getReadMetrics(new Date(), new Date())
+         .then((readMetrics) => {
+            expect(readMetrics.label).to.equal(dummyRead.Label);
+            expect(readMetrics.dataPoints).to.deep.equal(dummyRead.Datapoints);
+         });
+
+    });
+
+    it("should get write IO metrics", async () => {
+        mockito.when(spiedCloudwatch.getMetricStatistics(mockito.anything(), mockito.anyFunction()))
+        .thenCall((params, callback) => {
+            callback(null, {
+                Label: dummyWrite.Label,
+                Datapoints: dummyWrite.Datapoints,
+            } as CloudWatch.GetMetricStatisticsOutput);
+        });
+
+        await metrics.getWriteMetrics(new Date(), new Date())
+         .then((writeMetrics) => {
+            expect(writeMetrics.label).to.equal(dummyWrite.Label);
+            expect(writeMetrics.dataPoints).to.deep.equal(dummyWrite.Datapoints);
          });
 
     });
@@ -84,13 +101,25 @@ describe("CloudwatchMetricsBackend", () => {
          });
     });
 
-    it("should fail to get IO metrics", async () => {
+    it("should fail to get read IO metrics", async () => {
         mockito.when(spiedCloudwatch.getMetricStatistics(mockito.anything(), mockito.anyFunction()))
         .thenCall((params, callback) => {
-            callback("io metrics do not exist", null);
+            callback("read (io) metrics do not exist", null);
         });
 
-        const ioMetrics = await metrics.getIOMetrics(new Date(), new Date())
+        const readMetrics = await metrics.getReadMetrics(new Date(), new Date())
+         .catch((reason) => {
+            expect(reason).to.not.be.null;
+         });
+    });
+
+    it("should fail to get write IO metrics", async () => {
+        mockito.when(spiedCloudwatch.getMetricStatistics(mockito.anything(), mockito.anyFunction()))
+        .thenCall((params, callback) => {
+            callback("write (io) metrics do not exist", null);
+        });
+
+        const writeMetrics = await metrics.getWriteMetrics(new Date(), new Date())
          .catch((reason) => {
             expect(reason).to.not.be.null;
          });
