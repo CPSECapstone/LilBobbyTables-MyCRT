@@ -25,7 +25,7 @@ class MetricsApp extends React.Component<any, any> {
            id = match[1];
         }
 
-        this.state = {cpuData: null, memData: null, ioData: null, captureId: id, capture: null};
+        this.state = {cpuData: null, memData: null, readData: null, writeData: null, captureId: id, capture: null};
     }
 
    public async componentWillMount() {
@@ -34,7 +34,8 @@ class MetricsApp extends React.Component<any, any> {
       const id = capture!.id!; // TODO: handle the failure case
       const cpuData = this.getData(id, "cpuData", MetricType.CPU);
       const memData = this.getData(id, "memData", MetricType.MEMORY);
-      const ioData = this.getData(id, "ioData", MetricType.IO);
+      const readData = this.getData(id, "readData", MetricType.READ);
+      const writeData = this.getData(id, "writeData", MetricType.WRITE);
    }
 
     public async getData(id: number, name: string, type: MetricType) {
@@ -79,7 +80,8 @@ class MetricsApp extends React.Component<any, any> {
                         <br></br>
                         <Graph data={this.state.cpuData} id={this.state.captureId} type="CPU" />
                         <Graph data={this.state.memData} id={this.state.captureId} type="MEMORY" />
-                        <Graph data={this.state.ioData} id={this.state.captureId} type="IO" />
+                        <Graph data={this.state.readData} id={this.state.captureId} type="READ" />
+                        <Graph data={this.state.writeData} id={this.state.captureId} type="WRITE" />
                     </div>
                     </div>
                 </div>

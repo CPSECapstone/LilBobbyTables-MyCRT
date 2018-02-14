@@ -44,10 +44,15 @@ describe("metricTypeQuery", () => {
       expect(result.error).to.be.null;
       expect(result.value.type).to.equal(data.MetricType.CPU);
 
-      const io = {type: 'IO'};
-      result = joi.validate(io, metricTypeQuery);
+      const read = {type: 'read'};
+      result = joi.validate(read, metricTypeQuery);
       expect(result.error).to.be.null;
-      expect(result.value.type).to.equal(data.MetricType.IO);
+      expect(result.value.type).to.equal(data.MetricType.READ);
+
+      const write = {type: 'write'};
+      result = joi.validate(write, metricTypeQuery);
+      expect(result.error).to.be.null;
+      expect(result.value.type).to.equal(data.MetricType.WRITE);
 
       const memory = {type: 'memORY'};
       result = joi.validate(memory, metricTypeQuery);

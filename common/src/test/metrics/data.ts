@@ -1,5 +1,5 @@
 import { IMetricsList, MetricType } from '../../data';
-import { CPU, IO, MEMORY } from '../../main';
+import { CPU, MEMORY, READ, WRITE } from '../../main';
 
 export const dummyCPU = {
     Label: CPU,
@@ -11,8 +11,13 @@ export const dummyMemory = {
     Datapoints: [],
 };
 
-export const dummyIO = {
-    Label: IO,
+export const dummyRead = {
+    Label: READ,
+    Datapoints: [],
+};
+
+export const dummyWrite = {
+    Label: WRITE,
     Datapoints: [],
 };
 
@@ -46,7 +51,7 @@ export const metricsA: IMetricsList[] = [
    },
    {
       label: 'IO label',
-      type: MetricType.IO,
+      type: MetricType.READ,
       dataPoints: [
          {
             Timestamp: time3,
@@ -91,7 +96,7 @@ export const metricsB: IMetricsList[] = [
    },
    {
       label: 'IO label',
-      type: MetricType.IO,
+      type: MetricType.READ,
       dataPoints: [
          {
             Timestamp: time3,

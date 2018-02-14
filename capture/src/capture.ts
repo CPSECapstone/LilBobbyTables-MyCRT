@@ -119,7 +119,8 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
          const data = [
             await this.metrics.getCPUMetrics(start, end),
-            await this.metrics.getIOMetrics(start, end),
+            await this.metrics.getReadMetrics(start, end),
+            await this.metrics.getWriteMetrics(start, end),
             await this.metrics.getMemoryMetrics(start, end),
          ];
 
