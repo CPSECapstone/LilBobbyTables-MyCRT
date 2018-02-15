@@ -26,7 +26,7 @@ export class CaptureDao extends Dao {
       return await this.getCapture(result.insertId);
    }
 
-   public deleteCapture(id: number): Promise<data.ICapture> {
+   public async deleteCapture(id: number): Promise<data.ICapture> {
       return this.query<any>('DELETE c.*, r.* from Capture c LEFT JOIN Replay r on r.captureId = c.id where c.id = ?',
          [id]);
    }

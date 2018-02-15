@@ -7,39 +7,66 @@ import ReactDom = require('react-dom');
 
 import { EnvironmentPanel } from './components/env_panel_comp';
 import { EnvModal } from './components/environment_modal_comp';
+import { mycrt } from './utils/mycrt-client';
 
-const EnvironmentsApp = () => {
-   return (
-    <div>
-      <nav>
-        <ol className="breadcrumb">
-          <li className="breadcrumb-item active"><a>Environments</a></li>
-        </ol>
-      </nav>
-      <div className="container">
-        <div className="row">
-          <div className="col-sm-12 mb-r">
-            <div className="page-header">
-              <h1 style={{ display: "inline"}}>Environments</h1>
-              <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
-                  data-target="#envModal" style={{ marginBottom: "20px", marginLeft: "15px" }}>
-                  <i className="fa fa-plus" aria-hidden="true"></i>
-              </a>
+class EnvironmentsApp extends React.Component<any, any> {
+
+  public constructor(props: any) {
+    super(props);
+    this.componentWillMount = this.componentWillMount.bind(this);
+    this.state = {envs: []};
+  }
+
+  public async componentWillMount() {
+    const envResponse = await mycrt.getEnvironments();
+    if (envResponse !== null) {
+        this.setState({
+            envs: envResponse,
+        });
+    }
+  }
+
+  public render() {
+    const environments: JSX.Element[] = [];
+    if (this.state.envs) {
+      for (const env of this.state.envs) {
+        let name = `${env.name}`;
+        if (!name) {
+          name = `Environment ${env.id}`;
+        }
+        environments.push((<EnvironmentPanel title={name} env={env} />));
+      }
+    }
+    return (
+      <div>
+        <nav>
+          <ol className="breadcrumb">
+            <li className="breadcrumb-item active"><a>Environments</a></li>
+          </ol>
+        </nav>
+        <div className="container">
+          <div className="row">
+            <div className="col-sm-12 mb-r">
+              <div className="page-header">
+                <h1 style={{ display: "inline"}}>Environments</h1>
+                <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
+                    data-target="#envModal" style={{ marginBottom: "20px", marginLeft: "15px" }}>
+                    <i className="fa fa-plus" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          <br></br>
+          <div className="row">
+            <div className="col-sm-12 mb-r">
+              <EnvModal id="envModal" update={this.componentWillMount}/>
+              {environments}
             </div>
           </div>
         </div>
-        <br></br>
-        <div className="row">
-          <div className="col-sm-12 mb-r">
-              <EnvModal id="envModal" />
-            <EnvironmentPanel title="Lil Environment #1" />
-            <EnvironmentPanel title="Sample Environment #2" />
-            <EnvironmentPanel title="Sample Environment #3" />
-          </div>
-        </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+}
 
 ReactDom.render(<EnvironmentsApp />, document.getElementById('environments-app'));

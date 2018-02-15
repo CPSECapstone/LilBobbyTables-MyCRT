@@ -1,7 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { ICapture, IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
-
+import { ICapture, IChildProgram, IEnvironment, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
 import { IMyCrtClientDelegate } from './client-delegate';
 
 export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELETE' }
@@ -54,6 +53,11 @@ export class MyCrtClient {
       return this.makeRequest<[IMetricsList]>(HttpMethod.GET, `/captures/${id}/metrics`);
    }
 
+   /** Delete a specific capture */
+   public async deleteCapture(id: number): Promise<void> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/captures/${id}`);
+   }
+
    /** Create a new Replay */
    public async startReplay(replay: IReplay): Promise<number | null> {
       return this.makeRequest<number>(HttpMethod.POST, '/replays', null, replay);
@@ -67,6 +71,31 @@ export class MyCrtClient {
    /** Retrieve a specific replay */
    public async getReplay(id: number): Promise<IChildProgram | null> {
       return this.makeRequest<IChildProgram>(HttpMethod.GET, `/replays/${id}`);
+   }
+
+   /** Delete a specific replay */
+   public async deleteReplay(id: number): Promise<any> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/replays/${id}`);
+   }
+
+   /** Create a new Environment */
+   public async createEnvironment(environment: IEnvironment): Promise<IEnvironment | null> {
+      return this.makeRequest<IEnvironment>(HttpMethod.POST, '/environments', null, environment);
+   }
+
+   /** Retrieve a specific environment */
+   public async getEnvironment(id: number): Promise<IEnvironment | null> {
+      return this.makeRequest<IEnvironment>(HttpMethod.GET, `/environments/${id}`);
+   }
+
+   /** Retrieve all of the environments */
+   public async getEnvironments(): Promise<IEnvironment[] | null> {
+      return this.makeRequest<IEnvironment[]>(HttpMethod.GET, '/environments');
+   }
+
+   /** Delete a specific environment */
+   public async deleteEnvironment(id: number): Promise<void> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`);
    }
 
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
