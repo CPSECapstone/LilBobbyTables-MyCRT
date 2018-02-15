@@ -47,29 +47,22 @@ class CaptureApp extends React.Component<any, any> {
                         allReplays: await mycrt.getReplays(), // error check later
                   });
             }
-            const cpuData = this.getData(this.state.captureId, "cpuData", MetricType.CPU);
-            const memData = this.getData(this.state.captureId, "memData", MetricType.MEMORY);
-            const readData = this.getData(this.state.captureId, "readData", MetricType.READ);
-            const writeData = this.getData(this.state.captureId, "writeData", MetricType.WRITE);
-      }
-
-      public async getData(id: number, name: string, type: MetricType) {
-            const passedData = await mycrt.getCaptureMetrics(id, type);
-            if (passedData != null) {
-                this.formatData(passedData);
-                this.setState((prevState: any) => ({
-                    allGraphs: [...prevState.allGraphs, passedData],
-                }));
+            const allGraphs = await mycrt.getAllCaptureMetrics(this.state.captureId);
+            if (allGraphs != null) {
+                this.formatData(allGraphs);
+                this.setState({allGraphs});
             }
       }
 
-      public formatData(data: IMetricsList) {
-            for (const dataPoint of data.dataPoints) {
-                const time = new Date(dataPoint.Timestamp);
-                dataPoint.Timestamp = time.toLocaleString();
-                dataPoint[this.state.capture.name] = dataPoint.Maximum;
-                delete dataPoint.Maximum;
-            }
+      public formatData(metricsList: [IMetricsList]) {
+            metricsList.forEach((metric) => {
+                  for (const dataPoint of metric.dataPoints) {
+                        const time = new Date(dataPoint.Timestamp);
+                        dataPoint.Timestamp = time.toLocaleString();
+                        dataPoint[this.state.capture.name] = dataPoint.Maximum;
+                        delete dataPoint.Maximum;
+                  }
+            });
         }
 
     // fix bugs in this...isn't working right now

@@ -15,7 +15,7 @@ export class EnvModal extends React.Component<any, any>  {
         super(props);
         this.createEnvironment = this.createEnvironment.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "",
-                      host: "", user: "", pass: "", bucket: ""};
+                      dbName: "", host: "", user: "", pass: "", bucket: ""};
 
         $(document).ready(() => {
             $('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
@@ -44,7 +44,7 @@ export class EnvModal extends React.Component<any, any>  {
     public allFieldsFilled() {
         return this.state.envName !== "" && this.state.accessKey !== "" && this.state.secretKey !== ""
             && this.state.region !== "" && this.state.host !== "" && this.state.user !== ""
-            && this.state.pass !== "" && this.state.bucket !== "";
+            && this.state.dbName !== "" && this.state.pass !== "" && this.state.bucket !== "";
     }
 
     public async createEnvironment() {
@@ -53,8 +53,7 @@ export class EnvModal extends React.Component<any, any>  {
             $('#envWarning').show();
             return;
         }
-        const envObj = await mycrt.createEnvironment({ name: this.state.envName, iamId: this.state.iamCred,
-            dbId: this.state.dbRef, s3Id: this.state.s3Ref});
+        const envObj = await mycrt.createEnvironment(this.state);
         if (!envObj) {
             logger.error("Could not create environment");
         } else {
@@ -134,6 +133,9 @@ export class EnvModal extends React.Component<any, any>  {
                                 <div className="tab-pane myCRT-tab-pane fade" id="step3">
                                     <div className="card card-body bg-light">
                                         <label>DB Reference</label>
+                                        <input className="form-control input-lg" placeholder="Enter DB Name"
+                                            value={this.state.dbName} id="dbName"
+                                            onChange={this.handleInputChange.bind(this)}/> <br/>
                                         <input className="form-control input-lg" placeholder="Enter Host"
                                             value={this.state.host} id="host"
                                             onChange={this.handleInputChange.bind(this)}/> <br/>
