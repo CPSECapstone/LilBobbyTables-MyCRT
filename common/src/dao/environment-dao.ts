@@ -23,9 +23,7 @@ export class EnvironmentDao extends Dao {
    }
 
    public async deleteEnvironment(id: number): Promise<data.ICapture> {
-      const row1 = 'DELETE e.*, c.*, r.* FROM Environment e LEFT JOIN Capture c ON e.id = c.envId LEFT JOIN Replay r';
-      const row2 = ' ON r.captureId = c.id WHERE e.id = ?';
-      return this.query<any>(row1.concat(row2), [id]);
+      return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
    }
 
    public async getIamReference(id: number): Promise<data.IIamReference> {
