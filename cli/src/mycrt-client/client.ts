@@ -55,7 +55,7 @@ export class MyCrtClient {
    }
 
    /** Delete a specific capture */
-   public async deleteCapture(id: number): Promise<any> {
+   public async deleteCapture(id: number): Promise<void> {
       return this.makeRequest<any>(HttpMethod.DELETE, `/captures/${id}`);
    }
 
@@ -95,7 +95,7 @@ export class MyCrtClient {
    }
 
    /** Delete a specific environment */
-   public async deleteEnvironment(id: number): Promise<any> {
+   public async deleteEnvironment(id: number): Promise<void> {
       return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`);
    }
 
