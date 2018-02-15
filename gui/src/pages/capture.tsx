@@ -49,7 +49,8 @@ class CaptureApp extends React.Component<any, any> {
             }
             const cpuData = this.getData(this.state.captureId, "cpuData", MetricType.CPU);
             const memData = this.getData(this.state.captureId, "memData", MetricType.MEMORY);
-            const ioData = this.getData(this.state.captureId, "ioData", MetricType.IO);
+            const readData = this.getData(this.state.captureId, "readData", MetricType.READ);
+            const writeData = this.getData(this.state.captureId, "writeData", MetricType.WRITE);
       }
 
       public async getData(id: number, name: string, type: MetricType) {

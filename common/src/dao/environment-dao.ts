@@ -9,12 +9,15 @@ export class EnvironmentDao extends Dao {
       return environmentRows.map(this.rowToIEnvironment);
    }
 
-   public async getEnvironment(id: number): Promise<data.IEnvironment> {
+   public async getEnvironment(id: number): Promise<data.IEnvironment | null> {
       const rows = await this.query<any[]>('SELECT * FROM Environment WHERE id = ?', [id]);
+      if (rows.length === 0) {
+         return null;
+      }
       return this.rowToIEnvironment(rows[0]);
    }
 
-   public async makeEnvironment(environment: data.IEnvironment): Promise<data.IEnvironment> {
+   public async makeEnvironment(environment: data.IEnvironment): Promise<data.IEnvironment | null> {
       const row = await this.query<any>('INSERT INTO Environment SET ?', environment);
       return await this.getEnvironment(row.insertId);
    }
