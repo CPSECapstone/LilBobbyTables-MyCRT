@@ -59,5 +59,17 @@ export default class ReplayRouter extends SelfAwareRouter {
 
       }));
 
+      this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            this.handleHttpErrors(async (request, response) => {
+
+         const id = request.params.id;
+         const replay = await replayDao.deleteReplay(id);
+         if (!replay) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+         response.json(replay);
+
+      }));
+
    }
 }

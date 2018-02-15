@@ -26,6 +26,10 @@ export class ReplayDao extends Dao {
       return await this.getReplay(result.insertId);
    }
 
+   public async deleteReplay(id: number): Promise<data.IReplay> {
+      return this.query<any>('DELETE r.* from Replay r where r.id = ?', [id]);
+   }
+
    public updateReplayStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
       return this.query('UPDATE Replay SET status = ? WHERE id = ?', [status, id]);
    }
