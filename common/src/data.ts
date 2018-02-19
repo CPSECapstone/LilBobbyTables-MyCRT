@@ -41,17 +41,17 @@ export interface IEnvironment {
 }
 
 export interface IEnvironmentFull {
-   id?: number;
-   envName?: string;
-   accessKey?: string;
-   secretKey?: string;
-   region?: string;
-   dbName?: string;
-   host?: string;
-   user?: string;
-   pass?: string;
-   parameterGroup?: string;
-   bucket?: string;
+   id: number;
+   envName: string;
+   accessKey: string;
+   secretKey: string;
+   region: string;
+   dbName: string;
+   host: string;
+   user: string;
+   pass: string;
+   parameterGroup: string;
+   bucket: string;
 }
 
 /** IAM Profile */
