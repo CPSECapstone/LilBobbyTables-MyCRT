@@ -2,6 +2,7 @@ import * as readCmdArgs from 'command-line-args';
 import { OptionDefinition } from 'command-line-args';
 
 import { Config } from '@lbt-mycrt/common/dist/capture-replay/args';
+import { IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 
 // command-line-args documentation here
 // https://github.com/75lb/command-line-args
@@ -59,7 +60,7 @@ export class CaptureConfig extends Config {
          throw new Error("No id was provided for the capture");
       }
 
-      const config = new CaptureConfig(options.id);
+      const config = new CaptureConfig(options.id, null);
       config.mock = options.mock;
       config.interval = options.interval;
       config.intervalOverlap = options.intervalOverlap;
@@ -73,10 +74,12 @@ export class CaptureConfig extends Config {
    public interval: number = optionInterval.defaultValue;
    public intervalOverlap: number = optionIntervalOverlap.defaultValue;
    public supervised: boolean = optionSupervised.defaultValue;
+   public env: IEnvironmentFull | null;
 
-   constructor(id: number) {
+   constructor(id: number, env: IEnvironmentFull | null) {
       super();
       this.id = id;
+      this.env = env;
    }
 
    protected getOptionsMap(): Array<[OptionDefinition, any]> {

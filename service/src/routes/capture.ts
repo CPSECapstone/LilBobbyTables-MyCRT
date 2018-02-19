@@ -1,4 +1,3 @@
-import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
@@ -8,7 +7,7 @@ import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
-import { captureDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
@@ -102,6 +101,7 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
+         const captureEnv = await environmentDao.getEnvironmentFull(request.body.envId);
 
          const captureTemplate: ICapture = {
             type: ChildProgramType.CAPTURE,
@@ -116,6 +116,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          config.mock = settings.captures.mock;
          config.interval = settings.captures.interval;
          config.intervalOverlap = settings.captures.intervalOverlap;
+         config.env = captureEnv;
 
          launch(config);
          response.json(capture).end();
