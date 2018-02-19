@@ -25,45 +25,52 @@ export class MetricsStorage {
     * Get the depot prefix for a child program.
     */
    public static getDepotPrefix(childProgram: IChildProgram): string {
-      const childType = MetricsStorage.childProcessTypeToString(childProgram.type);
-      return `${childType}${childProgram.id}/depot/`;
+      return `${MetricsStorage.getRootPrefix(childProgram)}depot/`;
    }
 
    /**
     * Get the storage key for a completed metrics file.
     */
    public static getDoneMetricsKey(childProgram: IChildProgram): string {
-      const childType = MetricsStorage.childProcessTypeToString(childProgram.type);
-      return `${childType}${childProgram.id}/metrics.json`;
+      return `${MetricsStorage.getRootPrefix(childProgram)}metrics.json`;
    }
 
    /**
     * Get the storage key for the in-progress metrics file at a given time.
     */
    public static getInProgressMetricsKey(childProgram: IChildProgram, time: Date): string {
-      const childType = MetricsStorage.childProcessTypeToString(childProgram.type);
-      return `${childType}${childProgram.id}/metrics-${time.getTime()}.json`;
+      return `${MetricsStorage.getRootPrefix(childProgram)}metrics-${time.getTime()}.json`;
    }
 
    /**
     * Get the storage key for a single sample metrics file at a given time.
     */
    public static getSingleSampleMetricsKey(childProgram: IChildProgram, time: Date): string {
-      const childType = MetricsStorage.childProcessTypeToString(childProgram.type);
-      return `${childType}${childProgram.id}/depot/metrics-${time.getTime()}.json`;
+      return `${MetricsStorage.getDepotPrefix(childProgram)}metrics-${time.getTime()}.json`;
    }
 
-   public static specificMetricFromList(list: IMetricsList[], type: MetricType): IMetricsList {
-      for (const metric of list) {
-         if (metric.type === type) {
-            return metric;
-         }
+   /**
+    * Pulls an element that matches the metric type from a list.
+    */
+   public static getSpecificMetricFromList(list: IMetricsList[], type: MetricType): IMetricsList {
+      list = list.filter((metrics) => metrics.type === type );
+      if (list.length <= 0) {
+         throw new Error(`No metrics of type ${type}`);
+      } else if (list.length > 1) {
+         throw new Error(`Too many (${list.length}) IMetricsLists with type ${type}`);
       }
-      throw new Error(`Bad Metric Type: ${type}`);
+      return list[0];
    }
 
    private static childProcessTypeToString(type?: ChildProgramType): string {
-      return type === ChildProgramType.CAPTURE ? "capture" : "replay";
+      switch (type) {
+         case ChildProgramType.CAPTURE:
+            return "capture";
+         case ChildProgramType.REPLAY:
+            return "replay";
+         default:
+            throw new Error(`Bad Metric Type: ${type}`);
+      }
    }
 
    private static getTimeFromKey(key: string): number {
@@ -83,7 +90,7 @@ export class MetricsStorage {
     * @param childProgram The program in quesiton.
     * @param metricType The desired metric type. If undefined or null, all are returned.
     */
-   public readMetrics(childProgram: IChildProgram, metricType?: MetricType | undefined | null):
+   public readMetrics(childProgram: IChildProgram, metricType?: MetricType | null):
          Promise<IMetricsList | IMetricsList[]> {
 
       switch (childProgram.status) {
@@ -122,8 +129,12 @@ export class MetricsStorage {
       let metrics: IMetricsList[];
       const doneKey = MetricsStorage.getDoneMetricsKey(childProgram);
 
-      if (!await this.backend.exists(doneKey)) {
+      const isDone = await this.backend.exists(doneKey);
+      if (isDone) {
+         logger.info("reading full metrics file");
+         metrics = await this.backend.readJson<IMetricsList[]>(doneKey);
 
+      } else {
          logger.info("getting updated metrics");
          const result = await this.getUpdatedMetrics(childProgram);
          const date = result[1];
@@ -141,25 +152,17 @@ export class MetricsStorage {
             await this.deleteInProgressAndDepot(childProgram);
 
          }
-
-      } else {
-         logger.info("reading full metrics file");
-         metrics = await this.backend.readJson<IMetricsList[]>(doneKey);
-
       }
 
       if (!metricType) {
          return metrics;
       }
 
-      for (const metric of metrics) {
-         if (metric.type === metricType) {
-            return metric;
-         }
+      try {
+         return MetricsStorage.getSpecificMetricFromList(metrics, metricType);
+      } catch (e) {
+         throw new Error(`No metrics for type ${metricType}`);
       }
-
-      throw new Error(`No metrics for type ${metricType}`);
-
    }
 
    /**
