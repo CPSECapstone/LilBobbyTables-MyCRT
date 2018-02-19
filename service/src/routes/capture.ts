@@ -101,8 +101,6 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
-         const captureEnv = await environmentDao.getEnvironmentFull(request.body.envId);
-
          const captureTemplate: ICapture = {
             type: ChildProgramType.CAPTURE,
             status: ChildProgramStatus.STARTED, // no scheduled captures yet
@@ -112,7 +110,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          const capture = await captureDao.makeCapture(captureTemplate);
 
          logger.info(`Launching capture with id ${capture!.id!}`);
-         const config = new CaptureConfig(capture!.id!, captureEnv);
+         const config = new CaptureConfig(capture!.id!);
          config.mock = settings.captures.mock;
          config.interval = settings.captures.interval;
          config.intervalOverlap = settings.captures.intervalOverlap;

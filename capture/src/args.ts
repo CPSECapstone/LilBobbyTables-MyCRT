@@ -60,7 +60,7 @@ export class CaptureConfig extends Config {
          throw new Error("No id was provided for the capture");
       }
 
-      const config = new CaptureConfig(options.id, null);
+      const config = new CaptureConfig(options.id);
       config.mock = options.mock;
       config.interval = options.interval;
       config.intervalOverlap = options.intervalOverlap;
@@ -74,12 +74,10 @@ export class CaptureConfig extends Config {
    public interval: number = optionInterval.defaultValue;
    public intervalOverlap: number = optionIntervalOverlap.defaultValue;
    public supervised: boolean = optionSupervised.defaultValue;
-   public env: IEnvironmentFull | null;
 
-   constructor(id: number, env: IEnvironmentFull | null) {
+   constructor(id: number) {
       super();
       this.id = id;
-      this.env = env;
    }
 
    protected getOptionsMap(): Array<[OptionDefinition, any]> {
@@ -91,5 +89,4 @@ export class CaptureConfig extends Config {
          [optionSupervised, this.supervised],
       ];
    }
-
 }

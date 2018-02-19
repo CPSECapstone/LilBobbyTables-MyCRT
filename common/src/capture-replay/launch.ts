@@ -5,7 +5,7 @@ import { defaultLogger, noopLogger } from '../logging';
 
 const logger = defaultLogger(__dirname);
 
-export const launch = (id: string, cmd: string, args: string[], env: IEnvironmentFull | null) => {
+export const launch = (id: string, cmd: string, args: string[]) => {
 
    logger.info(`launching ${cmd}`);
    logger.info(`   ${cmd} ${args.join(' ')}`);
