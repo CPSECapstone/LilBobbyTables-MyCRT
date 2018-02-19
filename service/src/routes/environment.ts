@@ -51,6 +51,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             host: request.body.host,
             user: request.body.user,
             pass: request.body.pass,
+            parameterGroup: request.body.parameterGroup,
          };
 
          iamReference = await environmentDao.makeIamReference(iamReference);
