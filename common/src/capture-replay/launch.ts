@@ -1,10 +1,11 @@
 import * as child_process from 'child_process';
 
+import { IEnvironmentFull } from '../data';
 import { defaultLogger, noopLogger } from '../logging';
 
 const logger = defaultLogger(__dirname);
 
-export const launch = (id: string, cmd: string, args: string[]) => {
+export const launch = (id: string, cmd: string, args: string[], env: IEnvironmentFull | null) => {
 
    logger.info(`launching ${cmd}`);
    logger.info(`   ${cmd} ${args.join(' ')}`);
