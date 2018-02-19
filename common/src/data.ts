@@ -40,6 +40,20 @@ export interface IEnvironment {
    s3Id?: number;
 }
 
+export interface IEnvironmentFull {
+   id?: number;
+   envName?: string;
+   accessKey?: string;
+   secretKey?: string;
+   region?: string;
+   dbName?: string;
+   host?: string;
+   user?: string;
+   pass?: string;
+   parameterGroup?: string;
+   bucket?: string;
+}
+
 /** IAM Profile */
 export interface IIamReference {
    id?: number;
@@ -55,6 +69,7 @@ export interface IDbReference {
    host?: string;
    user?: string;
    pass?: string;
+   parameterGroup?: string;
 }
 
 /** S3 Reference */

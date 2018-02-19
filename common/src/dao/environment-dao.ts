@@ -17,6 +17,17 @@ export class EnvironmentDao extends Dao {
       return this.rowToIEnvironment(rows[0]);
    }
 
+   public async getEnvironmentFull(id: number): Promise<data.IEnvironmentFull | null> {
+      const slct1 = 'SELECT e.name as envName, d.name as dbName, host, user, pass, parameterGroup, ';
+      const slct2 = 'bucket, accessKey, secretKey, region ';
+      const from1 = 'FROM Environment AS e JOIN DBReference as d on e.dbId = d.id ';
+      const from2 = 'JOIN S3Reference as s on e.S3Id = s.id JOIN IAMReference as i on e.iamId = i.id ';
+      const where = 'WHERE e.id = ?';
+
+      const rows = await this.query<any[]>(slct1.concat(slct2).concat(from1).concat(from1).concat(where), [id]);
+      return this.rowToIEnvironmentFull(rows[0]);
+   }
+
    public async makeEnvironment(environment: data.IEnvironment): Promise<data.IEnvironment | null> {
       const row = await this.query<any>('INSERT INTO Environment SET ?', environment);
       return await this.getEnvironment(row.insertId);
@@ -65,6 +76,22 @@ export class EnvironmentDao extends Dao {
          iamId: row.iamId,
          dbId: row.dbId,
          s3Id: row.s3Id,
+      };
+   }
+
+   private rowToIEnvironmentFull(row: any): data.IEnvironmentFull {
+      return {
+         id: row.id,
+         envName: row.envName,
+         accessKey: row.accessKey,
+         secretKey: row.secretKey,
+         region: row.region,
+         dbName: row.dbName,
+         host: row.host,
+         user: row.user,
+         pass: row.pass,
+         parameterGroup: row.parameterGroup,
+         bucket: row.bucket,
       };
    }
 
