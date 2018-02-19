@@ -110,7 +110,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          const capture = await captureDao.makeCapture(captureTemplate);
 
          logger.info(`Launching capture with id ${capture!.id!}`);
-         const config = new CaptureConfig(capture!.id!);
+         const config = new CaptureConfig(capture!.id!, request.body.envId);
          config.mock = settings.captures.mock;
          config.interval = settings.captures.interval;
          config.intervalOverlap = settings.captures.intervalOverlap;

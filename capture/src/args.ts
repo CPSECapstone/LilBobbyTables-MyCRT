@@ -16,6 +16,12 @@ export const optionId: OptionDefinition = {
    description: "The id of this capture, used to communicate with the MyCRT DB and S3 [bold]{REQUIRED}",
 };
 
+export const optionEnvId: OptionDefinition = {
+   name: 'envId',
+   type: Number,
+   description: "The id of the associated environment of this capture",
+};
+
 export const optionMock: OptionDefinition = {
    name: 'mock',
    alias: 'm',
@@ -48,7 +54,7 @@ export const optionSupervised: OptionDefinition = {
    description: "Whether or not this capture is supervised by the MyCRT service",
 };
 
-export const captureOptions: OptionDefinition[] = [optionId, optionMock, optionInterval,
+export const captureOptions: OptionDefinition[] = [optionId, optionEnvId, optionMock, optionInterval,
    optionIntervalOverlap, optionSupervised];
 
 export class CaptureConfig extends Config {
@@ -60,7 +66,11 @@ export class CaptureConfig extends Config {
          throw new Error("No id was provided for the capture");
       }
 
-      const config = new CaptureConfig(options.id);
+      if (!options.envId) {
+         throw new Error("No envId was provided for the capture");
+      }
+
+      const config = new CaptureConfig(options.id, options.envId);
       config.mock = options.mock;
       config.interval = options.interval;
       config.intervalOverlap = options.intervalOverlap;
@@ -70,19 +80,22 @@ export class CaptureConfig extends Config {
    }
 
    public id: number;
+   public envId: number;
    public mock: boolean = optionMock.defaultValue;
    public interval: number = optionInterval.defaultValue;
    public intervalOverlap: number = optionIntervalOverlap.defaultValue;
    public supervised: boolean = optionSupervised.defaultValue;
 
-   constructor(id: number) {
+   constructor(id: number, envId: number) {
       super();
       this.id = id;
+      this.envId = envId;
    }
 
    protected getOptionsMap(): Array<[OptionDefinition, any]> {
       return [
          [optionId, this.id],
+         [optionEnvId, this.envId],
          [optionMock, this.mock],
          [optionInterval, this.interval],
          [optionIntervalOverlap, this.intervalOverlap],
