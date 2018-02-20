@@ -48,9 +48,12 @@ CREATE TABLE Capture (
 
 CREATE TABLE Replay (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+   captureId INT(11),
    name VARCHAR(32),
    start DATETIME,
    end DATETIME,
    status VARCHAR(32),
-   captureId INT(11) REFERENCES Capture(id)
+   CONSTRAINT capKey
+      FOREIGN KEY (captureId)
+      REFERENCES Capture(id) ON DELETE CASCADE
 );
