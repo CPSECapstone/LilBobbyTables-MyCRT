@@ -21,22 +21,25 @@ async function runCapture(): Promise<void> {
    const env = await environmentDao.getEnvironmentFull(1);
 
    if (env) {
-      logger.info("yeet thie instanc eis " + env.instance);
       logger.info("Configuring MyCRT Capture Program");
       const config = CaptureConfig.fromCmdArgs();
       logger.info(config.toString());
 
       const buildCapture = (): Capture => {
-         const storage = new S3Backend(new S3(), env.bucket);
-         const metrics = new CloudWatchMetricsBackend(new CloudWatch({region: 'us-east-2'}), DBIdentifier,
-            'nfl2015', 60, ['Maximum']);
-         return new Capture(config, storage, metrics);
+         const storage = new S3Backend(
+            new S3({region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey}), env.bucket,
+         );
+         const metrics = new CloudWatchMetricsBackend(
+            new CloudWatch({region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey}),
+            DBIdentifier, env.instance, 60, ['Maximum'],
+         );
+         return new Capture(config, storage, metrics, env);
       };
 
       const buildMockCapture = (): Capture => {
          const storage = new LocalBackend(getSandboxPath());
          const metrics = new MockMetricsBackend(5);
-         return new Capture(config, storage, metrics);
+         return new Capture(config, storage, metrics, env);
       };
 
       const capture = config.mock ? buildMockCapture() : buildCapture();
