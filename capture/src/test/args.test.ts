@@ -6,9 +6,10 @@ import * as args from '../args';
 describe("CaptureConfig", () => {
 
    it("should make the correct option arguments", () => {
-      const config = new args.CaptureConfig(8);
+      const config = new args.CaptureConfig(8, 1);
       const expected = [
          `--${args.optionId.name}`, '8',
+         `--${args.optionEnvId.name}`, '1',
          `--${args.optionInterval.name}`, `${args.optionInterval.defaultValue}`,
          `--${args.optionIntervalOverlap.name}`, `${args.optionIntervalOverlap.defaultValue}`,
          `--${args.optionSupervised.name}`,

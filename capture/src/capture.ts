@@ -4,7 +4,7 @@ import { setTimeout } from 'timers';
 import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-mycrt/common';
 import { MetricsBackend } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
-import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
@@ -16,11 +16,15 @@ const logger = Logging.defaultLogger(__dirname);
 
 export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
+   public env: IEnvironmentFull;
    private ipcNode: IpcNode;
 
-   constructor(public config: CaptureConfig, storage: StorageBackend, metrics: MetricsBackend) {
+   constructor(public config: CaptureConfig, storage: StorageBackend, metrics: MetricsBackend,
+      env: IEnvironmentFull) {
+
       super(storage, metrics);
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
+      this.env = env;
    }
 
    get id(): number {
@@ -56,9 +60,9 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          await this.ipcNode.start();
 
          // TODO: abstract Rds communication and make synchronous
-         if (!this.config.mock) {
+         if (!this.config.mock && this.env) {
             logger.info(`Starting RDS logging`);
-            await startRdsLogging();
+            await startRdsLogging(this);
          }
 
          logger.info(`Setting Capture ${this.id} startTime = ${this.startTime!.toJSON()}`);
@@ -96,9 +100,9 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          await captureDao.updateCaptureEndTime(this.id);
 
          // TODO: abstract rds communication
-         if (!this.config.mock) {
+         if (!this.config.mock && this.env) {
             logger.info("save workload");
-            const s3res = await stopRdsLoggingAndUploadToS3();
+            const s3res = await stopRdsLoggingAndUploadToS3(this);
             logger.info(`Got S3 location!: ${s3res}`);
          }
 
@@ -137,9 +141,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          } else {
             logger.error(`Failed to get metrics the second time: ${error}`);
             // TODO: mark capture as broken?
-
          }
       }
    }
-
 }

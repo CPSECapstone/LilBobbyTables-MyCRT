@@ -24,6 +24,7 @@ CREATE TABLE DBReference (
    host VARCHAR(64),
    user VARCHAR(32),
    pass VARCHAR(64), -- must be encrypted
+   instance VARCHAR(32),
    parameterGroup VARCHAR(32)
 );
 

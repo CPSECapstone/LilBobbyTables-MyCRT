@@ -17,6 +17,17 @@ export class EnvironmentDao extends Dao {
       return this.rowToIEnvironment(rows[0]);
    }
 
+   public async getEnvironmentFull(id: number): Promise<data.IEnvironmentFull | null> {
+      const slct1 = 'SELECT e.name AS envName, d.name AS dbName, host, user, pass, instance, ';
+      const slct2 = 'parameterGroup, bucket, accessKey, secretKey, region ';
+      const from1 = 'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ';
+      const from2 = 'JOIN S3Reference AS s ON e.S3Id = s.id JOIN IAMReference AS i ON e.iamId = i.id ';
+      const where = 'WHERE e.id = ?';
+
+      const rows = await this.query<any[]>(slct1.concat(slct2).concat(from1).concat(from2).concat(where), [id]);
+      return this.rowToIEnvironmentFull(rows[0]);
+   }
+
    public async makeEnvironment(environment: data.IEnvironment): Promise<data.IEnvironment | null> {
       const row = await this.query<any>('INSERT INTO Environment SET ?', environment);
       return await this.getEnvironment(row.insertId);
@@ -24,6 +35,10 @@ export class EnvironmentDao extends Dao {
 
    public async deleteEnvironment(id: number): Promise<data.ICapture> {
       return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
+   }
+
+   public async editEnvironment(id: number, changes: data.IEnvironment): Promise<data.IEnvironment | null> {
+      return this.query<any>('UPDATE Environment SET ? WHERE id = ?', [changes, id]);
    }
 
    public async getIamReference(id: number): Promise<data.IIamReference> {
@@ -63,6 +78,23 @@ export class EnvironmentDao extends Dao {
          iamId: row.iamId,
          dbId: row.dbId,
          s3Id: row.s3Id,
+      };
+   }
+
+   private rowToIEnvironmentFull(row: any): data.IEnvironmentFull {
+      return {
+         id: row.id,
+         envName: row.envName,
+         accessKey: row.accessKey,
+         secretKey: row.secretKey,
+         region: row.region,
+         dbName: row.dbName,
+         host: row.host,
+         user: row.user,
+         pass: row.pass,
+         instance: row.instance,
+         parameterGroup: row.parameterGroup,
+         bucket: row.bucket,
       };
    }
 
