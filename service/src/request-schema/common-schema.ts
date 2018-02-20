@@ -48,6 +48,9 @@ export const value = {
    // Must be a number
    envId: joi.number(),
 
+   // TODO
+   instance: joi.string(),
+
 };
 
 export const idParams: joi.ObjectSchema = joi.object().keys({

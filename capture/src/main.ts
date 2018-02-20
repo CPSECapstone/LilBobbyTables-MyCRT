@@ -21,13 +21,14 @@ async function runCapture(): Promise<void> {
    const env = await environmentDao.getEnvironmentFull(1);
 
    if (env) {
+      logger.info("yeet thie instanc eis " + env.instance);
       logger.info("Configuring MyCRT Capture Program");
       const config = CaptureConfig.fromCmdArgs();
       logger.info(config.toString());
 
       const buildCapture = (): Capture => {
          const storage = new S3Backend(new S3(), env.bucket);
-         const metrics = new CloudWatchMetricsBackend(new CloudWatch({region: 'us-east-2'}), 'DBInstanceIdentifier',
+         const metrics = new CloudWatchMetricsBackend(new CloudWatch({region: 'us-east-2'}), DBIdentifier,
             'nfl2015', 60, ['Maximum']);
          return new Capture(config, storage, metrics);
       };

@@ -50,6 +50,7 @@ export interface IEnvironmentFull {
    host: string;
    user: string;
    pass: string;
+   instance: string;
    parameterGroup: string;
    bucket: string;
 }
@@ -69,6 +70,7 @@ export interface IDbReference {
    host?: string;
    user?: string;
    pass?: string;
+   instance?: string;
    parameterGroup?: string;
 }
 

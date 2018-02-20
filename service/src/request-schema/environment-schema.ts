@@ -12,6 +12,7 @@ export const environmentBody: joi.ObjectSchema = joi.object().keys({
    host: value.host.required(),
    user: value.user.required(),
    pass: value.password.required(),
+   instance: value.instance.required(),
    parameterGroup: value.parameterGroup.required(),
 });
 
