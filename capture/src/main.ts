@@ -18,6 +18,7 @@ const DBIdentifier: string = 'DBInstanceIdentifier';
 async function runCapture(): Promise<void> {
    const logger = Logging.defaultLogger(__dirname);
 
+   // TODO remove the hardcoding of environment id
    const env = await environmentDao.getEnvironmentFull(1);
 
    if (env) {

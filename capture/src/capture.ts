@@ -35,14 +35,6 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       return this.config.interval;
    }
 
-   get storage(): StorageBackend {
-      return this.storage;
-   }
-
-   get metrics(): MetricsBackend {
-      return this.metrics;
-   }
-
    public async onStop(): Promise<any> {
       logger.info(`Capture ${this.id} received stop signal!`);
       this.stop(true);
