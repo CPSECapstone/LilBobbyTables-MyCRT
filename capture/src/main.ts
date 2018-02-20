@@ -18,14 +18,12 @@ const DBIdentifier: string = 'DBInstanceIdentifier';
 async function runCapture(): Promise<void> {
    const logger = Logging.defaultLogger(__dirname);
 
-   // TODO remove the hardcoding of environment id
-   const env = await environmentDao.getEnvironmentFull(1);
+   logger.info("Configuring MyCRT Capture Program");
+   const config = CaptureConfig.fromCmdArgs();
+   logger.info(config.toString());
 
+   const env = await environmentDao.getEnvironmentFull(config.envId);
    if (env) {
-      logger.info("Configuring MyCRT Capture Program");
-      const config = CaptureConfig.fromCmdArgs();
-      logger.info(config.toString());
-
       const buildCapture = (): Capture => {
          const storage = new S3Backend(
             new S3({region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey}), env.bucket,
