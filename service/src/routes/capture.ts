@@ -8,7 +8,7 @@ import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
-import { captureDao } from '../dao/mycrt-dao';
+import { captureDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
@@ -64,6 +64,17 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const result = await storage.readMetrics(capture!, type);
          response.json(result);
+
+      }));
+
+      this.router.get('/:id(\\d+)/replays', check.validParams(schema.idParams),
+            this.handleHttpErrors(async (request, response) => {
+
+         const id = request.params.id;
+
+         logger.info(`Getting all replays for capture ${id}`);
+         const replays = await replayDao.getReplaysForCapture(id);
+         response.json(replays);
 
       }));
 
@@ -124,9 +135,26 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
+         const deleteLogs: boolean | undefined = request.query.deleteLogs;
+
+         if (deleteLogs === true) {
+
+            // TODO: get bucket name from the environment. Still need to test
+            const s3Storage = new S3Backend(new S3(), 'lil-test-environment');
+            const key = "capture" + id + "/workload.json";
+
+            // Delete the capture's workload.json from S3
+            if (await s3Storage.exists(key)) {
+               await s3Storage.deleteJson(key);
+            }
+
+            // TODO: Delete the associated replay folders???
+         }
+
          const capture = await captureDao.deleteCapture(id);
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);

@@ -22,7 +22,18 @@ export class EnvironmentDao extends Dao {
       return await this.getEnvironment(row.insertId);
    }
 
-   public async deleteEnvironment(id: number): Promise<data.ICapture> {
+   public async deleteEnvironment(id: number): Promise<data.IEnvironment> {
+      const environment = await this.getEnvironment(id);
+
+      if (environment !== null) {
+         // Remove stored DB, S3, and IAM references associated with the environment
+         await this.deleteDbReference(environment.dbId);
+         await this.deleteIamReference(environment.iamId);
+         await this.deleteS3Reference(environment.s3Id);
+         // Delete captures associated with the environment
+         await this.query<any[]>('DELETE FROM Capture WHERE envId = ?', [id]);
+      }
+
       return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
    }
 
@@ -36,6 +47,10 @@ export class EnvironmentDao extends Dao {
       return await this.getIamReference(row.insertId);
    }
 
+   public async deleteIamReference(id: number | undefined): Promise<data.IIamReference | null> {
+      return (id ? this.query<any>('DELETE FROM IAMReference WHERE id = ?', [id]) : null);
+   }
+
    public async getS3Reference(id: number): Promise<data.IS3Reference> {
       const rows = await this.query<any[]>('SELECT * FROM S3Reference WHERE id = ?', [id]);
       return this.rowToIS3Reference(rows[0]);
@@ -46,6 +61,10 @@ export class EnvironmentDao extends Dao {
       return await this.getS3Reference(row.insertId);
    }
 
+   public async deleteS3Reference(id: number | undefined): Promise<data.IS3Reference | null> {
+      return (id ? this.query<any>('DELETE FROM S3Reference WHERE id = ?', [id]) : null);
+   }
+
    public async getDbReference(id: number): Promise<data.IDbReference> {
       const rows = await this.query<any[]>('SELECT * FROM DBReference WHERE id = ?', [id]);
       return this.rowToIDbReference(rows[0]);
@@ -54,6 +73,10 @@ export class EnvironmentDao extends Dao {
    public async makeDbReference(dbRef: data.IDbReference): Promise<data.IDbReference> {
       const row = await this.query<any>('INSERT INTO DBReference SET ?', dbRef);
       return await this.getDbReference(row.insertId);
+   }
+
+   public async deleteDbReference(id: number | undefined): Promise<data.IDbReference | null> {
+      return (id ? this.query<any>('DELETE FROM DBReference WHERE id = ?', [id]) : null);
    }
 
    private rowToIEnvironment(row: any): data.IEnvironment {

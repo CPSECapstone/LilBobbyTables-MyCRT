@@ -70,9 +70,17 @@ export default class EnvironmentRouter extends SelfAwareRouter {
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
+         const deleteLogs: boolean | undefined = request.query.deleteLogs;
+
+         if (deleteLogs === true) {
+            // TODO: Implement. Delete S3 bucket associated with environment
+            throw new Error("Deleting environment bucket not implemented.");
+         }
+
          const environment = await environmentDao.deleteEnvironment(id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
