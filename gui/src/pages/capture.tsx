@@ -30,8 +30,15 @@ class CaptureApp extends React.Component<any, any> {
             if (match) {
                   id = match[1];
             }
+            let envId: any = null;
+            const envMatch = window.location.search.match(/.*\?.*envId=(\d+)/);
+            if (envMatch) {
+                  envId = envMatch[1];
+            }
 
             this.state = {
+                  envId,
+                  env: null,
                   captureId: id,
                   capture: null,
                   allReplays: [],
@@ -42,6 +49,11 @@ class CaptureApp extends React.Component<any, any> {
       }
 
       public async componentWillMount() {
+            if (this.state.envId) {
+                  this.setState({
+                        env: await mycrt.getEnvironment(this.state.envId),
+                  });
+            }
             if (this.state.captureId) {
                   this.setState({
                         capture: await mycrt.getCapture(this.state.captureId),
@@ -71,12 +83,12 @@ class CaptureApp extends React.Component<any, any> {
       public updateGraphs(checked: boolean, value: IMetricsList) {
           if (checked) {
             this.setState((prevState: any) => ({
-                selectedGraphs: [...prevState.selectedGraphs, value],
+                selectedGraphs: [value, ...prevState.selectedGraphs],
             }));
           } else {
             this.setState({
                 selectedGraphs: this.state.selectedGraphs.filter( (graph: IMetricsList) => {
-                  return graph.type !== value.type;
+                  return graph !== value;
                 }),
             });
           }
@@ -96,10 +108,12 @@ class CaptureApp extends React.Component<any, any> {
                         <nav>
                               <ol className="breadcrumb">
                                     <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
-                  <li className="breadcrumb-item"><a href="./dashboard">Dashboard</a></li>
-                  <li className="breadcrumb-item active">{ this.state.capture.name }</li>
-               </ol>
-            </nav>
+                                    <li className="breadcrumb-item">
+                                          <a href={`./dashboard?id=${this.state.envId}`}>{this.state.env.name}</a>
+                                    </li>
+                                    <li className="breadcrumb-item active">{this.state.capture.name}</li>
+                              </ol>
+                        </nav>
 
             <div className="container">
                <div className="row">
@@ -125,8 +139,7 @@ class CaptureApp extends React.Component<any, any> {
                         <div className="page-header">
                            <h2>Replays</h2>
                         </div>
-                        <div className="card-columns">
-                        </div>
+                        <div className="card-columns"></div>
                      </div>
                   </div>
                </div>

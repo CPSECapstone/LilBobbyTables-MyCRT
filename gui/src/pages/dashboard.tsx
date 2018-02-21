@@ -16,11 +16,16 @@ import { mycrt } from './utils/mycrt-client'; // client for interacting with the
 
 class DashboardApp extends React.Component<any, any> {
 
-   public constructor(props: any) {
-      super(props);
-      this.componentWillMount = this.componentWillMount.bind(this);
-      this.state = {captures: [], replays: []};
-   }
+    public constructor(props: any) {
+        super(props);
+        this.componentWillMount = this.componentWillMount.bind(this);
+        let id: any = null;
+        const match = window.location.search.match(/.*\?.*id=(\d+)/);
+        if (match) {
+            id = match[1];
+        }
+        this.state = { envId: id, env: null, captures: [], replays: [] };
+    }
 
    public async setCaptures() {
        const capturesResponse = await mycrt.getCaptures();
@@ -41,11 +46,17 @@ class DashboardApp extends React.Component<any, any> {
     }
 
     public async componentWillMount() {
+        if (this.state.envId) {
+            this.setState({
+                  env: await mycrt.getEnvironment(this.state.envId),
+            });
+        }
         this.setCaptures();
         this.setReplays();
     }
 
     public render() {
+        if (!this.state.env) { return (<div></div>); }
         const liveCaptures: JSX.Element[] = [];
         const pastCaptures: JSX.Element[] = [];
         if (this.state.captures) {
@@ -55,12 +66,12 @@ class DashboardApp extends React.Component<any, any> {
                     name = `capture ${capture.id}`;
                 }
                 if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE) {
-                    pastCaptures.push((<CapturePanel title={name} capture={capture} />));
+                    pastCaptures.push((<CapturePanel title={name} capture={capture} envId = {this.state.envId} />));
                 } else {
-                liveCaptures.push((<CapturePanel title={name} capture={capture} />));
+                    liveCaptures.push((<CapturePanel title={name} capture={capture} envId = {this.state.envId}/>));
+                }
             }
-         }
-      }
+        }
       const liveReplays: JSX.Element[] = [];
       const pastReplays: JSX.Element[] = [];
       if (this.state.replays) {
@@ -74,9 +85,11 @@ class DashboardApp extends React.Component<any, any> {
                 captureObj = this.state.captures.find((item: IChildProgram) => item.id === replay.captureId);
             }
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
-                pastReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
+                pastReplays.push((<ReplayPanel title={name} replay={replay}
+                    capture={captureObj} envId = {this.state.envId}/>));
             } else {
-                liveReplays.push((<ReplayPanel title={name} replay={replay} capture={captureObj}/>));
+                liveReplays.push((<ReplayPanel title={name} replay={replay}
+                    capture={captureObj} envId = {this.state.envId}/>));
             }
          }
       }
@@ -85,14 +98,14 @@ class DashboardApp extends React.Component<any, any> {
             <nav>
                <ol className="breadcrumb">
                   <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
-                  <li className="breadcrumb-item active">Dashboard</li>
+                  <li className="breadcrumb-item active">{this.state.env.name}</li>
                </ol>
             </nav>
 
             <div className="container">
                <div className="row">
                   <div className="col-xs-12">
-                     <h1>Environment Dashboard</h1>
+                     <h1>{this.state.env.name}</h1>
                   </div>
                </div>
                <br></br>
@@ -104,7 +117,7 @@ class DashboardApp extends React.Component<any, any> {
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
-                        <CaptureModal id="captureModal" update={this.componentWillMount}/>
+                        <CaptureModal id="captureModal" envId={this.state.envId} update={this.componentWillMount}/>
                      </div>
                      <br></br>
                      {liveCaptures.length === 0 ? null : <h4>Live</h4>}
@@ -121,7 +134,8 @@ class DashboardApp extends React.Component<any, any> {
                             data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
-                        <ReplayModal id="replayModal" captures={this.state.captures} update={this.componentWillMount}/>
+                        <ReplayModal id="replayModal" captures={this.state.captures}
+                            envId = {this.state.envId} update={this.componentWillMount}/>
                      </div>
                      <br></br>
                      {liveReplays.length === 0 ? null : <h4>Live</h4>}

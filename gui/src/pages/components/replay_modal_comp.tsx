@@ -27,7 +27,7 @@ export class ReplayModal extends React.Component<any, any>  {
             return;
         }
         const replayObj = await mycrt.startReplay({type: ChildProgramType.REPLAY,
-            captureId: this.state.captureId, name: this.state.replayName });
+            captureId: this.state.captureId, name: this.state.replayName, envId: this.props.envId });
         if (!replayObj) {
             logger.error("Could not start replay");
         } else {

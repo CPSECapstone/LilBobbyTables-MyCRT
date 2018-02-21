@@ -29,7 +29,7 @@ export class CaptureModal extends React.Component<any, any>  {
             $('#captureWarning').show();
             return;
         }
-        const captureObj = await mycrt.startCapture({ name: this.state.captureName });
+        const captureObj = await mycrt.startCapture({name: this.state.captureName, envId: this.props.envId});
         if (!captureObj) {
             logger.error("Could not start capture");
         } else {
