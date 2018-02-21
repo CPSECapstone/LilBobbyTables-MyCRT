@@ -1,12 +1,8 @@
 import * as http from 'http-status-codes';
 
-<<<<<<< HEAD
-import { ICapture, IChildProgram, IEnvironment, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
-=======
-import { IChildProgram, IDbReference, IEnvironment, IIamReference, IMetricsList,
+import { ICapture, IChildProgram, IDbReference, IEnvironment, IIamReference, IMetricsList,
    IReplay, IS3Reference, MetricType } from '@lbt-mycrt/common/dist/data';
 
->>>>>>> master
 import { IMyCrtClientDelegate } from './client-delegate';
 
 export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELETE' }

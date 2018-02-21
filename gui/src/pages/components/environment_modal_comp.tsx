@@ -15,7 +15,8 @@ export class EnvModal extends React.Component<any, any>  {
         super(props);
         this.createEnvironment = this.createEnvironment.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "",
-                      dbName: "", host: "", user: "", pass: "", bucket: ""};
+                      dbName: "", host: "", user: "", pass: "", bucket: "",
+                      instance: "", parameterGroup: ""};
 
         $(document).ready(() => {
             $('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
@@ -44,7 +45,8 @@ export class EnvModal extends React.Component<any, any>  {
     public allFieldsFilled() {
         return this.state.envName !== "" && this.state.accessKey !== "" && this.state.secretKey !== ""
             && this.state.region !== "" && this.state.host !== "" && this.state.user !== ""
-            && this.state.dbName !== "" && this.state.pass !== "" && this.state.bucket !== "";
+            && this.state.dbName !== "" && this.state.pass !== "" && this.state.bucket !== ""
+            && this.state.instance !== "" && this.state.parameterGroup !== "";
     }
 
     public async createEnvironment() {
@@ -53,7 +55,13 @@ export class EnvModal extends React.Component<any, any>  {
             $('#envWarning').show();
             return;
         }
-        const envObj = await mycrt.createEnvironment(this.state);
+        const envObj = await mycrt.createEnvironment(
+            {name: this.state.envName},
+            {accessKey: this.state.accessKey, secretKey: this.state.secretKey,
+            region: this.state.region},
+            {host: this.state.host, user: this.state.user, name: this.state.dbName,
+            pass: this.state.pass, instance: this.state.instance, parameterGroup: this.state.parameterGroup},
+            {bucket: this.state.bucket});
         if (!envObj) {
             logger.error("Could not create environment");
         } else {
@@ -135,6 +143,12 @@ export class EnvModal extends React.Component<any, any>  {
                                         <label>DB Reference</label>
                                         <input className="form-control input-lg" placeholder="Enter DB Name"
                                             value={this.state.dbName} id="dbName"
+                                            onChange={this.handleInputChange.bind(this)}/> <br/>
+                                        <input className="form-control input-lg" placeholder="Enter Instance"
+                                            value={this.state.instance} id="instance"
+                                            onChange={this.handleInputChange.bind(this)}/> <br/>
+                                        <input className="form-control input-lg" placeholder="Enter Parameter Group"
+                                            value={this.state.parameterGroup} id="parameterGroup"
                                             onChange={this.handleInputChange.bind(this)}/> <br/>
                                         <input className="form-control input-lg" placeholder="Enter Host"
                                             value={this.state.host} id="host"
