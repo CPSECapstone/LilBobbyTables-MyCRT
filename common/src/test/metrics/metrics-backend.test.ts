@@ -98,10 +98,10 @@ describe("MetricsBackend", () => {
    it("should read all capture metrics", async () => {
       const result = await metrics.readMetrics(c1) as IMetricsList[];
       expect(result.length).to.equal(4);
-      const cpu = MetricsStorage.specificMetricFromList(result, MetricType.CPU);
-      const read = MetricsStorage.specificMetricFromList(result, MetricType.READ);
-      const write = MetricsStorage.specificMetricFromList(result, MetricType.WRITE);
-      const memory = MetricsStorage.specificMetricFromList(result, MetricType.MEMORY);
+      const cpu = MetricsStorage.getSpecificMetricFromList(result, MetricType.CPU);
+      const read = MetricsStorage.getSpecificMetricFromList(result, MetricType.READ);
+      const write = MetricsStorage.getSpecificMetricFromList(result, MetricType.WRITE);
+      const memory = MetricsStorage.getSpecificMetricFromList(result, MetricType.MEMORY);
       expect(cpu.type).to.equal(MetricType.CPU);
       expect(read.type).to.equal(MetricType.READ);
       expect(write.type).to.equal(MetricType.WRITE);

@@ -27,7 +27,7 @@ export class ReplayDao extends Dao {
    }
 
    public async deleteReplay(id: number): Promise<data.IReplay> {
-      return this.query<any>('DELETE r.* from Replay r where r.id = ?', [id]);
+      return this.query<any>('DELETE FROM Replay WHERE id = ?' , [id]);
    }
 
    public updateReplayStatus(id: number, status: data.ChildProgramStatus): Promise<void> {

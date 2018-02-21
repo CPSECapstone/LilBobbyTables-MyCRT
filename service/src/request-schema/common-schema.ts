@@ -40,6 +40,17 @@ export const value = {
    // TODO
    password: joi.string(),
 
+   // TODO
+   // Must start with a letter and only contain letters, digits, or hyphens (NO CONSECUTIVE HYPENS)
+   parameterGroup: joi.string(),
+
+   // TODO
+   // Must be a number
+   envId: joi.number(),
+
+   // TODO
+   instance: joi.string(),
+
 };
 
 export const idParams: joi.ObjectSchema = joi.object().keys({
