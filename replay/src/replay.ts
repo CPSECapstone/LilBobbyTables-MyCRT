@@ -1,6 +1,6 @@
 import mysql = require('mysql');
 
-import { IpcNode, IReplayIpcNodeDelegate, Logging, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
+import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
 import { MetricsBackend } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
@@ -8,26 +8,26 @@ import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { ReplayConfig } from './args';
-import { replayDao } from './dao';
+import { captureDao, replayDao } from './dao';
 
 const logger = Logging.defaultLogger(__dirname);
 
 export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    public static getWorkloadForCapture(id: number) {
-      // return Replay.queryDatabase("SELECT workload from Capture WHERE id = ?", [id]);
       // this is hardcoded for now
-      return "nfllogbucket/mylog.json";
+      // TODO: get bucket name from environment
+      return `capture${id}/workload.json`;
+      // return `nfllogbucket/capture${id}/workload.json`;
    }
 
    private ipcNode: IpcNode;
    private workloadLocation?: string;
+   private capture?: ICapture;
+   private expectedEndTime?: Date;
    private workload?: [any];
    private workloadIndex: number = 0;
    private error: boolean = false;
-   private DEFAULT_INTERVAL: number = 5 * 1000;
-   private DEFAULT_METRICS_OVERLAP: number = 1 * 60 * 1000;
-   private DEFAULT_METRICS_INTERVAL: number = 5 * 60 * 1000;
 
    constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend) {
       super(storage, metrics);
@@ -39,7 +39,17 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    }
 
    get interval(): number {
-      return this.config.interval;
+
+      if (this.expectedEndTime === undefined) {
+        return this.config.interval;
+      }
+
+      const timeToEnd = this.expectedEndTime!.getTime() - Date.now();
+      if (timeToEnd < this.config.interval ) {
+         return timeToEnd;
+      } else {
+        return this.config.interval;
+      }
    }
 
    public asIChildProgram(): IChildProgram {
@@ -62,13 +72,16 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          logger.info(`Replay ${this.id}: setup`);
          this.ipcNode.start();
 
+         this.capture = await captureDao.getCapture(this.config.captureId);
+         // tslint:disable-next-line:max-line-length
+         this.expectedEndTime =  new Date(this.capture.end!.getTime() - this.capture!.start!.getTime() + this.startTime!.getTime());
+         logger.info(`EpxpectedEndTime: ${this.expectedEndTime}`);
          await this.getWorkload();
 
          await replayDao.updateReplayStatus(this.id, ChildProgramStatus.RUNNING);
 
       } catch (error) {
-         logger.error(`Failed to setup Replay: ${error}`);
-         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED);
+         this.selfDestruct(error);
       }
    }
 
@@ -76,13 +89,11 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       logger.info(`Replay ${this.id}: loop`);
 
       let finished = true;
-      const thisLoopStart = Date.now();
-      const nextLoopStart = thisLoopStart.valueOf() + this.interval;
 
-      // && this.queryInInterval(this.workloadIndex, nextLoopStart)
-      while (this.workloadIndex < this.workload!.length ) {
+      while (this.workloadIndex < this.workload!.length && this.queryInInterval(this.workloadIndex)) {
 
-         const delay = this.getDelayForIndex(this.workloadIndex, thisLoopStart);
+        logger.info(`Made it into the delay workload loop`);
+         const delay = this.getDelayForIndex(this.workloadIndex);
          const currentIndex = this.workloadIndex;
          const currentQuery = this.workload![currentIndex];
 
@@ -92,6 +103,11 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          // don't let the subprocess end because we still need to run these queries.
          finished = false;
          this.workloadIndex += 1;
+      }
+
+      if (this.workloadIndex < this.workload!.length || Date.now() < this.expectedEndTime!.getTime()) {
+        // don't let the subprocess end because we still have queries to que.
+        finished = false;
       }
 
       const end = new Date();
@@ -113,6 +129,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          await replayDao.updateReplayStatus(this.id, ChildProgramStatus.DONE);
       }
 
+      await replayDao.updateReplayEndTime(this.id);
       this.ipcNode.stop();
    }
 
@@ -126,22 +143,30 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    // queryInInterval takes the index of the query in the workload and the time
    //                 that next loop will begin in milliseconds and returns true
    //                 if the query should be scheduled for the current loop otherwise false.
-   private queryInInterval(index: number, intervalStartTime: number): boolean {
+   private queryInInterval(index: number): boolean {
 
-      const delay = this.getDelayForIndex(index, intervalStartTime);
+      const delay = this.getDelayForIndex(index);
+      logger.info(`Delay for index: ${index} is ${delay}`);
       return (delay >= 0 && delay < this.interval) ? true : false  ;
    }
 
    // getDelayForIndex takes in an index and the current interval's start time and returns the
    //                  number of milliseconds to delay from the interval's start time.
-   private getDelayForIndex(index: number, intervalStartTime: number): number {
+   private getDelayForIndex(index: number): number {
       if (this.workload == null) {
          return 0;
-      } else if (index > 0 && index < this.workload!.length) {
-         const queryStartTime: Date = new Date(this.workload![index].event_time);
-         const workloadStartTime: Date = new Date(this.workload![0].event_time);
-         const relativeQueryST = queryStartTime.getTime() - workloadStartTime.getTime() + this.startTime!.getTime();
-         const delay = relativeQueryST - intervalStartTime + (Date.now() - intervalStartTime);
+      } else if (index >= 0 && index < this.workload!.length) {
+
+         const queryStart: Date = new Date(this.workload![index].event_time);
+         logger.info(`QueryStartTime: ${queryStart}`);
+         const captureStart: Date = this.capture!.start!;
+         logger.info(`CaptureStartTime: ${captureStart}`);
+
+         const replayStart = this.startTime!;
+         logger.info(`ReplayStartTime: ${replayStart}`);
+
+         // tslint:disable-next-line:max-line-length
+         const delay = (queryStart.getTime() - captureStart.getTime()) - (Date.now().valueOf() - replayStart.getTime());
 
          return delay;
       } else {
@@ -200,6 +225,16 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
             // TODO: mark capture as broken?
 
          }
+      }
+   }
+
+   private async selfDestruct(reason: string) {
+      try {
+         logger.error(`Replay Failed with reason: ${reason}`);
+         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED);
+         await this.stop(false);
+      } catch (err) {
+         process.exit(1);
       }
    }
 }
