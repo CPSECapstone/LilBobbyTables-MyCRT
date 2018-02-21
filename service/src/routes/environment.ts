@@ -51,6 +51,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             host: request.body.host,
             user: request.body.user,
             pass: request.body.pass,
+            instance: request.body.instance,
+            parameterGroup: request.body.parameterGroup,
          };
 
          iamReference = await environmentDao.makeIamReference(iamReference);
@@ -65,6 +67,21 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          };
 
          environment = await environmentDao.makeEnvironment(environment);
+         response.json(environment!);
+
+      }));
+
+      // TODO: Figure out exactly what is allowed to be edited.
+      this.router.put('/:id(\\d+)', check.validBody(schema.environmentBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const id = request.params.id;
+
+         let environment: data.IEnvironment | null = {
+            name: request.body.envName,
+         };
+
+         environment = await environmentDao.editEnvironment(id, environment);
          response.json(environment!);
 
       }));

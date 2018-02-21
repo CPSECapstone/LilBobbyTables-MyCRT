@@ -27,6 +27,29 @@ export const time3 = "2018-01-30T02:46:00.000Z";
 export const time4 = "2018-01-30T02:47:00.000Z";
 export const time5 = "2018-01-30T02:48:00.000Z";
 
+export const metricsAllTypes: IMetricsList[] = [
+   {
+      label: "cpu",
+      type: MetricType.CPU,
+      dataPoints: [],
+   },
+   {
+      label: "memory",
+      type: MetricType.MEMORY,
+      dataPoints: [],
+   },
+   {
+      label: "read",
+      type: MetricType.READ,
+      dataPoints: [],
+   },
+   {
+      label: "write",
+      type: MetricType.WRITE,
+      dataPoints: [],
+   },
+];
+
 export const metricsA: IMetricsList[] = [
    {
       label: 'CPU label',
