@@ -24,6 +24,7 @@ export interface IChildProgram {
 
 export interface ICapture extends IChildProgram {
    type: ChildProgramType.CAPTURE;
+   envId?: number;
 }
 
 export interface IReplay extends IChildProgram {
