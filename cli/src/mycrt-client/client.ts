@@ -84,6 +84,8 @@ export class MyCrtClient {
    public async createEnvironment(environment: IEnvironment, iamRef: IIamReference,
       dbRef: IDbReference, s3Ref: IS3Reference): Promise<IEnvironment | null> {
       const body = {
+        envName: environment.name,
+        dbName: dbRef.name,
          ...iamRef,
          ...dbRef,
          ...s3Ref,

@@ -153,10 +153,10 @@ export class EnvModal extends React.Component<any, any>  {
                                         <input className="form-control input-lg" placeholder="Enter Host"
                                             value={this.state.host} id="host"
                                             onChange={this.handleInputChange.bind(this)}/> <br/>
-                                        <input className="form-control input-lg" placeholder="Enter User"
+                                        <input className="form-control input-lg" placeholder="Enter Username"
                                             value={this.state.user} id="user"
                                             onChange={this.handleInputChange.bind(this)}/> <br/>
-                                        <input className="form-control input-lg" placeholder="Enter Pass"
+                                        <input className="form-control input-lg" placeholder="Enter Password"
                                             value={this.state.pass} id="pass"
                                             onChange={this.handleInputChange.bind(this)}/>
                                     </div>
@@ -173,7 +173,7 @@ export class EnvModal extends React.Component<any, any>  {
                                     </div>
                                 </div>
                                 <div className="modal-footer">
-                                    <button className="btn btn-secondary" data-dismiss="modal" id="cancelBt"
+                                    <button className="btn btn-secondary" data-dismiss="modal" id="cancelBtn"
                                         aria-hidden="true">Close</button>
                                     <button className="btn btn-info" onClick={this.createEnvironment}>
                                         Save changes</button>
