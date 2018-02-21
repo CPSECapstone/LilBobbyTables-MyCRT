@@ -14,6 +14,8 @@ import { Capture } from './capture';
 import { environmentDao } from './dao';
 
 const DBIdentifier: string = 'DBInstanceIdentifier';
+const period: number = 60;
+const statistics: string[] = ['Maximum'];
 
 async function runCapture(): Promise<void> {
    const logger = Logging.defaultLogger(__dirname);
@@ -30,7 +32,7 @@ async function runCapture(): Promise<void> {
          );
          const metrics = new CloudWatchMetricsBackend(
             new CloudWatch({region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey}),
-            DBIdentifier, env.instance, 60, ['Maximum'],
+            DBIdentifier, env.instance, period, statistics,
          );
          return new Capture(config, storage, metrics, env);
       };

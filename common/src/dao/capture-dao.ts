@@ -49,6 +49,7 @@ export class CaptureDao extends Dao {
          start: captureData.start,
          end: captureData.end,
          status: captureData.status,
+         envId: captureData.envId,
          type: data.ChildProgramType.CAPTURE,
       };
    }
