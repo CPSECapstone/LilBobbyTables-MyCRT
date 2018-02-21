@@ -5,6 +5,6 @@ import { launch } from '../launch';
 
 describe("launch", () => {
    it("should not fail", () => {
-      launch(new CaptureConfig(123));
+      launch(new CaptureConfig(123, 1));
    });
 });

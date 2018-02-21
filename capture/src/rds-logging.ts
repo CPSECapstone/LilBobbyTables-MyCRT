@@ -1,27 +1,17 @@
-import aws = require('aws-sdk');
+import { RDS, S3 } from 'aws-sdk';
 import mysql = require('mysql');
 
-import { Logging } from '@lbt-mycrt/common';
+import { IEnvironmentFull, Logging } from '@lbt-mycrt/common';
+import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
+import { Capture } from './capture';
 
 const logger = Logging.defaultLogger(__dirname);
 
-// tslint:disable-next-line:no-var-requires
-const remoteConfig = require('../db/remoteConfig.json');
-
-aws.config.update({region: 'us-east-2'});
-const rds = new aws.RDS();
-const s3 = new aws.S3();
-
 /** Turn general logging on/off in RDS */
-const setGeneralLogging = async (on: boolean) => {
-
+const setGeneralLogging = async (on: boolean, capture: Capture) => {
    /* TODO get the aws credentials from the environment in MyCRT database*/
-   /*    aws.config(...)  */
-   /* TODO get the parameterGroup from the environment in MyCRT database*/
-
-   const parameterGroup: string = "supergroup";
    const params = {
-      DBParameterGroupName: parameterGroup,
+      DBParameterGroupName: capture.env.parameterGroup,
       Parameters: [
          {
             ApplyMethod: "immediate",
@@ -31,6 +21,10 @@ const setGeneralLogging = async (on: boolean) => {
       ],
    };
 
+   // TODO: needs to be replaced by a DatabaseBackend object in the Capture Object
+   const rds = new RDS(
+      {region: capture.env.region, accessKeyId: capture.env.accessKey, secretAccessKey: capture.env.secretKey},
+   );
    return new Promise<void>((resolve, reject) => {
       rds.modifyDBParameterGroup(params, (awsErr, data) => {
          if (awsErr) {
@@ -42,16 +36,18 @@ const setGeneralLogging = async (on: boolean) => {
    });
 };
 
-const uploadToS3 = async (body: string) => {
-   /* Get s3 bucket from environment */
-   /* TODO connect to an S3 bucket using aws credentials */
+const uploadToS3 = async (body: string, capture: Capture) => {
    /* TODO intelligently name the key filename */
-   /* TODO update the MyCRT database */
    const s3Params = {
       Body: body,
-      Bucket: "nfllogbucket",
+      Bucket: capture.env.bucket,
       Key: "mylog.json",
    };
+
+   // TODO: needs to be replaced by a S3StorageBackend object in the Capture Object
+   const s3 = new S3(
+      {region: capture.env.region, accessKeyId: capture.env.accessKey, secretAccessKey: capture.env.secretKey},
+   );
 
    return new Promise<any>((resolve, reject) => {
       s3.upload(s3Params, (s3Err: any, s3res: any) => {
@@ -64,17 +60,23 @@ const uploadToS3 = async (body: string) => {
    });
 };
 
-export const startRdsLogging = async () => {
-   return await setGeneralLogging(true);
+export const startRdsLogging = async (capture: Capture) => {
+   return await setGeneralLogging(true, capture);
 };
 
-export const stopRdsLoggingAndUploadToS3 = async (): Promise<any> => {
+export const stopRdsLoggingAndUploadToS3 = async (capture: Capture): Promise<any> => {
    logger.info("Turning off general logging, querying general logs, and putting them on S3");
 
-   await setGeneralLogging(false);
+   await setGeneralLogging(false, capture);
 
    return new Promise<any>((resolve, reject) => {
-      const remoteConn = mysql.createConnection(remoteConfig);
+      const remoteConn = mysql.createConnection({
+         database: capture.env.dbName,
+         host: capture.env.host,
+         password: capture.env.pass,
+         user: capture.env.user,
+      });
+
       remoteConn.connect((remoteConnErr) => {
          if (remoteConnErr) {
             reject(remoteConnErr);
@@ -88,12 +90,11 @@ export const stopRdsLoggingAndUploadToS3 = async (): Promise<any> => {
                   reject(queryErr);
                } else {
                   logger.info("Uploading workload to s3");
-                  const s3res = await uploadToS3(JSON.stringify(rows));
+                  const s3res = await uploadToS3(JSON.stringify(rows), capture);
                   logger.info(`Workload located at ${s3res}`);
                   resolve(s3res);
                }
             });
-
          }
       });
    });

@@ -4,7 +4,8 @@ import { IMetricsList, MetricType } from '../data';
 
 // Metrics to retrieve
 export const CPU = 'CPUUtilization';
-export const IO = 'ReadLatency';
+export const READ = 'ReadLatency';
+export const WRITE = 'WriteLatency';
 export const MEMORY = 'FreeableMemory';
 
 export const cpuUnit = 'Percent';
@@ -15,8 +16,10 @@ export const nameToType = (name: string): MetricType => {
    switch (name) {
       case CPU:
          return MetricType.CPU;
-      case IO:
-         return MetricType.IO;
+      case READ:
+         return MetricType.READ;
+      case WRITE:
+         return MetricType.WRITE;
       case MEMORY:
          return MetricType.MEMORY;
       default:
@@ -40,8 +43,12 @@ export abstract class MetricsBackend {
       return this.getMetrics(CPU, cpuUnit, startTime, endTime);
    }
 
-   public getIOMetrics(startTime: Date, endTime: Date) {
-      return this.getMetrics(IO, ioUnit, startTime, endTime);
+   public getReadMetrics(startTime: Date, endTime: Date) {
+      return this.getMetrics(READ, ioUnit, startTime, endTime);
+   }
+
+   public getWriteMetrics(startTime: Date, endTime: Date) {
+      return this.getMetrics(WRITE, ioUnit, startTime, endTime);
    }
 
    public getMemoryMetrics(startTime: Date, endTime: Date) {

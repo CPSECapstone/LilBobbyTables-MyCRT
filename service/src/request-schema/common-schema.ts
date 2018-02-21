@@ -9,7 +9,7 @@ export const value = {
    nameString: joi.string().regex(/^[a-zA-Z0-9 :_\-]{4,}$/),
 
    /** A string that, when converted to uppercase, matches a MetricType value */
-   metricType: joi.string().regex(/^(?:cpu|io|memory)?$/i).uppercase(),
+   metricType: joi.string().regex(/^(?:cpu|read|write|memory)?$/i).uppercase(),
 
    /** A string that can be used as an access key */
    // TODO: verify this pattern
@@ -39,6 +39,17 @@ export const value = {
 
    // TODO
    password: joi.string(),
+
+   // TODO
+   // Must start with a letter and only contain letters, digits, or hyphens (NO CONSECUTIVE HYPENS)
+   parameterGroup: joi.string(),
+
+   // TODO
+   // Must be a number
+   envId: joi.number(),
+
+   // TODO
+   instance: joi.string(),
 
 };
 

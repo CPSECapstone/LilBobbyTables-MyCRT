@@ -9,6 +9,7 @@ const logger = Logging.defaultLogger(__dirname);
 // https://medium.com/@skwee357/validating-requests-with-a-simple-middleware-for-express-ed20c5dfd35c
 
 export interface IErrorItem {
+   code?: number;
    message: string;
    path?: string[];
 }

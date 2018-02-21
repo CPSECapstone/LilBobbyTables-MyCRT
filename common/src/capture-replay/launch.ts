@@ -1,5 +1,6 @@
 import * as child_process from 'child_process';
 
+import { IEnvironmentFull } from '../data';
 import { defaultLogger, noopLogger } from '../logging';
 
 const logger = defaultLogger(__dirname);

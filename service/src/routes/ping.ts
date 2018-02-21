@@ -9,7 +9,7 @@ export default class PingRouter extends SelfAwareRouter {
 
    protected mountRoutes(): void {
 
-      this.router.get('/', this.tryCatch500(async (request, response) => {
+      this.router.get('/', this.handleHttpErrors(async (request, response) => {
          response.status(http.OK).end();
       }));
 

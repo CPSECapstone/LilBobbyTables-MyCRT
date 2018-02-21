@@ -1,5 +1,5 @@
 import { IMetricsList, MetricType } from '../../data';
-import { CPU, IO, MEMORY } from '../../main';
+import { CPU, MEMORY, READ, WRITE } from '../../main';
 
 export const dummyCPU = {
     Label: CPU,
@@ -11,8 +11,13 @@ export const dummyMemory = {
     Datapoints: [],
 };
 
-export const dummyIO = {
-    Label: IO,
+export const dummyRead = {
+    Label: READ,
+    Datapoints: [],
+};
+
+export const dummyWrite = {
+    Label: WRITE,
     Datapoints: [],
 };
 
@@ -21,6 +26,29 @@ export const time2 = "2018-01-30T02:45:00.000Z";
 export const time3 = "2018-01-30T02:46:00.000Z";
 export const time4 = "2018-01-30T02:47:00.000Z";
 export const time5 = "2018-01-30T02:48:00.000Z";
+
+export const metricsAllTypes: IMetricsList[] = [
+   {
+      label: "cpu",
+      type: MetricType.CPU,
+      dataPoints: [],
+   },
+   {
+      label: "memory",
+      type: MetricType.MEMORY,
+      dataPoints: [],
+   },
+   {
+      label: "read",
+      type: MetricType.READ,
+      dataPoints: [],
+   },
+   {
+      label: "write",
+      type: MetricType.WRITE,
+      dataPoints: [],
+   },
+];
 
 export const metricsA: IMetricsList[] = [
    {
@@ -46,7 +74,7 @@ export const metricsA: IMetricsList[] = [
    },
    {
       label: 'IO label',
-      type: MetricType.IO,
+      type: MetricType.READ,
       dataPoints: [
          {
             Timestamp: time3,
@@ -91,7 +119,7 @@ export const metricsB: IMetricsList[] = [
    },
    {
       label: 'IO label',
-      type: MetricType.IO,
+      type: MetricType.READ,
       dataPoints: [
          {
             Timestamp: time3,
