@@ -3,7 +3,7 @@ import ReactDom = require('react-dom');
 
 import * as $ from 'jquery';
 
-import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType, IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
@@ -55,13 +55,7 @@ export class EnvModal extends React.Component<any, any>  {
             $('#envWarning').show();
             return;
         }
-        const envObj = await mycrt.createEnvironment(
-            {name: this.state.envName},
-            {accessKey: this.state.accessKey, secretKey: this.state.secretKey,
-            region: this.state.region},
-            {host: this.state.host, user: this.state.user, name: this.state.dbName,
-            pass: this.state.pass, instance: this.state.instance, parameterGroup: this.state.parameterGroup},
-            {bucket: this.state.bucket});
+        const envObj = await mycrt.createEnvironment(this.state as IEnvironmentFull);
         if (!envObj) {
             logger.error("Could not create environment");
         } else {

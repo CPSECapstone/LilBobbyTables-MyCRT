@@ -41,7 +41,7 @@ export interface IEnvironment {
 }
 
 export interface IEnvironmentFull {
-   id: number;
+   id?: number;
    envName: string;
    accessKey: string;
    secretKey: string;

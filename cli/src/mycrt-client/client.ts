@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { ICapture, IChildProgram, IDbReference, IEnvironment, IIamReference, IMetricsList,
+import { ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull, IIamReference, IMetricsList,
    IReplay, IS3Reference, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
@@ -81,18 +81,8 @@ export class MyCrtClient {
    }
 
    /** Create a new Environment */
-   public async createEnvironment(environment: IEnvironment, iamRef: IIamReference,
-      dbRef: IDbReference, s3Ref: IS3Reference): Promise<IEnvironment | null> {
-      const body = {
-        envName: environment.name,
-        dbName: dbRef.name,
-         ...iamRef,
-         ...dbRef,
-         ...s3Ref,
-         ...environment,
-      };
-
-      return this.makeRequest<IEnvironment | null>(HttpMethod.POST, '/environments', null, body);
+   public async createEnvironment(environment: IEnvironmentFull): Promise<IEnvironment | null> {
+      return this.makeRequest<IEnvironment | null>(HttpMethod.POST, '/environments', null, environment);
    }
 
    /** Retrieve a specific environment */
