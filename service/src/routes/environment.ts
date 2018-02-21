@@ -95,7 +95,11 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          if (deleteLogs === true) {
             // TODO: Implement. Delete S3 bucket associated with environment
-            throw new Error("Deleting environment bucket not implemented.");
+            const env = await environmentDao.getEnvironmentFull(id);
+            if (env) {
+               const bucket = env.bucket;
+               throw new Error("Deleting environment bucket not implemented.");
+            }
          }
 
          const environment = await environmentDao.deleteEnvironment(id);

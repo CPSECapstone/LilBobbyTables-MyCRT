@@ -1,3 +1,5 @@
+import { S3 } from 'aws-sdk';
+
 import * as http from 'http-status-codes';
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
@@ -138,16 +140,26 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const deleteLogs: boolean | undefined = request.query.deleteLogs;
+         const dbRow = await captureDao.getCapture(id);
 
-         if (deleteLogs === true) {
+         // TODO: Still need to test!!
+         if (deleteLogs === true && dbRow && dbRow.envId) {
+            const env = await environmentDao.getEnvironmentFull(dbRow.envId);
 
-            // TODO: get bucket name from the environment. Still need to test
-            const s3Storage = new S3Backend(new S3(), 'lil-test-environment');
-            const key = "capture" + id + "/workload.json";
+            if (env) {
+               const key = "capture" + id + "/workload.json";
+               // Figure out a way to pass in the storage?
+               const storage = new S3Backend(
+                     new S3({region: env.region,
+                        accessKeyId: env.accessKey,
+                        secretAccessKey: env.secretKey}),
+                     env.bucket,
+                  );
 
-            // Delete the capture's workload.json from S3
-            if (await s3Storage.exists(key)) {
-               await s3Storage.deleteJson(key);
+               // Delete the capture's workload.json from S3
+               if (await storage.exists(key)) {
+                  await storage.deleteJson(key);
+               }
             }
 
             // TODO: Delete the associated replay folders???
