@@ -23,7 +23,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    private ipcNode: IpcNode;
    private workloadLocation?: string;
-   private capture?: ICapture;
+   private capture?: ICapture | null;
    private expectedEndTime?: Date;
    private workload?: [any];
    private workloadIndex: number = 0;
@@ -74,8 +74,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
          this.capture = await captureDao.getCapture(this.config.captureId);
          // tslint:disable-next-line:max-line-length
-         this.expectedEndTime =  new Date(this.capture.end!.getTime() - this.capture!.start!.getTime() + this.startTime!.getTime());
-         logger.info(`EpxpectedEndTime: ${this.expectedEndTime}`);
+         this.expectedEndTime =  new Date(this.capture!.end!.getTime() - this.capture!.start!.getTime() + this.startTime!.getTime());
+         logger.info(`ExpectedEndTime: ${this.expectedEndTime}`);
          await this.getWorkload();
 
          await replayDao.updateReplayStatus(this.id, ChildProgramStatus.RUNNING);
@@ -92,13 +92,13 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       while (this.workloadIndex < this.workload!.length && this.queryInInterval(this.workloadIndex)) {
 
-        logger.info(`Made it into the delay workload loop`);
          const delay = this.getDelayForIndex(this.workloadIndex);
          const currentIndex = this.workloadIndex;
          const currentQuery = this.workload![currentIndex];
 
          setTimeout(() => {
           this.processQuery(currentQuery.command_type, currentQuery.argument); }, delay);
+         logger.info(`Scheduled query: ${this.workloadIndex}`);
 
          // don't let the subprocess end because we still need to run these queries.
          finished = false;
@@ -158,12 +158,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       } else if (index >= 0 && index < this.workload!.length) {
 
          const queryStart: Date = new Date(this.workload![index].event_time);
-         logger.info(`QueryStartTime: ${queryStart}`);
          const captureStart: Date = this.capture!.start!;
-         logger.info(`CaptureStartTime: ${captureStart}`);
-
          const replayStart = this.startTime!;
-         logger.info(`ReplayStartTime: ${replayStart}`);
 
          // tslint:disable-next-line:max-line-length
          const delay = (queryStart.getTime() - captureStart.getTime()) - (Date.now().valueOf() - replayStart.getTime());
