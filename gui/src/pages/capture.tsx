@@ -22,6 +22,7 @@ class CaptureApp extends React.Component<any, any> {
       public constructor(props: any) {
             super(props);
             this.updateGraphs = this.updateGraphs.bind(this);
+            this.formatData = this.formatData.bind(this);
 
             // FIXME: THIS IS A QUICK AND DIRTY WAY TO DO THIS
             let id: any = null;
@@ -54,6 +55,7 @@ class CaptureApp extends React.Component<any, any> {
             }
       }
 
+      // add in this.state.selectedReplays to loop in later and have child replay dropdown call this function
       public formatData(metricsList: [IMetricsList]) {
             metricsList.forEach((metric) => {
                   for (const dataPoint of metric.dataPoints) {
