@@ -19,6 +19,7 @@ export class GraphSelectDrop extends React.Component<any, any>  {
         const checkboxes: JSX.Element[] = [];
         for (const graph of this.props.graphs) {
             checkboxes.push(
+                // https://codepen.io/bseth99/pen/fboKH
                 <li><p className="small" data-value={graph} tabIndex={-1}
                     style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
                 <input type="checkbox" onChange={(e) => this.selectGraphTypes(e)} value={JSON.stringify(graph)}/>

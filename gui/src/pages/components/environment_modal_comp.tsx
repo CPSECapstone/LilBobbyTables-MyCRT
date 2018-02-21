@@ -18,6 +18,7 @@ export class EnvModal extends React.Component<any, any>  {
                       dbName: "", host: "", user: "", pass: "", bucket: "",
                       instance: "", parameterGroup: ""};
 
+        // https://www.bootply.com/hLCsixfhTO
         $(document).ready(() => {
             $('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
               // update progress
@@ -25,7 +26,6 @@ export class EnvModal extends React.Component<any, any>  {
               const percent = (parseInt(step) / 4) * 100;
               $('.progress-bar').css({width: percent + '%'});
               $('.progress-bar').text("Step " + step + " of 4");
-              // e.relatedTarget // previous tab
             });
             $('.next').click(function() {
                 const nextId = $(this).parents('.tab-pane').next().attr("id");
@@ -43,10 +43,12 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public allFieldsFilled() {
-        return this.state.envName !== "" && this.state.accessKey !== "" && this.state.secretKey !== ""
-            && this.state.region !== "" && this.state.host !== "" && this.state.user !== ""
-            && this.state.dbName !== "" && this.state.pass !== "" && this.state.bucket !== ""
-            && this.state.instance !== "" && this.state.parameterGroup !== "";
+        for (const key in this.state) {
+            if (!this.state[key]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public async createEnvironment() {
