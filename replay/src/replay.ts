@@ -3,7 +3,7 @@ import mysql = require('mysql');
 import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
 import { MetricsBackend } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
-import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
@@ -14,24 +14,19 @@ const logger = Logging.defaultLogger(__dirname);
 
 export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
-   public static getWorkloadForCapture(id: number) {
-      // this is hardcoded for now
-      // TODO: get bucket name from environment
-      return `capture${id}/workload.json`;
-      // return `nfllogbucket/capture${id}/workload.json`;
-   }
-
    private ipcNode: IpcNode;
-   private workloadLocation?: string;
    private capture?: ICapture | null;
    private expectedEndTime?: Date;
+   private env: IEnvironmentFull;
    private workload?: [any];
+   private workloadPath?: string;
    private workloadIndex: number = 0;
    private error: boolean = false;
 
-   constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend) {
+   constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend, env: IEnvironmentFull) {
       super(storage, metrics);
       this.ipcNode = new ReplayIpcNode(this.id, logger, this);
+      this.env = env;
    }
 
    get id(): number {
@@ -133,11 +128,20 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       this.ipcNode.stop();
    }
 
+   private getCaptureWorkloadPath(id: number): string {
+
+    if (!this.config.mock && this.env) {
+      return `${this.env.bucket}/capture${id}/workload.json`;
+    } else {
+      return `capture${id}/workload.json`;
+    }
+  }
+
    private async getWorkload() {
 
       logger.info(`Getting workload from storage`);
-      this.workloadLocation = await Replay.getWorkloadForCapture(this.config.captureId);
-      this.workload = await this.storage.readJson(this.workloadLocation) as any;
+      this.workloadPath = this.getCaptureWorkloadPath(this.config.captureId);
+      this.workload = await this.storage.readJson(this.workloadPath) as any;
    }
 
    // queryInInterval takes the index of the query in the workload and the time
@@ -174,8 +178,12 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       if (type === "Query") {
 
-        const remoteReplayDbConfig = require('../db/remoteReplayConfig.json');
-        const conn = mysql.createConnection(remoteReplayDbConfig);
+        const conn = mysql.createConnection({
+          database: this.env.dbName,
+          host: this.env.host,
+          password: this.env.pass,
+          user: this.env.user,
+        });
 
         return new Promise<any>((resolve, reject) => {
           conn.connect((connErr) => {
