@@ -21,7 +21,7 @@ export class DeleteCaptureModal extends React.Component<any, any>  {
             logger.error("Given capture name doesn't match.");
             return;
         }
-        await mycrt.deleteCapture(this.props.capture.id);
+        await mycrt.deleteCapture(this.props.capture.id, this.state.deleteLogs);
         this.props.update();
     }
 

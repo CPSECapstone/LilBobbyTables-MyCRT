@@ -55,9 +55,9 @@ export class MyCrtClient {
       return this.makeRequest<[IMetricsList]>(HttpMethod.GET, `/captures/${id}/metrics`);
    }
 
-   /** Delete a specific capture */
-   public async deleteCapture(id: number): Promise<void> {
-      return this.makeRequest<any>(HttpMethod.DELETE, `/captures/${id}`);
+   /** Delete a specific capture. Optional: Delete the S3 logs associated with it */
+   public async deleteCapture(id: number, removeLogs?: boolean): Promise<void> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/captures/${id}`, {deleteLogs: removeLogs});
    }
 
    /** Create a new Replay */
@@ -68,6 +68,11 @@ export class MyCrtClient {
    /** Retrieve all of the replays */
    public async getReplays(): Promise<IChildProgram[] | null> {
       return this.makeRequest<IChildProgram[]>(HttpMethod.GET, '/replays');
+   }
+
+   /** Retrieve all of the replays associated with a given capture */
+   public async getReplaysForCapture(captureId: number): Promise<IChildProgram[] | null> {
+      return this.makeRequest<IChildProgram[]>(HttpMethod.GET, `/captures/${captureId}/replays`);
    }
 
    /** Retrieve a specific replay */
@@ -96,8 +101,8 @@ export class MyCrtClient {
    }
 
    /** Delete a specific environment */
-   public async deleteEnvironment(id: number): Promise<void> {
-      return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`);
+   public async deleteEnvironment(id: number, removeLogs?: boolean): Promise<void> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`, {deleteLogs: removeLogs});
    }
 
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {

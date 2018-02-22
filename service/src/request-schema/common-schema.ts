@@ -40,6 +40,9 @@ export const value = {
    // TODO
    password: joi.string(),
 
+   /** A boolean value */
+   boolean: joi.boolean(),
+
    // TODO
    // Must start with a letter and only contain letters, digits, or hyphens (NO CONSECUTIVE HYPENS)
    parameterGroup: joi.string(),
@@ -59,4 +62,8 @@ export const idParams: joi.ObjectSchema = joi.object().keys({
 
 export const metricTypeQuery: joi.ObjectSchema = joi.object().keys({
    type: value.metricType.optional(),
+});
+
+export const deleteLogsQuery: joi.ObjectSchema = joi.object().keys({
+    deleteLogs: value.boolean.optional(),
 });

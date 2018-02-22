@@ -1,3 +1,5 @@
+import { S3 } from 'aws-sdk';
+
 import * as http from 'http-status-codes';
 
 import { Logging } from '@lbt-mycrt/common';
@@ -87,9 +89,26 @@ export default class EnvironmentRouter extends SelfAwareRouter {
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
+         const deleteLogs: boolean | undefined = request.query.deleteLogs;
+
+         if (deleteLogs === true) {
+            const env = await environmentDao.getEnvironmentFull(id);
+            if (env) {
+               // TODO: needs to be replaced by a S3StorageBackend object in the Capture Object
+               const s3 = new S3(
+                  {region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey},
+               );
+
+               // TODO: Remove environment bucket from s3 (should just be s3.deleteBucket call)
+               const s3Params = { Bucket: env.bucket };
+               throw new Error("Deleting environment bucket not implemented.");
+            }
+         }
+
          const environment = await environmentDao.deleteEnvironment(id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
