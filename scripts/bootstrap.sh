@@ -58,6 +58,10 @@ echo -e "${CYAN}Cleaning Repository${RESTORE}"
 cd "$SCRIPTS_MODULE_DIR"
 ./clean.sh && ./clean_package_locks.sh
 cd ..
+if [ -d /tmp/MyCRT ]; then
+    echo -e "${CYAN}Deleting tmp folder${RESTORE}"
+    rm -rf /tmp/MyCRT
+fi
 echo -e "${GREEN}All Clean!${RESTORE}\n"
 
 ########################################################################################################################

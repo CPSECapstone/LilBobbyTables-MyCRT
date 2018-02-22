@@ -1,5 +1,18 @@
 @import 'theme';
 
+.myCRT-env-navbar {
+    display: flex;
+    justify-content: center;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    background-color: #3498DB;
+}
+
+.myCRT-tab-pane {
+    margin-bottom: 20px;
+}
+
 .myCRT-panel:hover {
     cursor: pointer;
 }

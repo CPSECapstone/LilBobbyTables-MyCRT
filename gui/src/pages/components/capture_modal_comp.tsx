@@ -29,7 +29,7 @@ export class CaptureModal extends React.Component<any, any>  {
             $('#captureWarning').show();
             return;
         }
-        const captureObj = await mycrt.startCapture({ name: this.state.captureName });
+        const captureObj = await mycrt.startCapture({name: this.state.captureName, envId: this.props.envId});
         if (!captureObj) {
             logger.error("Could not start capture");
         } else {
@@ -53,7 +53,7 @@ export class CaptureModal extends React.Component<any, any>  {
                 <div className="modal-dialog" role="document">
                     <div className="modal-content myCRT-modal">
                         <div className="modal-header myCRT-modal-header">
-                            <h5 className="modal-title">New Capture</h5>
+                            <h4 className="modal-title">New Capture</h4>
                             <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
@@ -63,20 +63,23 @@ export class CaptureModal extends React.Component<any, any>  {
                         <div className="modal-body">
                             <form>
                                 <div className="form-group">
-                                    <label><b>Capture Name</b></label>
-                                    <input type="name" className="form-control" id="captureName"
-                                           value={this.state.captureName} onChange={this.handleNameChange.bind(this)}
-                                           aria-describedby="captureName" placeholder="Enter name"></input>
-                                    <small id="captureName" className="form-text text-muted"></small>
-                                    <br/>
-                                    <StartDateTime />
-                                    <br/>
-                                    <label><b>Duration</b></label>
-                                    <div className="container">
-                                        <div className="row">
-                                            <Duration type="days" />
-                                            <Duration type="hours" />
-                                            <Duration type="minutes" />
+                                    <div className="card card-body bg-light">
+                                        <label><b>Capture Name</b></label>
+                                        <input type="name" className="form-control" id="captureName"
+                                                value={this.state.captureName}
+                                                onChange={this.handleNameChange.bind(this)}
+                                                aria-describedby="captureName" placeholder="Enter name"></input>
+                                        <small id="captureName" className="form-text text-muted"></small>
+                                        <br/>
+                                        <StartDateTime />
+                                        <br/>
+                                        <label><b>Duration</b></label>
+                                        <div className="container">
+                                            <div className="row">
+                                                <Duration type="days" />
+                                                <Duration type="hours" />
+                                                <Duration type="minutes" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

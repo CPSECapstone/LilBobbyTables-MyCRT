@@ -20,7 +20,7 @@ export class CapturePanel extends React.Component<any, any>  {
 
     public handleClick(event: any): void {
 
-        window.location.assign(`./capture?id=${this.props.capture.id}`);
+        window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}`);
     }
 
     public async stopCapture(event: any) {
