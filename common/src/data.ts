@@ -16,6 +16,7 @@ export enum ChildProgramStatus {
 export interface IChildProgram {
    type?: ChildProgramType;
    id?: number;
+   envId?: number;
    name?: string;
    start?: Date;
    end?: Date;
@@ -42,7 +43,7 @@ export interface IEnvironment {
 }
 
 export interface IEnvironmentFull {
-   id: number;
+   id?: number;
    envName: string;
    accessKey: string;
    secretKey: string;

@@ -8,7 +8,7 @@ export class EnvironmentPanel extends React.Component<any, any>  {
     }
 
     public handleClick(event: any): void {
-        window.location.assign('./dashboard');
+        window.location.assign(`./dashboard?id=${this.props.env.id}`);
     }
 
     public render() {
