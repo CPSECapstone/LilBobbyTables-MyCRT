@@ -19,6 +19,8 @@
     "@types/node": "8.0.53",
     "aws-sdk": "^2.188.0",
     "command-line-args": "^5.0.1",
+    "moment": "^2.20.1",
+    "moment-timezone": "^0.5.14",
     "mysql": "^2.15.0",
     "path": "^0.12.7"
   },
@@ -26,6 +28,8 @@
     "@types/chai": "^4.1.2",
     "@types/command-line-args": "^4.0.2",
     "@types/mocha": "^2.2.47",
+    "@types/moment": "^2.13.0",
+    "@types/moment-timezone": "^0.5.4",
     "@types/mysql": "^2.15.2",
     "chai": "^4.1.2",
     "command-line-usage": "^4.1.0",
