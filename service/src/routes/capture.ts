@@ -140,15 +140,16 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const deleteLogs: boolean | undefined = request.query.deleteLogs;
-         const dbRow = await captureDao.getCapture(id);
+         const captureRow = await captureDao.getCapture(id);
 
-         // TODO: Still need to test!!
-         if (deleteLogs === true && dbRow && dbRow.envId) {
-            const env = await environmentDao.getEnvironmentFull(dbRow.envId);
+         if (deleteLogs === true && captureRow && captureRow.envId) {
+            const env = await environmentDao.getEnvironmentFull(captureRow.envId);
 
             if (env) {
+               /* TODO: make sure key matches the key in rds-logging.ts uploadToS3 */
                const key = "capture" + id + "/workload.json";
-               // Figure out a way to pass in the storage?
+
+               /* TODO: Replace with S3StorageBackend object in the Capture Object */
                const storage = new S3Backend(
                      new S3({region: env.region,
                         accessKeyId: env.accessKey,
@@ -156,13 +157,10 @@ export default class CaptureRouter extends SelfAwareRouter {
                      env.bucket,
                   );
 
-               // Delete the capture's workload.json from S3
                if (await storage.exists(key)) {
                   await storage.deleteJson(key);
                }
             }
-
-            // TODO: Delete the associated replay folders???
          }
 
          const capture = await captureDao.deleteCapture(id);
