@@ -18,6 +18,11 @@ export class CaptureDao extends Dao {
       return this.rowToICapture(result[0]);
    }
 
+   public async getCapturesForEnvironment(envId: number): Promise<data.ICapture[] | null> {
+    const rawCaptures = await this.query<any[]>('SELECT * FROM Capture where envId = ?', [envId]);
+    return rawCaptures.map(this.rowToICapture);
+ }
+
    public async makeCapture(capture: data.ICapture): Promise<data.ICapture | null> {
       const result = await this.query<any>('INSERT INTO Capture SET ?', {
          name: capture.name,

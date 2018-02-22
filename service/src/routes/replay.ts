@@ -17,13 +17,6 @@ export default class ReplayRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', this.handleHttpErrors(async (request, response) => {
-
-         const replays = await replayDao.getAllReplays();
-         response.json(replays);
-
-      }));
-
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
@@ -34,6 +27,20 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
          response.json(replay);
 
+      }));
+
+      this.router.get('/', check.validQuery(schema.replayQuery),
+            this.handleHttpErrors(async (request, response) => {
+            const  captureId = request.query.captureId;
+
+            if (captureId) {
+                  logger.info(`Getting all replays for capture ${captureId}`);
+                  const replays = await replayDao.getReplaysForCapture(captureId);
+                  response.json(replays);
+            } else {
+                  const replays = await replayDao.getAllReplays();
+                  response.json(replays);
+            }
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
