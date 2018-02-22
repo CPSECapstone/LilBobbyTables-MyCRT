@@ -9,6 +9,10 @@
     background-color: #3498DB;
 }
 
+.myCRT-danger-label {
+    color: #E74C3C;
+}
+
 .myCRT-tab-pane {
     margin-bottom: 20px;
 }
@@ -34,6 +38,11 @@
 
 .myCRT-modal-header {
     background-color: #3498DB;
+    color: white;
+}
+
+.myCRT-modal-danger {
+    background-color: #E74C3C;
     color: white;
 }
 
