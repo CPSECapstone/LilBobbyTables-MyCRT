@@ -9,6 +9,7 @@ import { BrowserLogger as logger } from './../logging';
 import { Graph } from './components/graph_comp';
 
 import { CompareModal } from './components/compare_modal_comp';
+import { DeleteCaptureModal } from './components/delete_capture_modal_comp';
 import { GraphSelectDrop } from './components/graph_dropdown_comp';
 import { ReplaySelectDrop } from './components/replay_compare_dropdown_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
@@ -23,6 +24,7 @@ class CaptureApp extends React.Component<any, any> {
             super(props);
             this.updateGraphs = this.updateGraphs.bind(this);
             this.formatData = this.formatData.bind(this);
+            this.handleDeletedCapture = this.handleDeletedCapture.bind(this);
 
             // FIXME: THIS IS A QUICK AND DIRTY WAY TO DO THIS
             let id: any = null;
@@ -65,6 +67,10 @@ class CaptureApp extends React.Component<any, any> {
                 this.formatData(allGraphs);
                 this.setState({allGraphs});
             }
+      }
+
+      public handleDeletedCapture() {
+            window.location.assign(`./dashboard?id=${this.state.envId}`);
       }
 
       // add in this.state.selectedReplays to loop in later and have child replay dropdown call this function
@@ -120,7 +126,13 @@ class CaptureApp extends React.Component<any, any> {
                   <div className="col-sm-12 mb-r">
 
                      <div className="page-header">
-                        <h1>{ this.state.capture.name }</h1>
+                        <h1 style={{display: "inline"}}>{ this.state.capture.name }</h1>
+                        <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
+                           data-target="#deleteCaptureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                            <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
+                        </a>
+                        <DeleteCaptureModal id="deleteCaptureModal" capture={this.state.capture}
+                              update={this.handleDeletedCapture}/>
                      </div>
                      <div className="modal-body">
                         <div className="page-header">
