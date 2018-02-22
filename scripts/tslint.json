@@ -13,7 +13,8 @@
        "object-literal-sort-keys": false,
        "max-classes-per-file": [ true, 3, "exclude-class-expressions" ],
        "radix": false,
-       "forin": false
+       "forin": false,
+       "interface-name": false
     },
     "rulesDirectory": [],
     "typedef": [

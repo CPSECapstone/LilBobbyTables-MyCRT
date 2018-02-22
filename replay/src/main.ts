@@ -15,7 +15,6 @@ import { Replay } from './replay';
 const DBIdentifier: string = 'DBInstanceIdentifier';
 
 async function runReplay(): Promise<void> {
-
    const logger = Logging.defaultLogger(__dirname);
 
    logger.info("Configuring MyCRT Replay Program");
