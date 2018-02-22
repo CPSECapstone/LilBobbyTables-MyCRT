@@ -23,11 +23,19 @@ export default class CaptureRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', this.handleHttpErrors(async (request, response) => {
+      this.router.get('/', check.validQuery(schema.envQuery),
+            this.handleHttpErrors(async (request, response) => {
 
-         const captures = await captureDao.getAllCaptures();
+         const envId = request.query.envId;
+         let captures;
+         if (envId) {
+            captures = await captureDao.getCapturesForEnvironment(envId);
+
+         } else {
+            captures = await captureDao.getAllCaptures();
+         }
+
          response.json(captures);
-
       }));
 
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
@@ -65,17 +73,6 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const result = await storage.readMetrics(capture!, type);
          response.json(result);
-
-      }));
-
-      this.router.get('/:id(\\d+)/replays', check.validParams(schema.idParams),
-            this.handleHttpErrors(async (request, response) => {
-
-         const id = request.params.id;
-
-         logger.info(`Getting all replays for capture ${id}`);
-         const replays = await replayDao.getReplaysForCapture(id);
-         response.json(replays);
 
       }));
 
