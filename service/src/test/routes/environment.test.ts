@@ -20,11 +20,11 @@ const newEnvBody = {
 
 export const environmentTests = (mycrt: MyCrtService) => () => {
 
-   it("should post an environment", () => {
-      request(mycrt.getServer()).post('/api/environments/').send(newEnvBody).then((response) => {
-         expect(response).to.have.status(http.OK);
-         expect(response.body.id).to.equal(1);
-      });
+   it("should post an environment", async () => {
+      const response = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      expect(response).to.have.status(http.OK);
+      expect(response.body.id).to.be.a("number");
+      // expect(response.body.id).to.equal(1);
    });
 
 };

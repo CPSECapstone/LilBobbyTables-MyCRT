@@ -41,11 +41,9 @@ describe("MyCrtService", () => {
       // await environmentDao.nuke();
    });
 
-   it("should return 200 on '/'", (done) => {
-      chai.request(mycrt.getServer()).get('/').then((response) => {
-         expect(response).to.have.status(http.OK);
-         done();
-      });
+   it("should return 200 on '/'", async () => {
+      const response = await chai.request(mycrt.getServer()).get('/');
+      expect(response).to.have.status(http.OK);
    });
 
    describe("environment router", environmentTests(mycrt));
