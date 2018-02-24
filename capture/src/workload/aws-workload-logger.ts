@@ -6,9 +6,6 @@ import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
 
-// tslint:disable-next-line:no-var-requires
-const remoteConfig = require('../../db/remoteConfig.json');
-
 export class AwsWorkloadLogger extends WorkloadLogger {
 
    constructor(type: ChildProgramType, id: number, protected rds: RDS, storage: StorageBackend) {
@@ -26,7 +23,13 @@ export class AwsWorkloadLogger extends WorkloadLogger {
    }
 
    protected async queryGeneralLog(): Promise<any[]> {
-      const conn = mysql.createConnection(remoteConfig);
+      // TODO: get this from the environment
+      const conn = mysql.createConnection({
+         database: "NFL",
+         host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
+         password: "nfl2015pass",
+         user: "nfl2015user",
+      });
 
       return new Promise<any[]>((resolve, reject) => {
          conn.connect((connErr) => {

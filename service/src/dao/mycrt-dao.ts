@@ -1,8 +1,6 @@
-import { CaptureDao, ConnectionPool, EnvironmentDao, ReplayDao } from '@lbt-mycrt/common';
+import { CaptureDao, ConnectionPool, EnvironmentDao, mycrtDbConfig, ReplayDao } from '@lbt-mycrt/common';
 
-// tslint:disable-next-line:no-var-requires
-const poolConfig = require('../../db/config.json');
-const pool = new ConnectionPool(poolConfig);
+const pool = new ConnectionPool(mycrtDbConfig);
 
 export const captureDao: CaptureDao = new CaptureDao(pool);
 export const environmentDao: EnvironmentDao = new EnvironmentDao(pool);

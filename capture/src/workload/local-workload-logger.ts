@@ -1,12 +1,9 @@
 import mysql = require('mysql');
 
-import { ChildProgramType } from '@lbt-mycrt/common';
+import { ChildProgramType, mycrtDbConfig } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
-
-// tslint:disable-next-line:no-var-requires
-const config = require('../../db/config.json');
 
 export class LocalWorkloadLogger extends WorkloadLogger {
 
@@ -15,7 +12,7 @@ export class LocalWorkloadLogger extends WorkloadLogger {
    }
 
    protected turnOnLogging(): Promise<void> {
-      const conn = mysql.createConnection(config);
+      const conn = mysql.createConnection(mycrtDbConfig);
 
       return new Promise<void>((resolve, reject) => {
          conn.connect((connErr) => {
@@ -39,7 +36,7 @@ export class LocalWorkloadLogger extends WorkloadLogger {
    }
 
    protected turnOffLogging(): Promise<void> {
-      const conn = mysql.createConnection(config);
+      const conn = mysql.createConnection(mycrtDbConfig);
 
       return new Promise<void>((resolve, reject) => {
          conn.connect((connErr) => {
@@ -63,7 +60,7 @@ export class LocalWorkloadLogger extends WorkloadLogger {
    }
 
    protected queryGeneralLog(): Promise<any[]> {
-      const conn = mysql.createConnection(config);
+      const conn = mysql.createConnection(mycrtDbConfig);
 
       return new Promise<any[]>((resolve, reject) => {
          conn.connect((connErr) => {
@@ -89,7 +86,7 @@ export class LocalWorkloadLogger extends WorkloadLogger {
 }
 
 export const fakeRequest = (): Promise<void> => {
-   const conn = mysql.createConnection(config);
+   const conn = mysql.createConnection(mycrtDbConfig);
 
    return new Promise<void>((resolve, reject) => {
 
