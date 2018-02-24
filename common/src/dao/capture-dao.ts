@@ -35,6 +35,14 @@ export class CaptureDao extends Dao {
       return this.query<any>('DELETE FROM Capture WHERE id = ?', [id]);
    }
 
+   /**
+    * Remove everything from the database. Be VERY CAREFUL with this.
+    */
+   public async nuke(): Promise<void> {
+      await this.query<void>('DELETE FROM Capture');
+      await this.query<void>('ALTER TABLE Capture AUTO_INCREMENT = 1');
+   }
+
    public updateCaptureStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
       return this.query('UPDATE Capture SET status = ? WHERE id = ?', [status, id]);
    }

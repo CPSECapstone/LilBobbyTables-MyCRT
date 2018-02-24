@@ -11,8 +11,8 @@ export abstract class Dao {
 
    }
 
-   protected query<T>(queryStr: string, args: any): Promise<T> {
-      return this.pool.query<T>(format(queryStr, args));
+   protected query<T>(queryStr: string, args?: any): Promise<T> {
+      return this.pool.query<T>(format(queryStr, args || []));
    }
 
 }

@@ -35,6 +35,14 @@ export class ReplayDao extends Dao {
       return this.query<any>('DELETE FROM Replay WHERE id = ?' , [id]);
    }
 
+   /**
+    * Remove everything from the database. Be VERY CAREFUL with this.
+    */
+   public async nuke(): Promise<void> {
+      await this.query<void>('DELETE FROM Replay');
+      await this.query<void>('ALTER TABLE Replay AUTO_INCREMENT = 1');
+   }
+
    public updateReplayStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
       return this.query('UPDATE Replay SET status = ? WHERE id = ?', [status, id]);
    }

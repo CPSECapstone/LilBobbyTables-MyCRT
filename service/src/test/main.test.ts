@@ -4,7 +4,10 @@ import { Server } from 'http';
 import * as http from 'http-status-codes';
 import 'mocha';
 
+import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
+
+import { environmentTests } from './routes/environment.test';
 
 const expect = chai.expect;
 chai.use(chaiHttp);
@@ -32,11 +35,19 @@ describe("MyCrtService", () => {
    before(launchMyCrtService);
    after(closeMyCrtService);
 
+   beforeEach(async () => {
+      await replayDao.nuke();
+      await captureDao.nuke();
+      await environmentDao.nuke();
+   });
+
    it("should return 200 on '/'", (done) => {
       chai.request(mycrt.getServer()).get('/').then((response) => {
          expect(response).to.have.status(http.OK);
          done();
       });
    });
+
+   describe("environment router", environmentTests(mycrt));
 
 });
