@@ -1,6 +1,7 @@
 import * as http from 'http-status-codes';
 
-import { IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
+import { ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull, IIamReference, IMetricsList,
+   IReplay, IS3Reference, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
 
@@ -35,8 +36,8 @@ export class MyCrtClient {
    }
 
    /** Retrieve all of the captures */
-   public async getCaptures(): Promise<IChildProgram[] | null> {
-      return this.makeRequest<IChildProgram[]>(HttpMethod.GET, '/captures');
+   public async getCaptures(): Promise<ICapture[] | null> {
+      return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures');
    }
 
    /** Retrieve a specific capture */
@@ -54,6 +55,16 @@ export class MyCrtClient {
       return this.makeRequest<[IMetricsList]>(HttpMethod.GET, `/captures/${id}/metrics`);
    }
 
+   /** Retrieve all of the captures for an environment */
+   public async getCapturesForEnvironment(envId: number): Promise<ICapture[] | null> {
+    return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures', {environmentId: envId});
+   }
+
+   /** Delete a specific capture. Optional: Delete the S3 logs associated with it */
+   public async deleteCapture(id: number, removeLogs?: boolean): Promise<void> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/captures/${id}`, {deleteLogs: removeLogs});
+   }
+
    /** Create a new Replay */
    public async startReplay(replay: IReplay): Promise<number | null> {
       return this.makeRequest<number>(HttpMethod.POST, '/replays', null, replay);
@@ -64,9 +75,39 @@ export class MyCrtClient {
       return this.makeRequest<IChildProgram[]>(HttpMethod.GET, '/replays');
    }
 
+   /** Retrieve all of the replays associated with a given capture */
+   public async getReplaysForCapture(cID: number): Promise<IChildProgram[] | null> {
+      return this.makeRequest<IChildProgram[]>(HttpMethod.GET, `/replays`, {captureId: cID});
+   }
+
    /** Retrieve a specific replay */
    public async getReplay(id: number): Promise<IChildProgram | null> {
       return this.makeRequest<IChildProgram>(HttpMethod.GET, `/replays/${id}`);
+   }
+
+   /** Delete a specific replay */
+   public async deleteReplay(id: number): Promise<any> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/replays/${id}`);
+   }
+
+   /** Create a new Environment */
+   public async createEnvironment(environment: IEnvironmentFull): Promise<IEnvironment | null> {
+      return this.makeRequest<IEnvironment | null>(HttpMethod.POST, '/environments', null, environment);
+   }
+
+   /** Retrieve a specific environment */
+   public async getEnvironment(id: number): Promise<IEnvironment | null> {
+      return this.makeRequest<IEnvironment>(HttpMethod.GET, `/environments/${id}`);
+   }
+
+   /** Retrieve all of the environments */
+   public async getEnvironments(): Promise<IEnvironment[] | null> {
+      return this.makeRequest<IEnvironment[]>(HttpMethod.GET, '/environments');
+   }
+
+   /** Delete a specific environment */
+   public async deleteEnvironment(id: number, removeLogs?: boolean): Promise<void> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`, {deleteLogs: removeLogs});
    }
 
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {

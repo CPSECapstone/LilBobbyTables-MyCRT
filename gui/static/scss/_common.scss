@@ -1,5 +1,22 @@
 @import 'theme';
 
+.myCRT-env-navbar {
+    display: flex;
+    justify-content: center;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    background-color: #3498DB;
+}
+
+.myCRT-danger-label {
+    color: #E74C3C;
+}
+
+.myCRT-tab-pane {
+    margin-bottom: 20px;
+}
+
 .myCRT-panel:hover {
     cursor: pointer;
 }
@@ -21,6 +38,11 @@
 
 .myCRT-modal-header {
     background-color: #3498DB;
+    color: white;
+}
+
+.myCRT-modal-danger {
+    background-color: #E74C3C;
     color: white;
 }
 

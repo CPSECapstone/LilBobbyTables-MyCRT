@@ -16,6 +16,7 @@ export enum ChildProgramStatus {
 export interface IChildProgram {
    type?: ChildProgramType;
    id?: number;
+   envId?: number;
    name?: string;
    start?: Date;
    end?: Date;
@@ -24,6 +25,7 @@ export interface IChildProgram {
 
 export interface ICapture extends IChildProgram {
    type: ChildProgramType.CAPTURE;
+   envId?: number;
 }
 
 export interface IReplay extends IChildProgram {
@@ -38,6 +40,21 @@ export interface IEnvironment {
    iamId?: number;
    dbId?: number;
    s3Id?: number;
+}
+
+export interface IEnvironmentFull {
+   id?: number;
+   envName: string;
+   accessKey: string;
+   secretKey: string;
+   region: string;
+   dbName: string;
+   host: string;
+   user: string;
+   pass: string;
+   instance: string;
+   parameterGroup: string;
+   bucket: string;
 }
 
 /** IAM Profile */
@@ -55,6 +72,8 @@ export interface IDbReference {
    host?: string;
    user?: string;
    pass?: string;
+   instance?: string;
+   parameterGroup?: string;
 }
 
 /** S3 Reference */
@@ -64,7 +83,7 @@ export interface IS3Reference {
 }
 
 /** The type of data */
-export enum MetricType { CPU = "CPU", IO = "IO", MEMORY = "MEMORY" }
+export enum MetricType { CPU = "CPU", WRITE = "WRITE", READ = "READ", MEMORY = "MEMORY" }
 
 /** Interface for a single metric measurement */
 export interface IMetric {

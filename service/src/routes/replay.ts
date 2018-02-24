@@ -17,13 +17,6 @@ export default class ReplayRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', this.handleHttpErrors(async (request, response) => {
-
-         const replays = await replayDao.getAllReplays();
-         response.json(replays);
-
-      }));
-
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
@@ -34,6 +27,20 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
          response.json(replay);
 
+      }));
+
+      this.router.get('/', check.validQuery(schema.replayQuery),
+            this.handleHttpErrors(async (request, response) => {
+            const  captureId = request.query.captureId;
+
+            if (captureId) {
+                  logger.info(`Getting all replays for capture ${captureId}`);
+                  const replays = await replayDao.getReplaysForCapture(captureId);
+                  response.json(replays);
+            } else {
+                  const replays = await replayDao.getAllReplays();
+                  response.json(replays);
+            }
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
@@ -48,7 +55,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          const replay = await replayDao.makeReplay(replayTemplate);
 
          logger.info(`Launching replay with id ${replay!.id!} for capture ${replay!.captureId!}`);
-         const config = new ReplayConfig(replay!.id!, replay!.captureId!);
+         const config = new ReplayConfig(replay!.id!, replay!.captureId!, request.body.envId);
          config.mock = settings.replays.mock;
          config.interval = settings.replays.interval;
          config.intervalOverlap = settings.replays.intervalOverlap;
@@ -56,6 +63,18 @@ export default class ReplayRouter extends SelfAwareRouter {
          launch(config);
          response.json(replay);
          logger.info(`Successfully created replay!`);
+
+      }));
+
+      this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            this.handleHttpErrors(async (request, response) => {
+
+         const id = request.params.id;
+         const replay = await replayDao.deleteReplay(id);
+         if (!replay) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+         response.json(replay);
 
       }));
 

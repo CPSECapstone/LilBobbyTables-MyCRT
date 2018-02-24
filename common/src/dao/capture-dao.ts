@@ -18,6 +18,11 @@ export class CaptureDao extends Dao {
       return this.rowToICapture(result[0]);
    }
 
+   public async getCapturesForEnvironment(envId: number): Promise<data.ICapture[] | null> {
+    const rawCaptures = await this.query<any[]>('SELECT * FROM Capture where envId = ?', [envId]);
+    return rawCaptures.map(this.rowToICapture);
+ }
+
    public async makeCapture(capture: data.ICapture): Promise<data.ICapture | null> {
       const result = await this.query<any>('INSERT INTO Capture SET ?', {
          name: capture.name,
@@ -26,9 +31,8 @@ export class CaptureDao extends Dao {
       return await this.getCapture(result.insertId);
    }
 
-   public deleteCapture(id: number): Promise<data.ICapture> {
-      return this.query<any>('DELETE c.*, r.* from Capture c LEFT JOIN Replay r on r.captureId = c.id where c.id = ?',
-         [id]);
+   public async deleteCapture(id: number): Promise<data.ICapture> {
+      return this.query<any>('DELETE FROM Capture WHERE id = ?', [id]);
    }
 
    public updateCaptureStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
@@ -50,6 +54,7 @@ export class CaptureDao extends Dao {
          start: captureData.start,
          end: captureData.end,
          status: captureData.status,
+         envId: captureData.envId,
          type: data.ChildProgramType.CAPTURE,
       };
    }

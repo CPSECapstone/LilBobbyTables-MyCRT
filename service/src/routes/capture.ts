@@ -1,4 +1,5 @@
 import { S3 } from 'aws-sdk';
+
 import * as http from 'http-status-codes';
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
@@ -8,7 +9,7 @@ import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
-import { captureDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
@@ -22,11 +23,19 @@ export default class CaptureRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', this.handleHttpErrors(async (request, response) => {
+      this.router.get('/', check.validQuery(schema.envQuery),
+            this.handleHttpErrors(async (request, response) => {
 
-         const captures = await captureDao.getAllCaptures();
+         const envId = request.query.envId;
+         let captures;
+         if (envId) {
+            captures = await captureDao.getCapturesForEnvironment(envId);
+
+         } else {
+            captures = await captureDao.getAllCaptures();
+         }
+
          response.json(captures);
-
       }));
 
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
@@ -102,7 +111,6 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
-
          const captureTemplate: ICapture = {
             type: ChildProgramType.CAPTURE,
             status: ChildProgramStatus.STARTED, // no scheduled captures yet
@@ -112,7 +120,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          const capture = await captureDao.makeCapture(captureTemplate);
 
          logger.info(`Launching capture with id ${capture!.id!}`);
-         const config = new CaptureConfig(capture!.id!);
+         const config = new CaptureConfig(capture!.id!, request.body.envId);
          config.mock = settings.captures.mock;
          config.interval = settings.captures.interval;
          config.intervalOverlap = settings.captures.intervalOverlap;
@@ -124,9 +132,34 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
+         const deleteLogs: boolean | undefined = request.query.deleteLogs;
+         const captureRow = await captureDao.getCapture(id);
+
+         if (deleteLogs === true && captureRow && captureRow.envId) {
+            const env = await environmentDao.getEnvironmentFull(captureRow.envId);
+
+            if (env) {
+               /* TODO: make sure key matches the key in rds-logging.ts uploadToS3 */
+               const key = "capture" + id + "/workload.json";
+
+               /* TODO: Replace with S3StorageBackend object in the Capture Object */
+               const storage = new S3Backend(
+                     new S3({region: env.region,
+                        accessKeyId: env.accessKey,
+                        secretAccessKey: env.secretKey}),
+                     env.bucket,
+                  );
+
+               if (await storage.exists(key)) {
+                  await storage.deleteJson(key);
+               }
+            }
+         }
+
          const capture = await captureDao.deleteCapture(id);
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);

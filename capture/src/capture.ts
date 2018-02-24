@@ -4,7 +4,8 @@ import { setTimeout } from 'timers';
 import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-mycrt/common';
 import { MetricsBackend } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
-import { ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
+   IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
@@ -17,12 +18,14 @@ const logger = Logging.defaultLogger(__dirname);
 
 export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
+   public env: IEnvironmentFull;
    private ipcNode: IpcNode;
 
    constructor(public config: CaptureConfig, private workloadLogger: WorkloadLogger, storage: StorageBackend,
-         metrics: MetricsBackend) {
+         metrics: MetricsBackend, env: IEnvironmentFull) {
       super(storage, metrics);
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
+      this.env = env;
    }
 
    get id(): number {
@@ -120,7 +123,8 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
          const data = [
             await this.metrics.getCPUMetrics(start, end),
-            await this.metrics.getIOMetrics(start, end),
+            await this.metrics.getReadMetrics(start, end),
+            await this.metrics.getWriteMetrics(start, end),
             await this.metrics.getMemoryMetrics(start, end),
          ];
 
@@ -137,7 +141,6 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          } else {
             logger.error(`Failed to get metrics the second time: ${error}`);
             // TODO: mark capture as broken?
-
          }
       }
    }
