@@ -111,6 +111,12 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
+
+         const env = await environmentDao.getEnvironment(request.body.envId);
+         if (!env) {
+            throw new HttpError(http.BAD_REQUEST, `Environement ${request.body.envId} does not exist`);
+         }
+
          const captureTemplate: ICapture = {
             type: ChildProgramType.CAPTURE,
             status: ChildProgramStatus.STARTED, // no scheduled captures yet
