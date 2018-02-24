@@ -1,6 +1,6 @@
 {
    "database": "LBTMyCRT",
-   "host": "localhost",
+   "host": "127.0.0.1",
    "password": "TRAVIS_PASSWORD",
    "user": "mycrt"
 }
