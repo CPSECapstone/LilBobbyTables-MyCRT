@@ -36,9 +36,9 @@ describe("MyCrtService", () => {
    after(closeMyCrtService);
 
    beforeEach(async () => {
-      // await replayDao.nuke();
-      // await captureDao.nuke();
-      // await environmentDao.nuke();
+      await replayDao.nuke();
+      await captureDao.nuke();
+      await environmentDao.nuke();
    });
 
    it("should return 200 on '/'", async () => {

@@ -1,2 +1,0 @@
-CREATE USER 'mycrt'@'localhost' IDENTIFIED BY 'TRAVIS_PASSWORD';
-GRANT ALL PRIVILEGES ON LBTMyCRT.* TO 'mycrt'@'localhost';

@@ -25,10 +25,8 @@ done
 # setup the mysql database
 echo "Preparing the MySQL database"
 cd $SCRIPTS_DIR
-make_travis_user_sql="${SCRIPTS_DIR}/db/create-mycrt-travis-user.sql"
 bootstrap_sql="${SCRIPTS_DIR}/db/bootstrap.sql"
 travis_defaults="${SCRIPTS_DIR}/db/config/travis.cnf"
-mysql < $make_travis_user_sql
 mysql --defaults-file="$travis_defaults" < $bootstrap_sql
 
 # setup for scripts directory
