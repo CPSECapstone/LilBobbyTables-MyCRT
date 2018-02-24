@@ -14,4 +14,4 @@ export enum MYCRT_ENV {
 export const mycrtEnv = ({
    DEV: MYCRT_ENV.DEV,
    TRAVIS: MYCRT_ENV.TRAVIS,
-} as {[key: string]: MYCRT_ENV})[process.env.MYCRT_ENV as string] || MYCRT_ENV.DEV;
+} as {[key: string]: MYCRT_ENV})[(process.env.MYCRT_ENV as string).toUpperCase()] || MYCRT_ENV.DEV;
