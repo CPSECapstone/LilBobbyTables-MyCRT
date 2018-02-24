@@ -5,8 +5,8 @@ import 'mocha';
 import MyCrtService from '../../main';
 
 const newEnvBody = {
-   accessKey: "AKIAIA3XZW3W2ENCPMYA",
-   secretKey: "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",
+   accessKey: "ACCESSKEY",
+   secretKey: "SECRETKEY",
    region: "us-east-2",
    bucket: "nfllogbucket",
    dbName: "NFL",
