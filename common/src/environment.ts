@@ -11,7 +11,16 @@ export enum MYCRT_ENV {
 
 // determine the current environment from the "MYCRT_ENV" environment variable.
 // defaults to the dev environment
-export const mycrtEnv = ({
-   DEV: MYCRT_ENV.DEV,
-   TRAVIS: MYCRT_ENV.TRAVIS,
-} as {[key: string]: MYCRT_ENV})[(process.env.MYCRT_ENV as string).toUpperCase()] || MYCRT_ENV.DEV;
+export const mycrtEnv = (() => {
+   let envStr: string | undefined = process.env.MYCRT_ENV;
+   if (!envStr) {
+      return MYCRT_ENV.DEV;
+   } else {
+      envStr = envStr.toUpperCase();
+      const envMap: {[key: string]: MYCRT_ENV} = {
+         DEV: MYCRT_ENV.DEV,
+         TRAVIS: MYCRT_ENV.TRAVIS,
+      };
+      return envMap[envStr];
+   }
+})();
