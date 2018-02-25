@@ -105,6 +105,11 @@ export class MyCrtClient {
       return this.makeRequest<IEnvironment[]>(HttpMethod.GET, '/environments');
    }
 
+   /** Edit an environment given the envId and the desired changes */
+   public async editEnvironment(id: number, changes: IEnvironment): Promise<IEnvironment | null> {
+      return this.makeRequest<IEnvironment>(HttpMethod.PUT, `/environments/${id}`, null, changes);
+   }
+
    /** Delete a specific environment */
    public async deleteEnvironment(id: number, removeLogs?: boolean): Promise<void> {
       return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`, {deleteLogs: removeLogs});
