@@ -5,6 +5,9 @@ import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
 
+const generalLogQueryStr: string = 'SELECT event_time, user_host, thread_id, server_id, command_type, ' +
+   'convert(argument using utf8) as argument FROM mysql.general_log';
+
 export class LocalWorkloadLogger extends WorkloadLogger {
 
    constructor(type: ChildProgramType, id: number, storage: StorageBackend) {
@@ -67,7 +70,7 @@ export class LocalWorkloadLogger extends WorkloadLogger {
             if (connErr) {
                reject(connErr);
             } else {
-               conn.query('SELECT * FROM mysql.general_log', (queryErr, rows) => {
+               conn.query(generalLogQueryStr, (queryErr, rows) => {
                   if (queryErr) {
                      conn.end();
                      reject(queryErr);
