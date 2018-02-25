@@ -9,6 +9,7 @@ import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
+import { getMetrics } from '../common/capture-replay-metrics';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -54,24 +55,9 @@ export default class CaptureRouter extends SelfAwareRouter {
             check.validQuery(schema.metricTypeQuery), this.handleHttpErrors(async (request, response) => {
 
          const type: MetricType | undefined = request.query.type;
-
-         // TODO: add configuration for choosing the backend
-         // const storage: MetricsStorage = new MetricsStorage(new S3Backend(new S3(), 'lil-test-environment'));
-         const storage = new MetricsStorage(new LocalBackend(getSandboxPath()));
-
-         logger.info(`Getting ${type} metrics for capture ${request.params.id}`);
          const capture = await captureDao.getCapture(request.params.id);
-         if (!capture) {
-            throw new HttpError(http.NOT_FOUND);
-         }
 
-         const validStatus = capture.status && [ChildProgramStatus.DONE, ChildProgramStatus.RUNNING,
-            ChildProgramStatus.STOPPING].indexOf(capture.status) > -1;
-         if (!validStatus) {
-            throw new HttpError(http.CONFLICT);
-         }
-
-         const result = await storage.readMetrics(capture!, type);
+         const result = await getMetrics(capture, type);
          response.json(result);
 
       }));

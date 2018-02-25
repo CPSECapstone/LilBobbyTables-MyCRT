@@ -7,6 +7,7 @@ import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
+import { getMetrics } from '../common/capture-replay-metrics';
 import { replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -35,7 +36,7 @@ export default class ReplayRouter extends SelfAwareRouter {
 
       this.router.get('/', check.validQuery(schema.replayQuery),
             this.handleHttpErrors(async (request, response) => {
-            const  captureId = request.query.captureId;
+            const captureId = request.query.captureId;
 
             if (captureId) {
                   logger.info(`Getting all replays for capture ${captureId}`);
@@ -51,24 +52,9 @@ export default class ReplayRouter extends SelfAwareRouter {
             check.validQuery(schema.metricTypeQuery), this.handleHttpErrors(async (request, response) => {
 
          const type: MetricType | undefined = request.query.type;
-
-         // TODO: add configuration for choosing the backend
-         // const storage: MetricsStorage = new MetricsStorage(new S3Backend(new S3(), 'lil-test-environment'));
-         const storage = new MetricsStorage(new LocalBackend(getSandboxPath()));
-
-         logger.info(`Getting ${type} metrics for replay ${request.params.id}`);
          const replay = await replayDao.getReplay(request.params.id);
-         if (!replay) {
-            throw new HttpError(http.NOT_FOUND);
-         }
 
-         const validStatus = replay.status && [ChildProgramStatus.DONE, ChildProgramStatus.RUNNING,
-            ChildProgramStatus.STOPPING].indexOf(replay.status) > -1;
-         if (!validStatus) {
-            throw new HttpError(http.CONFLICT);
-         }
-
-         const result = await storage.readMetrics(replay!, type);
+         const result = await getMetrics(replay, type);
          response.json(result);
 
       }));
