@@ -1,8 +1,13 @@
 import * as http from 'http-status-codes';
 
-import { ChildProgramStatus, ChildProgramType, IReplay, Logging } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, IReplay, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
+import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
+import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
+import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
+
+import { getMetrics } from '../common/capture-replay-metrics';
 import { replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -31,7 +36,7 @@ export default class ReplayRouter extends SelfAwareRouter {
 
       this.router.get('/', check.validQuery(schema.replayQuery),
             this.handleHttpErrors(async (request, response) => {
-            const  captureId = request.query.captureId;
+            const captureId = request.query.captureId;
 
             if (captureId) {
                   logger.info(`Getting all replays for capture ${captureId}`);
@@ -41,6 +46,17 @@ export default class ReplayRouter extends SelfAwareRouter {
                   const replays = await replayDao.getAllReplays();
                   response.json(replays);
             }
+      }));
+
+      this.router.get('/:id(\\d+)/metrics', check.validParams(schema.idParams),
+            check.validQuery(schema.metricTypeQuery), this.handleHttpErrors(async (request, response) => {
+
+         const type: MetricType | undefined = request.query.type;
+         const replay = await replayDao.getReplay(request.params.id);
+
+         const result = await getMetrics(replay, type);
+         response.json(result);
+
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
