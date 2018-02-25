@@ -1,7 +1,11 @@
 import * as http from 'http-status-codes';
 
-import { ChildProgramStatus, ChildProgramType, IReplay, Logging } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, IReplay, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
+
+import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
+import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
+import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
@@ -41,6 +45,32 @@ export default class ReplayRouter extends SelfAwareRouter {
                   const replays = await replayDao.getAllReplays();
                   response.json(replays);
             }
+      }));
+
+      this.router.get('/:id(\\d+)/metrics', check.validParams(schema.idParams),
+            check.validQuery(schema.metricTypeQuery), this.handleHttpErrors(async (request, response) => {
+
+         const type: MetricType | undefined = request.query.type;
+
+         // TODO: add configuration for choosing the backend
+         // const storage: MetricsStorage = new MetricsStorage(new S3Backend(new S3(), 'lil-test-environment'));
+         const storage = new MetricsStorage(new LocalBackend(getSandboxPath()));
+
+         logger.info(`Getting ${type} metrics for replay ${request.params.id}`);
+         const replay = await replayDao.getReplay(request.params.id);
+         if (!replay) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const validStatus = replay.status && [ChildProgramStatus.DONE, ChildProgramStatus.RUNNING,
+            ChildProgramStatus.STOPPING].indexOf(replay.status) > -1;
+         if (!validStatus) {
+            throw new HttpError(http.CONFLICT);
+         }
+
+         const result = await storage.readMetrics(replay!, type);
+         response.json(result);
+
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
