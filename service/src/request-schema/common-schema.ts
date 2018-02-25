@@ -41,7 +41,7 @@ export const value = {
    password: joi.string(),
 
    /** A boolean value */
-   boolean: joi.boolean(),
+   deleteLog: joi.boolean(),
 
    // TODO
    // Must start with a letter and only contain letters, digits, or hyphens (NO CONSECUTIVE HYPENS)
@@ -65,5 +65,5 @@ export const metricTypeQuery: joi.ObjectSchema = joi.object().keys({
 });
 
 export const deleteLogsQuery: joi.ObjectSchema = joi.object().keys({
-    deleteLogs: value.boolean.optional(),
+    deleteLogs: value.deleteLog.optional(),
 });
