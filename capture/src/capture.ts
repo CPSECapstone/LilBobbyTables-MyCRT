@@ -32,6 +32,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       return this.config.id;
    }
 
+   get nameId(): string {
+      return `capture ${this.id}`;
+   }
+
    get interval(): number {
       return this.config.interval;
    }
@@ -118,6 +122,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       }
    }
 
+   protected async dontPanic(): Promise<void> {
+      return captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
+   }
+
    private async sendMetricsToS3(start: Date, end: Date, firstTry: boolean = true) {
       try {
 
@@ -142,18 +150,6 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
             logger.error(`Failed to get metrics the second time: ${error}`);
             // TODO: mark capture as broken?
          }
-      }
-   }
-
-   private async selfDestruct(reason: string) {
-      try {
-         logger.error(reason);
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
-
-         logger.info('self destruction...');
-         await this.stop(false);
-      } catch (error) {
-         process.exit(1); // the world is pretty much ending now
       }
    }
 
