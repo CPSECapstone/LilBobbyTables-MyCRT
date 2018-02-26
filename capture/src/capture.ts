@@ -53,23 +53,27 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       try {
          logger.info(`Performing setup for Capture ${this.id}`);
 
-         logger.info(`Setting Capture ${this.id} status to 'starting'`);
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STARTING);
+         // const status = (this.status) ? this.status : ChildProgramStatus.STARTING;
+
+         // logger.info(`Setting Capture ${this.id} status`);
+         // await captureDao.updateCaptureStatus(this.id, status);
 
          logger.info(`Start ipc node`);
          await this.ipcNode.start();
 
-         // TODO: abstract Rds communication and make synchronous
-         if (!this.config.mock && this.env) {
-            logger.info(`Starting RDS logging`);
-            await startRdsLogging(this);
-         }
+         // // TODO: abstract Rds communication and make synchronous
+         // if (!this.config.mock && this.env) {
+         //    logger.info(`Starting RDS logging`);
+         //    await startRdsLogging(this);
+         // }
 
-         logger.info(`Setting Capture ${this.id} startTime = ${this.startTime!.toJSON()}`);
-         await captureDao.updateCaptureStartTime(this.id);
+         // const startTime = this.startTime ? this.startTime!.toJSON() : (new Date()).toJSON();
 
-         logger.info(`Setting Capture ${this.id} status to 'live'`);
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.RUNNING);
+         // logger.info(`Setting Capture ${this.id} startTime = ${startTime}`);
+         // await captureDao.updateCaptureStartTime(this.id, this.startTime);
+
+         // logger.info(`Setting Capture ${this.id} status to 'live'`);
+         // await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.RUNNING);
 
       } catch (error) {
          logger.error(`Failed to setup capture: ${error}`);

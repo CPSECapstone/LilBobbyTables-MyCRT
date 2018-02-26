@@ -15,7 +15,7 @@ export abstract class Subprocess {
    }
 
    public run(): void {
-      this.startTime = new Date();
+      // this.startTime = new Date();
       this.setup();
       this.loopTimeoutId = setInterval(() => {
          this.runLoop();

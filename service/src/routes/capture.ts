@@ -97,23 +97,46 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
-         const captureTemplate: ICapture = {
-            type: ChildProgramType.CAPTURE,
-            status: ChildProgramStatus.STARTED, // no scheduled captures yet
-            name: request.body.name,
+         const initialStatus: string | undefined = request.body.status;
+         let captureTemplate: ICapture;
+         const startTime: any = request.body.start;
+
+         const startCapture = async (cptTemplate: ICapture) => {
+            const capture = await captureDao.makeCapture(cptTemplate);
+
+            logger.info(`Launching capture with id ${capture!.id!}`);
+            const config = new CaptureConfig(capture!.id!, request.body.envId);
+            config.mock = settings.captures.mock;
+            config.interval = settings.captures.interval;
+            config.intervalOverlap = settings.captures.intervalOverlap;
+
+            launch(config);
+            response.json(capture).end();
+            logger.info(`Successfully created capture!`);
          };
 
-         const capture = await captureDao.makeCapture(captureTemplate);
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            captureTemplate = {
+               type: ChildProgramType.CAPTURE,
+               status: ChildProgramStatus.SCHEDULED,
+               name: request.body.name,
+               start: startTime,
+            };
 
-         logger.info(`Launching capture with id ${capture!.id!}`);
-         const config = new CaptureConfig(capture!.id!, request.body.envId);
-         config.mock = settings.captures.mock;
-         config.interval = settings.captures.interval;
-         config.intervalOverlap = settings.captures.intervalOverlap;
+            const schedule = require('node-schedule');
+            // if (schedule.isValidDate(startTime)) {
+               schedule.scheduleJob(startTime, startCapture(captureTemplate));
+            // }
+         } else  {
+            captureTemplate = {
+               type: ChildProgramType.CAPTURE,
+               status: ChildProgramStatus.STARTED, // no scheduled captures yet
+               name: request.body.name,
+               start: startTime,
+            };
 
-         launch(config);
-         response.json(capture).end();
-         logger.info(`Successfully created capture!`);
+            startCapture(captureTemplate);
+         }
 
       }));
 
