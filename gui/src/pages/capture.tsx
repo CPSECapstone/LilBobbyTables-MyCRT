@@ -9,7 +9,7 @@ import { BrowserLogger as logger } from './../logging';
 import { Graph } from './components/graph_comp';
 
 import { CompareModal } from './components/compare_modal_comp';
-import { DeleteCaptureModal } from './components/delete_capture_modal_comp';
+import { DeleteModal } from './components/delete_modal_comp';
 import { GraphSelectDrop } from './components/graph_dropdown_comp';
 import { ReplaySelectDrop } from './components/replay_compare_dropdown_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
@@ -24,6 +24,7 @@ class CaptureApp extends React.Component<any, any> {
             super(props);
             this.updateGraphs = this.updateGraphs.bind(this);
             this.formatData = this.formatData.bind(this);
+            this.deleteCapture = this.deleteCapture.bind(this);
             this.handleDeletedCapture = this.handleDeletedCapture.bind(this);
 
             // FIXME: THIS IS A QUICK AND DIRTY WAY TO DO THIS
@@ -67,6 +68,10 @@ class CaptureApp extends React.Component<any, any> {
                 this.formatData(allGraphs);
                 this.setState({allGraphs});
             }
+      }
+
+      public deleteCapture(id: number, deleteLogs: boolean) {
+            mycrt.deleteCapture(id, deleteLogs);
       }
 
       public handleDeletedCapture() {
@@ -131,8 +136,9 @@ class CaptureApp extends React.Component<any, any> {
                            data-target="#deleteCaptureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
-                        <DeleteCaptureModal id="deleteCaptureModal" capture={this.state.capture}
-                              update={this.handleDeletedCapture}/>
+                        <DeleteModal id="deleteCaptureModal" deleteId={this.state.captureId}
+                               name={this.state.capture.name} delete={this.deleteCapture}
+                               type="Capture" update={this.handleDeletedCapture}/>
                      </div>
                      <div className="modal-body">
                         <div className="page-header">
