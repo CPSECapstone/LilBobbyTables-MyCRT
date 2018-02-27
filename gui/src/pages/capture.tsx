@@ -8,13 +8,13 @@ import ReactDom = require('react-dom');
 import { BrowserLogger as logger } from './../logging';
 import { Graph } from './components/graph_comp';
 
-import { CompareModal } from './components/compare_modal_comp';
 import { DeleteModal } from './components/delete_modal_comp';
 import { GraphSelectDrop } from './components/graph_dropdown_comp';
+import { MessageModal } from './components/message_handler_comp';
 import { ReplaySelectDrop } from './components/replay_compare_dropdown_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 
-import { IMetricsList, MetricType } from '@lbt-mycrt/common/dist/data';
+import { IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { mycrt } from './utils/mycrt-client';
 
@@ -25,7 +25,6 @@ class CaptureApp extends React.Component<any, any> {
             this.updateGraphs = this.updateGraphs.bind(this);
             this.formatData = this.formatData.bind(this);
             this.deleteCapture = this.deleteCapture.bind(this);
-            this.handleDeletedCapture = this.handleDeletedCapture.bind(this);
 
             // FIXME: THIS IS A QUICK AND DIRTY WAY TO DO THIS
             let id: any = null;
@@ -60,7 +59,7 @@ class CaptureApp extends React.Component<any, any> {
             if (this.state.captureId) {
                   this.setState({
                         capture: await mycrt.getCapture(this.state.captureId),
-                        allReplays: await mycrt.getReplays(), // error check later
+                        allReplays: await mycrt.getReplaysForCapture(this.state.captureId), // error check later
                   });
             }
             const allGraphs = await mycrt.getAllCaptureMetrics(this.state.captureId);
@@ -70,11 +69,8 @@ class CaptureApp extends React.Component<any, any> {
             }
       }
 
-      public deleteCapture(id: number, deleteLogs: boolean) {
-            mycrt.deleteCapture(id, deleteLogs);
-      }
-
-      public handleDeletedCapture() {
+      public async deleteCapture(id: number, deleteLogs: boolean) {
+            await mycrt.deleteCapture(id, deleteLogs);
             window.location.assign(`./dashboard?id=${this.state.envId}`);
       }
 
@@ -88,7 +84,21 @@ class CaptureApp extends React.Component<any, any> {
                         delete dataPoint.Maximum;
                   }
             });
-        }
+      }
+
+      public updateReplays(checked: boolean, value: IReplay) {
+            if (checked) {
+                  this.setState((prevState: any) => ({
+                      selectedReplays: [value, ...prevState.selectedReplays],
+                  }));
+            } else {
+                  this.setState({
+                      selectedReplays: this.state.selectedReplays.filter( (replay: IReplay) => {
+                        return replay.id !== value.id;
+                      }),
+                  });
+            }
+      }
 
     // fix bugs in this...isn't working right now
       public updateGraphs(checked: boolean, value: IMetricsList) {
@@ -99,7 +109,7 @@ class CaptureApp extends React.Component<any, any> {
           } else {
             this.setState({
                 selectedGraphs: this.state.selectedGraphs.filter( (graph: IMetricsList) => {
-                  return graph !== value;
+                  return graph.type !== value.type;
                 }),
             });
           }
@@ -125,11 +135,9 @@ class CaptureApp extends React.Component<any, any> {
                                     <li className="breadcrumb-item active">{this.state.capture.name}</li>
                               </ol>
                         </nav>
-
             <div className="container">
                <div className="row">
                   <div className="col-sm-12 mb-r">
-
                      <div className="page-header">
                         <h1 style={{display: "inline"}}>{ this.state.capture.name }</h1>
                         <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
@@ -137,20 +145,15 @@ class CaptureApp extends React.Component<any, any> {
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
                         <DeleteModal id="deleteCaptureModal" deleteId={this.state.captureId}
-                               name={this.state.capture.name} delete={this.deleteCapture}
-                               type="Capture" update={this.handleDeletedCapture}/>
+                               name={this.state.capture.name} delete={this.deleteCapture} type="Capture"/>
                      </div>
                      <div className="modal-body">
                         <div className="page-header">
                            <h2 style={{display: "inline"}}>Metrics</h2>
                            <GraphSelectDrop prompt="Graph Types"
                                 graphs={this.state.allGraphs} update={this.updateGraphs}/>
-                           <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}/>
-                           {/* <a role="button" href="#" className="btn btn-primary" data-toggle="modal"
-                              data-target="#compareModal" style={{marginBottom: "20px", marginLeft: "20px"}}>
-                              <i className="fa fa-line-chart" aria-hidden="true"></i> Compare
-                           </a> */}
-                           <CompareModal id="compareModal" target={metricsTarget} capture={this.state.capture}/>
+                           <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
+                              update={this.updateReplays}/>
                            <br></br>
                            {graphs}
                         </div>

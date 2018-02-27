@@ -9,8 +9,9 @@ export class ReplaySelectDrop extends React.Component<any, any>  {
         super(props);
     }
 
-    public selectGraphTypes(event: any) {
+    public selectReplays(event: any) {
         const target = event.currentTarget;
+        this.props.update(target.checked, JSON.parse(target.value));
      }
 
     public render() {
@@ -30,7 +31,7 @@ export class ReplaySelectDrop extends React.Component<any, any>  {
                     {this.props.prompt}
                     <span className="caret"></span>
                 </button>
-                <ul className="dropdown-menu" onClick={(e) => this.selectGraphTypes(e)}>
+                <ul className="dropdown-menu" onClick={(e) => this.selectReplays(e)}>
                     {checkboxes}
                 </ul>
             </div>

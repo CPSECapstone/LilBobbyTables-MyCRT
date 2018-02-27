@@ -21,10 +21,7 @@ export class DeleteModal extends React.Component<any, any>  {
             logger.error("Given capture name doesn't match.");
             return;
         }
-        logger.info(this.props.deleteId);
-        logger.info(this.state.deleteLogs);
-        await this.props.delete(this.props.deleteId, this.state.deleteLogs);
-        this.props.update();
+        this.props.delete(this.props.deleteId, this.state.deleteLogs);
     }
 
     public handleNameChange(event: any) {
@@ -32,7 +29,6 @@ export class DeleteModal extends React.Component<any, any>  {
     }
 
     public handleCheckChange(event: any) {
-        logger.info(event.target.checked);
         this.setState({deleteLogs: event.target.checked});
     }
 

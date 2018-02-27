@@ -57,11 +57,8 @@ class DashboardApp extends React.Component<any, any> {
         this.setReplays();
     }
 
-    public deleteEnv(id: number, deleteLogs: boolean) {
-        mycrt.deleteEnvironment(id, deleteLogs);
-  }
-
-    public handleDeletedEnv() {
+    public async deleteEnv(id: number, deleteLogs: boolean) {
+        await mycrt.deleteEnvironment(id, deleteLogs);
         window.location.assign('./environments');
     }
 
@@ -121,8 +118,7 @@ class DashboardApp extends React.Component<any, any> {
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
-                               name={this.state.env.name} delete={this.deleteEnv}
-                               type="Environment" update={this.handleDeletedEnv}/>
+                               name={this.state.env.name} delete={this.deleteEnv} type="Environment"/>
                   </div>
                </div>
                <br></br>
