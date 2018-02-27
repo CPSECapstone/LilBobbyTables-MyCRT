@@ -1,6 +1,8 @@
 import * as http from 'http-status-codes';
 
-import { ChildProgramStatus, ChildProgramType, IReplay, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
+import {
+   ChildProgramStatus, ChildProgramType, IDbReference, IReplay, Logging, MetricsStorage, MetricType,
+} from '@lbt-mycrt/common';
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
@@ -8,7 +10,7 @@ import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { getMetrics } from '../common/capture-replay-metrics';
-import { replayDao } from '../dao/mycrt-dao';
+import { environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/replay-schema';
@@ -60,6 +62,17 @@ export default class ReplayRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
+         const dbRefArgs: IDbReference = {
+            name: request.body.dbName,
+            host: request.body.host,
+            user: request.body.user,
+            pass: request.body.pass,
+         };
+
+         const dbRef = await environmentDao.makeDbReference(dbRefArgs);
+         if (!dbRef.id) {
+            throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
+         }
 
          const replayTemplate: IReplay = {
             name: request.body.name,
@@ -71,7 +84,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          const replay = await replayDao.makeReplay(replayTemplate);
 
          logger.info(`Launching replay with id ${replay!.id!} for capture ${replay!.captureId!}`);
-         const config = new ReplayConfig(replay!.id!, replay!.captureId!, request.body.envId);
+         const config = new ReplayConfig(replay!.id!, replay!.captureId!, request.body.envId, dbRef.id);
          config.mock = settings.replays.mock;
          config.interval = settings.replays.interval;
          config.intervalOverlap = settings.replays.intervalOverlap;
