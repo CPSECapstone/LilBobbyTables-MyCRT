@@ -70,9 +70,9 @@ class CaptureApp extends React.Component<any, any> {
             }
       }
 
-      public deleteCapture() {
-            mycrt.deleteCapture;
-        }
+      public deleteCapture(id: number, deleteLogs: boolean) {
+            mycrt.deleteCapture(id, deleteLogs);
+      }
 
       public handleDeletedCapture() {
             window.location.assign(`./dashboard?id=${this.state.envId}`);
@@ -136,7 +136,7 @@ class CaptureApp extends React.Component<any, any> {
                            data-target="#deleteCaptureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
-                        <DeleteModal id="deleteCaptureModal" deleteId={this.state.capture.id}
+                        <DeleteModal id="deleteCaptureModal" deleteId={this.state.captureId}
                                name={this.state.capture.name} delete={this.deleteCapture}
                                type="Capture" update={this.handleDeletedCapture}/>
                      </div>
