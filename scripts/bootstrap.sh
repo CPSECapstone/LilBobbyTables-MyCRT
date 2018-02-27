@@ -65,6 +65,23 @@ fi
 echo -e "${GREEN}All Clean!${RESTORE}\n"
 
 ########################################################################################################################
+# Setup the MyCRT database
+
+echo -e "${CYAN}setup the mysql database${RESTORE}"
+echo -e "${BLUE}Bootstrapping the LBTMyCRT database${RESTORE}"
+cd "$SCRIPTS_MODULE_DIR"
+
+bootstrap_sql="${SCRIPTS_MODULE_DIR}/db/bootstrap.sql"
+dev_defaults="${SCRIPTS_MODULE_DIR}/db/config/dev.cnf"
+if ! mysql --defaults-file="$dev_defaults" < $bootstrap_sql 1>>"$LOG_FILE" 2>&1; then
+   echo -e "${RED}Failed to bootstrap the LBTMySQL database${RESTORE}"
+   exit 1
+fi
+
+echo -e "${GREEN}Successfully setup the LBTMyCRT database${RESTORE}\n"
+cd ..
+
+########################################################################################################################
 
 echo -e "${CYAN}Setting up modules${RESTORE}"
 
@@ -179,23 +196,6 @@ SERVICE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/service"
    cd "$SCRIPTS_MODULE_DIR"
    if ! npm run build-service 1>>"$LOG_FILE" 2>&1; then
       echo -e "${RED}Failed to build service${RESTORE}"; exit 1
-   fi
-
-   echo "bootstrapping the LBTMyCRT database"
-   cd "$SERVICE_MODULE_DIR"
-   bootstrap_sql="${SERVICE_MODULE_DIR}/db/bootstrap.sql"
-   if ! mysql < $bootstrap_sql 1>>"$LOG_FILE" 2>&1; then
-      echo -e "${RED}Failed to bootstrap the LBTMySQL database"
-      echo -e "Make sure MySQL server is running and ~/.my.cnf is set up correctly.${RESTORE}"
-      exit 1
-   fi
-
-   sample_config="${SERVICE_MODULE_DIR}/db/config.sample.json"
-   actual_config="${SERVICE_MODULE_DIR}/db/config.json"
-   if [ ! -e "$actual_config" ]; then
-      echo "creating ${actual_config}"
-      cp "${sample_config}" "${actual_config}"
-      echo -e "${YELLOW}YOU MUST UPDATE THE PASSWORD IN ${actual_config}!!!${RESTORE}"
    fi
 
 echo -e "${GREEN}Successfully setup service module${RESTORE}\n"

@@ -31,6 +31,7 @@ export * from './metrics/cloudwatch-metrics-backend';
 /* DAO */
 export * from './dao/capture-dao';
 export * from './dao/cnnPool';
+export * from './dao/config';
 export * from './dao/dao';
 export * from './dao/environment-dao';
 export * from './dao/replay-dao';

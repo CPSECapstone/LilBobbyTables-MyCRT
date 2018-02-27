@@ -48,6 +48,16 @@ export class EnvironmentDao extends Dao {
       return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
    }
 
+   /**
+    * Remove everything from the database. Be VERY CAREFUL with this.
+    */
+   public async nuke(): Promise<void> {
+      ['Environment', 'IAMReference', 'S3Reference', 'DBReference'].forEach(async (table) => {
+         await this.query<void>(`DELETE FROM ${table}`);
+         await this.query<void>(`ALTER TABLE ${table} AUTO_INCREMENT = 1`);
+      });
+   }
+
    public async editEnvironment(id: number, changes: data.IEnvironment): Promise<data.IEnvironment | null> {
       return this.query<any>('UPDATE Environment SET ? WHERE id = ?', [changes, id]);
    }

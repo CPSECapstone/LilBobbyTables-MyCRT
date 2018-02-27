@@ -1,6 +1,6 @@
 {
    "database": "LBTMyCRT",
    "host": "localhost",
-   "password": "INSERTPASSWORDHERE",
-   "user": "root"
+   "password": "DEV_PASSWORD",
+   "user": "mycrt"
 }

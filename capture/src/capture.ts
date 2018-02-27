@@ -4,13 +4,15 @@ import { setTimeout } from 'timers';
 import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-mycrt/common';
 import { MetricsBackend } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
-import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
+   IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { CaptureConfig } from './args';
 import { captureDao } from './dao';
-import { startRdsLogging, stopRdsLoggingAndUploadToS3 } from './rds-logging';
+import { fakeRequest } from './workload/local-workload-logger';
+import { WorkloadLogger } from './workload/workload-logger';
 
 const logger = Logging.defaultLogger(__dirname);
 
@@ -19,9 +21,8 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
    public env: IEnvironmentFull;
    private ipcNode: IpcNode;
 
-   constructor(public config: CaptureConfig, storage: StorageBackend, metrics: MetricsBackend,
-      env: IEnvironmentFull) {
-
+   constructor(public config: CaptureConfig, private workloadLogger: WorkloadLogger, storage: StorageBackend,
+         metrics: MetricsBackend, env: IEnvironmentFull) {
       super(storage, metrics);
       this.ipcNode = new CaptureIpcNode(this.id, logger, this);
       this.env = env;
@@ -29,6 +30,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
    get id(): number {
       return this.config.id;
+   }
+
+   get nameId(): string {
+      return `capture ${this.id}`;
    }
 
    get interval(): number {
@@ -59,11 +64,8 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info(`Start ipc node`);
          await this.ipcNode.start();
 
-         // TODO: abstract Rds communication and make synchronous
-         if (!this.config.mock && this.env) {
-            logger.info(`Starting RDS logging`);
-            await startRdsLogging(this);
-         }
+         logger.info(`Starting RDS logging`);
+         await this.workloadLogger.setLogging(true);
 
          logger.info(`Setting Capture ${this.id} startTime = ${this.startTime!.toJSON()}`);
          await captureDao.updateCaptureStartTime(this.id);
@@ -72,8 +74,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.RUNNING);
 
       } catch (error) {
-         logger.error(`Failed to setup capture: ${error}`);
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
+         this.selfDestruct(`Failed to setup capture ${error}`);
       }
    }
 
@@ -88,6 +89,11 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
       logger.info('   process metrics...');
       this.sendMetricsToS3(start, end);
+
+      if (this.config.mock) {
+         logger.info('   generate fake traffic for the mock workload');
+         fakeRequest();
+      }
    }
 
    protected async teardown(): Promise<void> {
@@ -99,12 +105,11 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info("record end time");
          await captureDao.updateCaptureEndTime(this.id);
 
-         // TODO: abstract rds communication
-         if (!this.config.mock && this.env) {
-            logger.info("save workload");
-            const s3res = await stopRdsLoggingAndUploadToS3(this);
-            logger.info(`Got S3 location!: ${s3res}`);
-         }
+         logger.info("turning off RDS logging");
+         await this.workloadLogger.setLogging(false);
+
+         logger.info("Persisting workload");
+         await this.workloadLogger.persistWorkload();
 
          logger.info('Stopping ipc node');
          await this.ipcNode.stop();
@@ -113,9 +118,12 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
 
       } catch (error) {
-         logger.error(`teardown failed: ${error}`);
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
+         this.selfDestruct(`teardown failed: ${error}`);
       }
+   }
+
+   protected async dontPanic(): Promise<void> {
+      return captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
    }
 
    private async sendMetricsToS3(start: Date, end: Date, firstTry: boolean = true) {
@@ -144,4 +152,5 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          }
       }
    }
+
 }

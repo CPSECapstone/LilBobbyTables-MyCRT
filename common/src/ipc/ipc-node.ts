@@ -44,6 +44,7 @@ export class IpcNode {
       this.ipc.config.retry = 2000;
       this.ipc.config.appspace = IpcNodeAppspace;
       this.ipc.config.socketRoot = IpcNodeSocketRoot;
+      this.ipc.config.logger = logger.info;
    }
 
    /** Gets the id of the ipc.config object, also serves as the IpcNode's id */

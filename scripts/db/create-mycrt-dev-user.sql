@@ -1,0 +1,2 @@
+CREATE USER IF NOT EXISTS 'mycrt'@'localhost' IDENTIFIED BY 'DEV_PASSWORD';
+GRANT ALL PRIVILEGES ON *.* TO 'mycrt'@'localhost';
