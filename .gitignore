@@ -85,3 +85,6 @@ bundles/
 
 # sonarqube
 .scannerwork/
+
+# settings in vscode
+.vscode/

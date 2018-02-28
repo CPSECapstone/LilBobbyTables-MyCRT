@@ -99,16 +99,8 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
-         // validate
-         // create Template
-         // if scheduled, schedule
-         // else, start
-         // put in DB???
-         // then, return response
-
          // validation
          const initialStatus: string | undefined = request.body.status;
-         let captureTemplate: ICapture;
          const startTime: any = request.body.start;
 
          const env = await environmentDao.getEnvironment(request.body.envId);
@@ -116,35 +108,31 @@ export default class CaptureRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, `Environement ${request.body.envId} does not exist`);
          }
 
-         // create template
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            captureTemplate = {
-               type: ChildProgramType.CAPTURE,
-               status: ChildProgramStatus.SCHEDULED,
-               name: request.body.name,
-               start: startTime,
-            };
-         } else {
-            captureTemplate = {
-               type: ChildProgramType.CAPTURE,
-               status: ChildProgramStatus.STARTED, // no scheduled captures yet
-               name: request.body.name,
-               start: startTime,
-            };
-         }
+         const captureTemplate: ICapture = {
+            type: ChildProgramType.CAPTURE,
+            status: initialStatus === ChildProgramStatus.SCHEDULED ?
+               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+            name: request.body.name,
+            start: startTime,
+         };
 
          // assign capture
          const capture = await captureDao.makeCapture(captureTemplate);
+         // return response
+         response.json(capture).end();
+         logger.info(`Successfully created capture!`);
 
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             // schedule job
             // if (schedule.isValidDate(startTime)) {
-            schedule.scheduleJob(startTime, () => { this.startCapture(captureTemplate, response, request); });
+            schedule.scheduleJob(startTime, () => { this.startCapture(captureTemplate); });
             // }
-         } else {
-            // otherwise, start capture immediately
-            this.startCapture(captureTemplate, response, request);
          }
+         // else {
+         //    // otherwise, start capture immediately
+         // }
+
+         this.startCapture(captureTemplate);
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
@@ -185,18 +173,14 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
    }
 
-   private startCapture(capture: ICapture, request: any, response: any): void {
+   private startCapture(capture: ICapture): void {
       const logger = Logging.defaultLogger(__dirname);
       logger.info(`Launching capture with id ${capture!.id!}`);
 
-      const config = new CaptureConfig(capture!.id!, request.body.envId);
+      const config = new CaptureConfig(capture!.id!, capture!.envId!);
       config.mock = settings.captures.mock;
       config.interval = settings.captures.interval;
       config.intervalOverlap = settings.captures.intervalOverlap;
       launch(config);
-
-      // return response
-      response.json(capture).end();
-      logger.info(`Successfully created capture!`);
    }
 }
