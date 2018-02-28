@@ -24,12 +24,6 @@ export const optionCaptureId: OptionDefinition = {
 export const optionDbId: OptionDefinition = {
    name: 'dbId',
    type: Number,
-   description: "The id of the associated database of this replay",
-};
-
-export const optionDbId: OptionDefinition = {
-   name: 'dbId',
-   type: Number,
    description: "The id of the target database upon which to perform the replay",
 };
 
@@ -78,9 +72,6 @@ export class ReplayConfig extends Config {
       }
       if (!options.captureId) {
          throw new Error("No captureId was provided for the replay");
-      }
-      if (!options.dbId) {
-         throw new Error("No dbId was provided for the replay");
       }
       if (!options.dbId) {
          throw new Error("No dbId was provided for the replay");

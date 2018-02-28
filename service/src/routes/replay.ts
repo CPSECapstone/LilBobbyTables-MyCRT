@@ -67,6 +67,7 @@ export default class ReplayRouter extends SelfAwareRouter {
             host: request.body.host,
             user: request.body.user,
             pass: request.body.pass,
+            instance: request.body.instance,
          };
 
          const dbRef = await environmentDao.makeDbReference(dbRefArgs);
@@ -89,7 +90,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          const replay = await replayDao.makeReplay(replayTemplate);
 
          logger.info(`Launching replay with id ${replay!.id!} for capture ${replay!.captureId!}`);
-         const config = new ReplayConfig(replay!.id!, replay!.captureId!, request.body.envId, dbRef.id);
+         const config = new ReplayConfig(replay!.id!, replay!.captureId!, dbRef.id);
          config.mock = settings.replays.mock;
          config.interval = settings.replays.interval;
          config.intervalOverlap = settings.replays.intervalOverlap;

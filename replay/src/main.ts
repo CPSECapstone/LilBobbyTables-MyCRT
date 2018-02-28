@@ -27,33 +27,33 @@ async function runReplay(): Promise<void> {
       const capEnv = await environmentDao.getEnvironmentFull(capture.envId);
       const db = await environmentDao.getDbReference(config.dbId);
 
-      if (capEnv && db && db.instance !== undefined) {
+      if (capEnv && db && db.instance !== null) {
 
-            const buildReplay = (): Replay => {
-               const storage = new S3Backend(
-                  new S3({
-                     region: capEnv.region,
-                     accessKeyId: capEnv.accessKey,
-                     secretAccessKey: capEnv.secretKey}), capEnv.bucket);
-               const metrics = new CloudWatchMetricsBackend(
-                  new CloudWatch({ region: capEnv.region,
-                                   accessKeyId: capEnv.accessKey,
-                                   secretAccessKey: capEnv.secretKey }),
-                  DBIdentifier, db.instance!, 60, ['Maximum']);
-               return new Replay(config, storage, metrics, db);
-            };
+         const buildReplay = (): Replay => {
+            const storage = new S3Backend(
+               new S3({
+                  region: capEnv.region,
+                  accessKeyId: capEnv.accessKey,
+                  secretAccessKey: capEnv.secretKey}), capEnv.bucket);
+            const metrics = new CloudWatchMetricsBackend(
+               new CloudWatch({ region: capEnv.region,
+                                 accessKeyId: capEnv.accessKey,
+                                 secretAccessKey: capEnv.secretKey }),
+               DBIdentifier, db.instance!, 60, ['Maximum']);
+            return new Replay(config, storage, metrics, db);
+         };
 
-            const buildMockReplay = (): Replay => {
-               const storage = new LocalBackend(getSandboxPath());
-               const metrics = new MockMetricsBackend(5);
-               return new Replay(config, storage, metrics, db);
-            };
+         const buildMockReplay = (): Replay => {
+            const storage = new LocalBackend(getSandboxPath());
+            const metrics = new MockMetricsBackend(5);
+            return new Replay(config, storage, metrics, db);
+         };
 
-            const replay = config.mock ? buildMockReplay() : buildReplay();
+         const replay = config.mock ? buildMockReplay() : buildReplay();
 
-            logger.info("Running MyCRT Replay Program");
-            replay.run();
-         }
+         logger.info("Running MyCRT Replay Program");
+         replay.run();
+      }
    }
 
 }

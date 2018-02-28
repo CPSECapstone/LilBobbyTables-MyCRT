@@ -33,10 +33,6 @@ CREATE TABLE S3Reference (
    bucket VARCHAR(32)
 );
 
-CREATE TABLE Metrics (
-   id INT(11) AUTO_INCREMENT PRIMARY KEY
-);
-
 CREATE TABLE Capture (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
    name VARCHAR(32),
@@ -58,6 +54,6 @@ CREATE TABLE Replay (
       FOREIGN KEY (captureId)
       REFERENCES Capture(id) ON DELETE CASCADE,
    CONSTRAINT dbKey
-      FOREIGN KEY (dbid)
+      FOREIGN KEY (dbId)
       REFERENCES DBReference(id)
 );
