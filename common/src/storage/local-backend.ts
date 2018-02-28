@@ -16,6 +16,8 @@ export class LocalBackend extends StorageBackend {
       }
    }
 
+   public rootDirectory(): string { return this.rootDir; }
+
    public async exists(key: string): Promise<boolean> {
       const file = path.join(this.rootDir, key);
       return await fs.pathExists(file);
