@@ -105,7 +105,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
                // TODO: Remove environment bucket from s3 (should just be s3.deleteBucket call)
                const s3Params = { Bucket: env.bucket };
-               throw new Error("Deleting environment bucket not implemented.");
+               logger.info("Deleting environment bucket not implemented.");
             }
          }
 

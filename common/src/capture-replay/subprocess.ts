@@ -1,7 +1,11 @@
+import { defaultLogger } from '../logging';
+
 import { ChildProgramStatus, IChildProgram } from '../data';
 import { IpcNode } from '../ipc/ipc-node';
 import { MetricsBackend } from '../metrics/metrics-backend';
 import { StorageBackend } from '../storage/backend';
+
+const logger = defaultLogger(__dirname);
 
 export abstract class Subprocess {
 
@@ -34,6 +38,7 @@ export abstract class Subprocess {
    public abstract asIChildProgram(): IChildProgram;
 
    abstract get id(): number;
+   abstract get nameId(): string;
    public get done(): boolean {
       return this.isDone;
    }
@@ -42,6 +47,23 @@ export abstract class Subprocess {
    protected abstract async setup(): Promise<void>;
    protected abstract loop(): void;
    protected abstract async teardown(): Promise<void>;
+   protected abstract async dontPanic(): Promise<void>;
+
+   protected async selfDestruct(reason: string) {
+      try {
+         logger.info('so long and thanks for all the fish');
+         logger.error(reason);
+         await this.dontPanic();
+      } catch (error) {
+         try {
+            logger.error(`${this.nameId} failed to self destruct properly`);
+         } catch (error) {
+            // logging is broken
+            process.exit(2);
+         }
+      }
+      process.exit(42);
+   }
 
    private runLoop(): void {
       this.loop();

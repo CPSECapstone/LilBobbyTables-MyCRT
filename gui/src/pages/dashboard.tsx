@@ -10,6 +10,7 @@ import '../../static/css/index.css';
 import { BrowserLogger as logger } from '../logging';
 import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
+import { DeleteModal } from './components/delete_modal_comp';
 import { ReplayModal } from './components/replay_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
@@ -19,6 +20,7 @@ class DashboardApp extends React.Component<any, any> {
     public constructor(props: any) {
         super(props);
         this.componentWillMount = this.componentWillMount.bind(this);
+        this.deleteEnv = this.deleteEnv.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
         if (match) {
@@ -53,6 +55,14 @@ class DashboardApp extends React.Component<any, any> {
         }
         this.setCaptures();
         this.setReplays();
+    }
+
+    public deleteEnv(id: number, deleteLogs: boolean) {
+        mycrt.deleteEnvironment(id, deleteLogs);
+  }
+
+    public handleDeletedEnv() {
+        window.location.assign('./environments');
     }
 
     public render() {
@@ -105,7 +115,14 @@ class DashboardApp extends React.Component<any, any> {
             <div className="container">
                <div className="row">
                   <div className="col-xs-12">
-                     <h1>{this.state.env.name}</h1>
+                     <h1 style={{display: "inline"}}>{this.state.env.name}</h1>
+                     <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
+                           data-target="#deleteEnvModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                            <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
+                        </a>
+                        <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
+                               name={this.state.env.name} delete={this.deleteEnv}
+                               type="Environment" update={this.handleDeletedEnv}/>
                   </div>
                </div>
                <br></br>

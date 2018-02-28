@@ -33,6 +33,10 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       return this.config.id;
    }
 
+   get nameId(): string {
+      return `replay ${this.id}`;
+   }
+
    get interval(): number {
 
       if (this.expectedEndTime === undefined) {
@@ -126,6 +130,10 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       await replayDao.updateReplayEndTime(this.id);
       this.ipcNode.stop();
+   }
+
+   protected async dontPanic(): Promise<void> {
+      await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED);
    }
 
    private getCaptureWorkloadPath(id: number): string {
@@ -233,13 +241,4 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       }
    }
 
-   private async selfDestruct(reason: string) {
-      try {
-         logger.error(`Replay Failed with reason: ${reason}`);
-         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED);
-         await this.stop(false);
-      } catch (err) {
-         process.exit(1);
-      }
-   }
 }

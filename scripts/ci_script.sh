@@ -21,6 +21,14 @@ for mod_dir in $ROOT_DIR $SCRIPTS_DIR $COMMON_DIR $CAPTURE_DIR $REPLAY_DIR $SERV
    fi
 done
 
+
+# setup the mysql database
+echo "Preparing the MySQL database"
+cd $SCRIPTS_DIR
+bootstrap_sql="${SCRIPTS_DIR}/db/bootstrap.sql"
+travis_defaults="${SCRIPTS_DIR}/db/config/travis.cnf"
+mysql --defaults-file="$travis_defaults" < $bootstrap_sql
+
 # setup for scripts directory
 echo "Preparing Script Environment"
 cd $SCRIPTS_DIR
