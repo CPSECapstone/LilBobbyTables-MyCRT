@@ -51,6 +51,9 @@ export const value = {
    // Must be a number
    envId: joi.number(),
 
+   // Must be a number
+   dbId: joi.number(),
+
    // TODO
    instance: joi.string(),
 

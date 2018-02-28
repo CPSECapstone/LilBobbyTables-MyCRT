@@ -31,6 +31,7 @@ export interface ICapture extends IChildProgram {
 export interface IReplay extends IChildProgram {
    type: ChildProgramType.REPLAY;
    captureId?: number;
+   dbId?: number;
 }
 
 /** Interface for Environment objects sent/received from the MyCRT service. */

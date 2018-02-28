@@ -147,6 +147,8 @@ export class EnvironmentDao extends Dao {
          host: row.host,
          user: row.user,
          pass: row.pass,
+         instance: row.instance,
+         parameterGroup: row.parameterGroup,
       };
    }
 

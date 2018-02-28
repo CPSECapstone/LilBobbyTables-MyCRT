@@ -21,10 +21,10 @@ export const optionCaptureId: OptionDefinition = {
    description: "The id of the associated capture that is being replayed [bold]{REQUIRED}",
 };
 
-export const optionEnvId: OptionDefinition = {
-   name: 'envId',
+export const optionDbId: OptionDefinition = {
+   name: 'dbId',
    type: Number,
-   description: "The id of the associated environment of this replay",
+   description: "The id of the associated database of this replay",
 };
 
 export const optionMock: OptionDefinition = {
@@ -59,7 +59,7 @@ export const optionSupervised: OptionDefinition = {
    description: "Whether or not this replay is supervised by the MyCRT service",
 };
 
-export const replayOptions: OptionDefinition[] = [optionId, optionCaptureId, optionEnvId, optionMock, optionInterval,
+export const replayOptions: OptionDefinition[] = [optionId, optionCaptureId, optionDbId, optionMock, optionInterval,
    optionIntervalOverlap, optionSupervised];
 
 export class ReplayConfig extends Config {
@@ -73,11 +73,11 @@ export class ReplayConfig extends Config {
       if (!options.captureId) {
          throw new Error("No captureId was provided for the replay");
       }
-      if (!options.envId) {
-         throw new Error("No envId was provided for the replay");
+      if (!options.dbId) {
+         throw new Error("No dbId was provided for the replay");
       }
 
-      const config = new ReplayConfig(options.id, options.captureId, options.envId);
+      const config = new ReplayConfig(options.id, options.captureId, options.dbId);
       config.mock = options.mock;
       config.interval = options.interval;
       config.intervalOverlap = options.intervalOverlap;
@@ -88,24 +88,24 @@ export class ReplayConfig extends Config {
 
    public id: number;
    public captureId: number;
-   public envId: number;
+   public dbId: number;
    public mock: boolean = optionMock.defaultValue;
    public interval: number = optionInterval.defaultValue;
    public intervalOverlap: number = optionIntervalOverlap.defaultValue;
    public supervised: boolean = optionSupervised.defaultValue;
 
-   constructor(id: number, captureId: number, envId: number) {
+   constructor(id: number, captureId: number, dbId: number) {
       super();
       this.id = id;
       this.captureId = captureId;
-      this.envId = envId;
+      this.dbId = dbId;
    }
 
    protected getOptionsMap(): Array<[OptionDefinition, any]> {
       return [
          [optionId, this.id],
          [optionCaptureId, this.captureId],
-         [optionEnvId, this.envId],
+         [optionDbId, this.dbId],
          [optionMock, this.mock],
          [optionInterval, this.interval],
          [optionIntervalOverlap, this.intervalOverlap],

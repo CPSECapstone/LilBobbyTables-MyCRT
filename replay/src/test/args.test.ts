@@ -10,7 +10,7 @@ describe("ReplayConfig", () => {
       const expected = [
          `--${args.optionId.name}`, '8',
          `--${args.optionCaptureId.name}`, '12',
-         `--${args.optionEnvId.name}`, '1',
+         `--${args.optionDbId.name}`, '1',
          `--${args.optionInterval.name}`, `${args.optionInterval.defaultValue}`,
          `--${args.optionIntervalOverlap.name}`, `${args.optionIntervalOverlap.defaultValue}`,
          `--${args.optionSupervised.name}`,
