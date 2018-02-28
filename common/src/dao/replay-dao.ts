@@ -27,6 +27,7 @@ export class ReplayDao extends Dao {
          name: replay.name,
          status: replay.status,
          captureId: replay.captureId,
+         dbId: replay.dbId,
       });
       return await this.getReplay(result.insertId);
    }
@@ -59,6 +60,7 @@ export class ReplayDao extends Dao {
       return {
          id: replayData.id,
          captureId: replayData.captureId,
+         dbId: replayData.dbId,
          name: replayData.name,
          start: replayData.start,
          end: replayData.end,

@@ -13,4 +13,6 @@ export abstract class StorageBackend {
 
    public abstract async deletePrefix(dirPrefix: string): Promise<void>;
 
+   public abstract rootDirectory(): string;
+
 }

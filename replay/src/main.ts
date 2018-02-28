@@ -9,7 +9,7 @@ import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { ReplayConfig } from './args';
-import { environmentDao } from './dao';
+import { captureDao, environmentDao } from './dao';
 import { Replay } from './replay';
 
 const DBIdentifier: string = 'DBInstanceIdentifier';
@@ -21,34 +21,41 @@ async function runReplay(): Promise<void> {
    const config = ReplayConfig.fromCmdArgs();
    logger.info(config.toString());
 
-   const env = await environmentDao.getEnvironmentFull(config.envId);
-   if (env) {
+   const capture = await captureDao.getCapture(config.captureId);
 
-      const buildReplay = (): Replay => {
-         const storage = new S3Backend(
-            new S3({
-               region: env.region,
-               accessKeyId: env.accessKey,
-               secretAccessKey: env.secretKey}), env.bucket);
-         const metrics = new CloudWatchMetricsBackend(
-            new CloudWatch({ region: env.region,
-                             accessKeyId: env.accessKey,
-                             secretAccessKey: env.secretKey }),
-            DBIdentifier, env.instance, 60, ['Maximum']);
-         return new Replay(config, storage, metrics, env);
-      };
+   if (capture && capture.envId) {
+      const capEnv = await environmentDao.getEnvironmentFull(capture.envId);
+      const db = await environmentDao.getDbReference(config.dbId);
 
-      const buildMockReplay = (): Replay => {
-         const storage = new LocalBackend(getSandboxPath());
-         const metrics = new MockMetricsBackend(5);
-         return new Replay(config, storage, metrics, env);
-      };
+      if (capEnv && db && db.instance !== undefined) {
 
-      const replay = config.mock ? buildMockReplay() : buildReplay();
+            const buildReplay = (): Replay => {
+               const storage = new S3Backend(
+                  new S3({
+                     region: capEnv.region,
+                     accessKeyId: capEnv.accessKey,
+                     secretAccessKey: capEnv.secretKey}), capEnv.bucket);
+               const metrics = new CloudWatchMetricsBackend(
+                  new CloudWatch({ region: capEnv.region,
+                                   accessKeyId: capEnv.accessKey,
+                                   secretAccessKey: capEnv.secretKey }),
+                  DBIdentifier, db.instance!, 60, ['Maximum']);
+               return new Replay(config, storage, metrics, db);
+            };
 
-      logger.info("Running MyCRT Replay Program");
-      replay.run();
+            const buildMockReplay = (): Replay => {
+               const storage = new LocalBackend(getSandboxPath());
+               const metrics = new MockMetricsBackend(5);
+               return new Replay(config, storage, metrics, db);
+            };
+
+            const replay = config.mock ? buildMockReplay() : buildReplay();
+
+            logger.info("Running MyCRT Replay Program");
+            replay.run();
+         }
    }
+
 }
 
 if (typeof(require) !== 'undefined' && require.main === module) {

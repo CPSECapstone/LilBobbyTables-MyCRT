@@ -10,7 +10,7 @@ import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { getMetrics } from '../common/capture-replay-metrics';
-import { environmentDao, replayDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/replay-schema';
@@ -72,6 +72,11 @@ export default class ReplayRouter extends SelfAwareRouter {
          const dbRef = await environmentDao.makeDbReference(dbRefArgs);
          if (!dbRef.id) {
             throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
+         }
+
+         const cap = await captureDao.getCapture(request.body.captureId);
+         if (cap == null) {
+               throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
          }
 
          const replayTemplate: IReplay = {

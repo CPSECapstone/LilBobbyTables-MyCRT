@@ -56,5 +56,8 @@ CREATE TABLE Replay (
    status VARCHAR(32),
    CONSTRAINT capKey
       FOREIGN KEY (captureId)
-      REFERENCES Capture(id) ON DELETE CASCADE
+      REFERENCES Capture(id) ON DELETE CASCADE,
+   CONSTRAINT dbKey
+      FOREIGN KEY (dbid)
+      REFERENCES DBReference(id)
 );
