@@ -105,7 +105,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const env = await environmentDao.getEnvironment(request.body.envId);
          if (!env) {
-            throw new HttpError(http.BAD_REQUEST, `Environement ${request.body.envId} does not exist`);
+            throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
          }
 
          const captureTemplate: ICapture = {

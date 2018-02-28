@@ -31,7 +31,7 @@ export class CaptureDao extends Dao {
          name: capture.name,
          status: capture.status,
          // start: capture.start,
-         envId: capture.envId,
+         // envId: capture.envId,
       });
       return await this.getCapture(result.insertId);
    }

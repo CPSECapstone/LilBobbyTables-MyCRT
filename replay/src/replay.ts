@@ -1,9 +1,10 @@
 import mysql = require('mysql');
 
-import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
+import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
+import { mycrtDbConfig, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
 import { MetricsBackend } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
-import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType, IChildProgram, IDbReference } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
@@ -17,16 +18,23 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    private ipcNode: IpcNode;
    private capture?: ICapture | null;
    private expectedEndTime?: Date;
-   private env: IEnvironmentFull;
+   private targetDb: IDbReference;
    private workload?: [any];
    private workloadPath?: string;
    private workloadIndex: number = 0;
    private error: boolean = false;
 
-   constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend, env: IEnvironmentFull) {
+   private zoneOffset = {
+
+    'us-east-2': -3 * 60 * 60 * 1000,
+    'us-west-1': -8 * 60 * 60 * 1000,
+
+   };
+
+   constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend, db: IDbReference) {
       super(storage, metrics);
       this.ipcNode = new ReplayIpcNode(this.id, logger, this);
-      this.env = env;
+      this.targetDb = db;
    }
 
    get id(): number {
@@ -43,12 +51,15 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
         return this.config.interval;
       }
 
-      const timeToEnd = this.expectedEndTime!.getTime() - Date.now();
-      if (timeToEnd < this.config.interval ) {
-         return timeToEnd;
-      } else {
-        return this.config.interval;
-      }
+      // I need to rethink this.... using this replays will get stuck part way through.
+      // const timeToEnd = this.expectedEndTime!.getTime() - Date.now();
+      // if (timeToEnd < this.config.interval ) {
+      //    return timeToEnd;
+      // } else {
+      //   return this.config.interval;
+      // }
+
+      return this.config.interval;
    }
 
    public asIChildProgram(): IChildProgram {
@@ -138,8 +149,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    private getCaptureWorkloadPath(id: number): string {
 
-    if (!this.config.mock && this.env) {
-      return `${this.env.bucket}/capture${id}/workload.json`;
+    if (!this.config.mock) {
+      return `${this.storage.rootDirectory()}/capture${id}/workload.json`;
     } else {
       return `capture${id}/workload.json`;
     }
@@ -184,14 +195,10 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    private processQuery(type: any, argument: any) {
 
+      const db = this.config.mock ? mycrtDbConfig : this.targetDb;
       if (type === "Query") {
 
-        const conn = mysql.createConnection({
-          database: this.env.dbName,
-          host: this.env.host,
-          password: this.env.pass,
-          user: this.env.user,
-        });
+        const conn = mysql.createConnection(db);
 
         return new Promise<any>((resolve, reject) => {
           conn.connect((connErr) => {
