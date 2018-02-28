@@ -5,7 +5,7 @@ import { value } from './common-schema';
 export const replayBody: joi.ObjectSchema = joi.object().keys({
    name: value.nameString.required(),
    captureId: value.id.required(),
-   envId: value.envId.required(),
+   dbId: value.dbId.required(),
 });
 
 export const replayValues = {

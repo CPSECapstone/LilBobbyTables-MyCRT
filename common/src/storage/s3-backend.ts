@@ -11,6 +11,8 @@ export class S3Backend extends StorageBackend {
       super();
    }
 
+   public rootDirectory(): string { return this.bucket; }
+
    public exists(key: string): Promise<boolean> {
 
       const params: S3.HeadObjectRequest = {
