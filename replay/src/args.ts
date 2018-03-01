@@ -24,7 +24,7 @@ export const optionCaptureId: OptionDefinition = {
 export const optionDbId: OptionDefinition = {
    name: 'dbId',
    type: Number,
-   description: "The id of the associated database of this replay",
+   description: "The id of the target database upon which to perform the replay",
 };
 
 export const optionMock: OptionDefinition = {
