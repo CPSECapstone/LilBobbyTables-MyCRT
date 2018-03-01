@@ -1,15 +1,17 @@
 import { RDS } from 'aws-sdk';
 import mysql = require('mysql');
 
-import { ChildProgramType } from '@lbt-mycrt/common';
+import { ChildProgramType, IEnvironment, IEnvironmentFull } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
 
 export class AwsWorkloadLogger extends WorkloadLogger {
 
-   constructor(type: ChildProgramType, id: number, protected rds: RDS, storage: StorageBackend) {
+   constructor(type: ChildProgramType, id: number, protected rds: RDS, storage: StorageBackend,
+      protected env: IEnvironmentFull) {
       super(type, id, storage);
+      this.env = env;
    }
 
    protected turnOnLogging(): Promise<void> {
@@ -23,12 +25,11 @@ export class AwsWorkloadLogger extends WorkloadLogger {
    }
 
    protected async queryGeneralLog(): Promise<any[]> {
-      // TODO: get this from the environment
       const conn = mysql.createConnection({
-         database: "NFL",
-         host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
-         password: "nfl2015pass",
-         user: "nfl2015user",
+         database: this.env.dbName,
+         host: this.env.host,
+         password: this.env.pass,
+         user: this.env.user,
       });
 
       return new Promise<any[]>((resolve, reject) => {
@@ -36,7 +37,6 @@ export class AwsWorkloadLogger extends WorkloadLogger {
             if (connErr) {
                reject(connErr);
             } else {
-
                const query = mysql.format('SELECT * FROM mysql.general_log where user_host = ?',
                   ["nfl2015user[nfl2015user] @  [172.31.35.19]"]);
 
@@ -51,7 +51,7 @@ export class AwsWorkloadLogger extends WorkloadLogger {
 
    private getParameterGroup(on: boolean): RDS.Types.ModifyDBParameterGroupMessage {
       return {
-         DBParameterGroupName: 'supergroup',
+         DBParameterGroupName: this.env.parameterGroup,
          Parameters: [
             {
                ApplyMethod: 'immediate',

@@ -194,7 +194,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    }
 
    private processQuery(type: any, argument: any) {
-
+      // This may cause errors because targetDb is of type IDbReference
+      // which has more fields than what mysql.createConnection takes
       const db = this.config.mock ? mycrtDbConfig : this.targetDb;
       if (type === "Query") {
 
