@@ -1,6 +1,7 @@
 import * as http from 'http-status-codes';
 
-import { ChildProgramStatus, ChildProgramType, IReplay, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, IDbReference, IReplay,
+      Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
@@ -8,7 +9,7 @@ import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { getMetrics } from '../common/capture-replay-metrics';
-import { captureDao, replayDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/replay-schema';
@@ -66,10 +67,21 @@ export default class ReplayRouter extends SelfAwareRouter {
                throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
          }
 
+         let dbReference: IDbReference = {
+            name: request.body.dbName,
+            host: request.body.host,
+            user: request.body.user,
+            pass: request.body.pass,
+            instance: request.body.instance,
+            parameterGroup: request.body.parameterGroup,
+         };
+
+         dbReference = await environmentDao.makeDbReference(dbReference);
+
          const replayTemplate: IReplay = {
             name: request.body.name,
             captureId: request.body.captureId,
-            dbId: request.body.dbId,
+            dbId: dbReference.id!,
             type: ChildProgramType.REPLAY,
             status: ChildProgramStatus.STARTED, // no scheduled replays yet
          };
@@ -77,7 +89,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          const replay = await replayDao.makeReplay(replayTemplate);
 
          logger.info(`Launching replay with id ${replay!.id!} for capture ${replay!.captureId!}`);
-         const config = new ReplayConfig(replay!.id!, replay!.captureId!, request.body.dbId);
+         const config = new ReplayConfig(replay!.id!, replay!.captureId!, replay!.dbId!);
          config.mock = settings.replays.mock;
          config.interval = settings.replays.interval;
          config.intervalOverlap = settings.replays.intervalOverlap;

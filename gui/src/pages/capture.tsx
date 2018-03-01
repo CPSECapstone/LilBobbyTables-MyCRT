@@ -123,6 +123,17 @@ class CaptureApp extends React.Component<any, any> {
                     graphs.push((<Graph data={graph} id={this.state.captureId} />));
                 }
             }
+            const replays: JSX.Element[] = [];
+            if (this.state.allReplays) {
+                for (const replay of this.state.allReplays) {
+                  let name = `${replay.name}`;
+                  if (!name) {
+                      name = `replay ${replay.id}`;
+                  }
+                  replays.push((<ReplayPanel title={name} replay={replay}
+                        capture={this.state.capture} envId = {this.state.envId}/>));
+                }
+            }
             const metricsTarget = `./metrics?id=${this.state.captureId}`;
             return (
                   <div>
@@ -159,6 +170,8 @@ class CaptureApp extends React.Component<any, any> {
                         </div>
                         <div className="page-header">
                            <h2>Replays</h2>
+                           <br></br>
+                           {replays}
                         </div>
                         <div className="card-columns"></div>
                      </div>

@@ -34,6 +34,17 @@ export interface IReplay extends IChildProgram {
    dbId?: number;
 }
 
+export interface IReplayFull extends IChildProgram {
+    type: ChildProgramType.REPLAY;
+    captureId?: number;
+    dbName: string;
+    host: string;
+    user: string;
+    pass: string;
+    instance: string;
+    parameterGroup: string;
+ }
+
 /** Interface for Environment objects sent/received from the MyCRT service. */
 export interface IEnvironment {
    id?: number;

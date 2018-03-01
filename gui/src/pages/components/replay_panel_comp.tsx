@@ -3,6 +3,8 @@ import ReactDom = require('react-dom');
 
 import { ChildProgramStatus } from '@lbt-mycrt/common/dist/data';
 
+import { mycrt } from '../utils/mycrt-client';
+
 export class ReplayPanel extends React.Component<any, any>  {
     public constructor(props: any) {
         super(props);
@@ -29,8 +31,6 @@ export class ReplayPanel extends React.Component<any, any>  {
                     <h5 style={{display: "inline", verticalAlign: "middle"}}>{this.props.title}</h5>
                     <h6 style={{display: "inline", verticalAlign: "middle"}}><i>
                     {this.props.capture ? ' (' + this.props.capture.name + ')' : ''}</i></h6>
-                    {this.state.live ? <button type="button" className="btn btn-danger"
-                                               style={{zIndex: 10, float: "right"}}>Stop</button> : null}
                 </div>
                 <div className="card-body" onClick={ (e) => this.handleClick(e)}>
                     <p><i><b>Start:</b> {this.formatTimeStamp(this.state.replay.start)}</i></p>

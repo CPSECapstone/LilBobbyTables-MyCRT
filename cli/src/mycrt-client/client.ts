@@ -1,7 +1,7 @@
 import * as http from 'http-status-codes';
 
 import { ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull, IIamReference, IMetricsList,
-   IReplay, IS3Reference, MetricType } from '@lbt-mycrt/common/dist/data';
+   IReplay, IReplayFull, IS3Reference, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
 
@@ -66,7 +66,7 @@ export class MyCrtClient {
    }
 
    /** Create a new Replay */
-   public async startReplay(replay: IReplay): Promise<number | null> {
+   public async startReplay(replay: IReplayFull): Promise<number | null> {
       return this.makeRequest<number>(HttpMethod.POST, '/replays', null, replay);
    }
 
