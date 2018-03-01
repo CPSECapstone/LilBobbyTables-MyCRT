@@ -116,12 +116,6 @@ export default class CaptureRouter extends SelfAwareRouter {
             start: startTime,
          };
 
-         // assign capture
-         const capture = await captureDao.makeCapture(captureTemplate);
-         // return response
-         response.json(capture).end();
-         logger.info(`Successfully created capture!`);
-
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             // schedule job
             // if (schedule.isValidDate(startTime)) {
@@ -131,6 +125,12 @@ export default class CaptureRouter extends SelfAwareRouter {
          // else {
          //    // otherwise, start capture immediately
          // }
+
+         // assign capture
+         const capture = await captureDao.makeCapture(captureTemplate);
+         // return response
+         response.json(capture).end();
+         logger.info(`Successfully created capture!`);
 
          this.startCapture(captureTemplate);
       }));
