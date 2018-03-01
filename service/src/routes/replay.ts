@@ -61,6 +61,18 @@ export default class ReplayRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
+         const dbRefArgs: IDbReference = {
+            name: request.body.dbName,
+            host: request.body.host,
+            user: request.body.user,
+            pass: request.body.pass,
+            instance: request.body.instance,
+         };
+
+         const dbRef = await environmentDao.makeDbReference(dbRefArgs);
+         if (!dbRef.id) {
+            throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
+         }
 
          const cap = await captureDao.getCapture(request.body.captureId);
          if (cap == null) {

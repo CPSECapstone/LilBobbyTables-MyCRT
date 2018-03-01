@@ -38,7 +38,7 @@ async function runCapture(): Promise<void> {
             DBIdentifier, env.instance, period, statistics,
          );
          const workloadLogger: WorkloadLogger = new AwsWorkloadLogger(ChildProgramType.CAPTURE, config.id, new RDS(),
-            storage);
+            storage, env);
          return new Capture(config, workloadLogger, storage, metrics, env);
       };
 
