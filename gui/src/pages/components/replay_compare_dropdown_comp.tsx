@@ -11,16 +11,19 @@ export class ReplaySelectDrop extends React.Component<any, any>  {
 
     public selectReplays(event: any) {
         const target = event.currentTarget;
-        this.props.update(target.checked, JSON.parse(target.value));
+        this.props.update(target.checked, target.value);
      }
 
     public render() {
         const checkboxes: JSX.Element[] = [];
-        for (const replay of this.props.replays) {
+        for (const id in this.props.replays) {
+            const replay = this.props.replays[id];
             checkboxes.push(
-                <li><p className="small" data-value={replay} tabIndex={-1}
-                style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
-                <input type="checkbox" />&nbsp;&nbsp;&nbsp;{replay.name}</p>
+                // https://codepen.io/bseth99/pen/fboKH
+                <li key={replay.id}><p className="small" data-value={replay.id} tabIndex={-1}
+                    style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
+                <input type="checkbox" onChange={(e) => this.selectReplays(e)} value={replay.id}/>
+                    &nbsp;&nbsp;&nbsp;{replay.name}</p>
             </li>);
         }
         return (

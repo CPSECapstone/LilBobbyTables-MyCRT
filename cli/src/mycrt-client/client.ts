@@ -90,6 +90,11 @@ export class MyCrtClient {
       return this.makeRequest<IMetricsList>(HttpMethod.GET, `/replays/${id}/metrics`, {type: type.toString()});
    }
 
+   /** Retrieve all of the metrics for a Replay */
+  public async getAllReplayMetrics(id: number): Promise<[IMetricsList] | null> {
+    return this.makeRequest<[IMetricsList]>(HttpMethod.GET, `/replays/${id}/metrics`);
+  }
+
    /** Delete a specific replay */
    public async deleteReplay(id: number): Promise<any> {
       return this.makeRequest<any>(HttpMethod.DELETE, `/replays/${id}`);

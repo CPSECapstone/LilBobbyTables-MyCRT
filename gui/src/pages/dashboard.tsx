@@ -114,7 +114,7 @@ class DashboardApp extends React.Component<any, any> {
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.name}</h1>
                      <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
-                           data-target="#deleteEnvModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                           data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
@@ -123,7 +123,7 @@ class DashboardApp extends React.Component<any, any> {
                </div>
                <br></br>
                <div className="row">
-                  <div className="col-xs-12 col-md-6 mb-r">
+                  <div className="col-xs-12 col-md-5 mb-r">
                      <div>
                         <h2 style={{display: "inline"}}>Captures</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
@@ -140,7 +140,7 @@ class DashboardApp extends React.Component<any, any> {
                      {pastCaptures}
                      <br></br>
                   </div>
-                  <div className="col-xs-12 col-md-6 mb-r">
+                  <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
                      <div>
                         <h2 style={{display: "inline"}}>Replays</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"

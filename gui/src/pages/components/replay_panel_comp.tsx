@@ -26,11 +26,11 @@ export class ReplayPanel extends React.Component<any, any>  {
 
     public render() {
         return (
-            <div className="card myCRT-panel mt-3">
-                <div className={this.state.live ? "card-header myCRT-panel-running" : "card-header"}>
+            <div className="card myCRT-panel mt-4 myCRT-card">
+                <div className={this.state.live ? "card-header myCRT-panel-running" : "myCRT-env-card card-header"}>
                     <h5 style={{display: "inline", verticalAlign: "middle"}}>{this.props.title}</h5>
-                    <h6 style={{display: "inline", verticalAlign: "middle"}}><i>
-                    {this.props.capture ? ' (' + this.props.capture.name + ')' : ''}</i></h6>
+                    <h6 style={{display: "inline", verticalAlign: "middle", float: "right"}}><i>
+                    {this.props.capture ? this.props.capture.name + '  ' : ''}</i></h6>
                 </div>
                 <div className="card-body" onClick={ (e) => this.handleClick(e)}>
                     <p><i><b>Start:</b> {this.formatTimeStamp(this.state.replay.start)}</i></p>

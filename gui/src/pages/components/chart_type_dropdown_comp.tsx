@@ -3,30 +3,30 @@ import ReactDom = require('react-dom');
 
 import { BrowserLogger as logger } from '../../logging';
 
-export class GraphSelectDrop extends React.Component<any, any>  {
+const types = ["Line Chart", "Bar Chart", "Area Chart"];
+
+export class ChartTypeDrop extends React.Component<any, any>  {
 
     public constructor(props: any) {
         super(props);
     }
 
-    public selectGraphTypes(event: any) {
+    public selectChart(event: any) {
         const target = event.currentTarget;
-        this.props.update(target.checked, target.value);
+        this.props.update(target.value);
      }
 
     public render() {
-        if (!this.props.graphs) { return (<div></div>); }
         const checkboxes: JSX.Element[] = [];
-        for (const type in this.props.graphs) {
-            const graph = this.props.graphs[type];
+        for (const type of types) {
             checkboxes.push(
                 // https://codepen.io/bseth99/pen/fboKH
-                <li key={graph.type}><p className="small" data-value={graph.type} tabIndex={-1}
-                    style={{ color: "#3498DB", margin: "10px", marginLeft: "20px"}}>
-                <input type="checkbox" onChange={(e) => this.selectGraphTypes(e)} value={graph.type}
-                    defaultChecked={type === "CPU" ? true : false}/>
-                    &nbsp;&nbsp;&nbsp;{graph.displayName}</p>
-                </li>);
+                <li key={type}><p className="small" data-value={type} tabIndex={-1}
+                    style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
+                <input type="radio" name="chartType" onChange={(e) => this.selectChart(e)} value={type}
+                    defaultChecked={type === "Line Chart" ? true : false}/>
+                    &nbsp;&nbsp;&nbsp;{type}</p>
+            </li>);
         }
         return (
             <div className="button-group" style ={{display: "inline"}}>
@@ -36,7 +36,7 @@ export class GraphSelectDrop extends React.Component<any, any>  {
                     {this.props.prompt}
                     <span className="caret"></span>
                 </button>
-                <ul className="dropdown-menu">
+                <ul className="dropdown-menu" onClick={(e) => this.selectChart(e)}>
                     {checkboxes}
                 </ul>
             </div>
