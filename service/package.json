@@ -15,6 +15,7 @@
     "@lbt-mycrt/common": "file:../common",
     "@lbt-mycrt/gui": "file:../gui",
     "@lbt-mycrt/replay": "file:../replay",
+    "@types/mysql": "^2.15.2",
     "async": "^2.6.0",
     "aws-sdk": "^2.188.0",
     "body-parser": "^1.18.2",
@@ -22,6 +23,7 @@
     "http-status-codes": "^1.3.0",
     "joi": "^13.1.2",
     "mustache": "^2.3.0",
+    "mysql": "^2.15.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
