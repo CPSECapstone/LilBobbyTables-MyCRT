@@ -2,7 +2,7 @@ import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
 import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-mycrt/common';
-import { MetricsBackend } from '@lbt-mycrt/common';
+import { CPUMetric, MemoryMetric, Metric, MetricsBackend, ReadMetric, WriteMetric } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
    IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
@@ -131,10 +131,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       try {
 
          const data = [
-            await this.metrics.getCPUMetrics(start, end),
-            await this.metrics.getReadMetrics(start, end),
-            await this.metrics.getWriteMetrics(start, end),
-            await this.metrics.getMemoryMetrics(start, end),
+            await this.metrics.getMetricsForType(CPUMetric, start, end),
+            await this.metrics.getMetricsForType(ReadMetric, start, end),
+            await this.metrics.getMetricsForType(WriteMetric, start, end),
+            await this.metrics.getMetricsForType(MemoryMetric, start, end),
          ];
 
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);

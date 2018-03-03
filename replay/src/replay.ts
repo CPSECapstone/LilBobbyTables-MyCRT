@@ -2,7 +2,7 @@ import mysql = require('mysql');
 
 import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
 import { mycrtDbConfig, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
-import { MetricsBackend } from '@lbt-mycrt/common';
+import { CPUMetric, MemoryMetric, MetricsBackend, ReadMetric, WriteMetric } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramStatus, ChildProgramType, IChildProgram, IDbReference } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
@@ -226,10 +226,10 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       try {
 
          const data = [
-            await this.metrics.getCPUMetrics(start, end),
-            await this.metrics.getReadMetrics(start, end),
-            await this.metrics.getWriteMetrics(start, end),
-            await this.metrics.getMemoryMetrics(start, end),
+            await this.metrics.getMetricsForType(CPUMetric, start, end),
+            await this.metrics.getMetricsForType(ReadMetric, start, end),
+            await this.metrics.getMetricsForType(WriteMetric, start, end),
+            await this.metrics.getMetricsForType(MemoryMetric, start, end),
          ];
 
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
