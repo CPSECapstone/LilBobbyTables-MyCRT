@@ -10,16 +10,14 @@ const logger = defaultLogger(__dirname);
 export abstract class Subprocess {
 
    protected startTime: Date | null = null;
+   protected endTime: Date | null = null;
    protected status: ChildProgramStatus = ChildProgramStatus.STARTING;
    private loopTimeoutId: NodeJS.Timer | null = null;
    private isDone: boolean = false;
 
-   constructor(protected storage: StorageBackend, protected metrics: MetricsBackend) {
-
-   }
+   constructor(protected storage: StorageBackend, protected metrics: MetricsBackend) {}
 
    public run(): void {
-      this.startTime = new Date();
       this.setup();
       this.loopTimeoutId = setInterval(() => {
          this.runLoop();
