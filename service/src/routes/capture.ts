@@ -3,8 +3,8 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
-import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric,
-         IMetricsList, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, Logging,
+   MetricType } from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';

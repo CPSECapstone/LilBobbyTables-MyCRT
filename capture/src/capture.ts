@@ -8,6 +8,7 @@ import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
    IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
+import { path as schema } from '@lbt-mycrt/common/dist/storage/backend-schema';
 
 import { CaptureConfig } from './args';
 import { captureDao } from './dao';
@@ -136,7 +137,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
             await this.metrics.getMemoryMetrics(start, end),
          ];
 
-         const key = MetricsStorage.getSingleSampleMetricsKey(this.asIChildProgram(), end);
+         const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
          logger.info(`Saving metrics to ${key}`);
          await this.storage.writeJson(key, data);
 
