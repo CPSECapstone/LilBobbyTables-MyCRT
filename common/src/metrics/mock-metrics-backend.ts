@@ -1,6 +1,6 @@
 import { IMetric, IMetricsList, MetricType } from '../data';
+import { Metric } from './metrics';
 import { MetricsBackend } from './metrics-backend';
-import { CPU, MEMORY, READ, WRITE } from './metrics-backend';
 
 /**
  * Produce dummy data for catpures/replays running in a mock mode.
@@ -14,34 +14,34 @@ export class MockMetricsBackend extends MetricsBackend {
       this.period = period;
    }
 
-   protected async getMetrics(metricName: string, unit: string, startTime: Date, endTime: Date): Promise<IMetricsList> {
+   protected async getMetrics(metric: Metric, startTime: Date, endTime: Date): Promise<IMetricsList> {
       // min/max values were approximated from metrics samples
-      switch (metricName) {
-         case CPU:
-            return this.makeMockData(metricName, MetricType.CPU, unit, 3.0, 6.0, startTime, endTime);
-         case READ:
-            return this.makeMockData(metricName, MetricType.READ, unit, 510000000, 540000000, startTime, endTime);
-         case WRITE:
-            return this.makeMockData(metricName, MetricType.WRITE, unit, 510000000, 540000000, startTime, endTime);
-         case MEMORY:
-            return this.makeMockData(metricName, MetricType.MEMORY, unit, 0, 0.003, startTime, endTime);
+      switch (metric.metricType) {
+         case MetricType.CPU:
+            return this.makeMockData(metric, 3.0, 6.0, startTime, endTime);
+         case MetricType.READ:
+            return this.makeMockData(metric, 510000000, 540000000, startTime, endTime);
+         case MetricType.WRITE:
+            return this.makeMockData(metric, 510000000, 540000000, startTime, endTime);
+         case MetricType.MEMORY:
+            return this.makeMockData(metric, 0, 0.003, startTime, endTime);
          default:
-            throw new Error(`Unknown metricName: ${metricName}`);
+            throw new Error(`Unknown metricName: ${metric.metricType}`);
       }
    }
 
-   private makeMockData(label: string, type: MetricType, unit: string, minVal: number, maxVal: number, startTime: Date,
+   private makeMockData(metric: Metric, minVal: number, maxVal: number, startTime: Date,
          endTime: Date): IMetricsList {
       const list: IMetric[] = [];
       for (const cur = new Date(startTime.getTime()); cur < endTime; cur.setSeconds(cur.getSeconds() + this.period)) {
          const val: number = Math.random() * (maxVal - minVal) + minVal;
-         list.push(this.makeMockDataPoint(cur, unit, val));
+         list.push(this.makeMockDataPoint(cur, metric.unit, val));
       }
 
       return {
-         label,
-         type,
-         displayName: label,
+         label: metric.metricName,
+         type: metric.metricType,
+         displayName: metric.metricName,
          dataPoints: list,
       };
    }

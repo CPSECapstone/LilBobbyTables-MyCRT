@@ -1,4 +1,3 @@
-
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
 
 /** The status of a capture/replay */
@@ -97,7 +96,7 @@ export interface IMetric {
 /** Interface for a list of a IMetrics gathered at different timestamps for a capture/replay */
 export interface IMetricsList {
    label: string;
-   type: MetricType;
+   type: string;
    displayName?: string;
    complete?: boolean;
    dataPoints: IMetric[];
