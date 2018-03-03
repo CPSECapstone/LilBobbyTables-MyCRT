@@ -1,6 +1,7 @@
 import { CloudWatch } from 'aws-sdk';
 
 import { IMetricsList } from '../data';
+import { Metric } from './metrics';
 import { MetricsBackend, toIMetricsList } from './metrics-backend';
 
 export class CloudWatchMetricsBackend extends MetricsBackend {
@@ -20,20 +21,21 @@ export class CloudWatchMetricsBackend extends MetricsBackend {
       this.statistics = statistics;
    }
 
-   protected getMetrics(metricName: string, unit: string, startTime: Date, endTime: Date): Promise<IMetricsList> {
+   protected getMetrics(metric: Metric, startTime: Date, endTime: Date): Promise<IMetricsList> {
       return new Promise<IMetricsList>((resolve, reject) => {
-         this.cloudwatch.getMetricStatistics(this.buildMetricRequest(metricName, unit, startTime, endTime),
+         this.cloudwatch.getMetricStatistics(this.buildMetricRequest(metric, startTime, endTime),
                (err, data) => {
             if (err) {
                reject(err.stack);
             } else {
-               resolve(toIMetricsList(data));
+               resolve(toIMetricsList(metric, data));
             }
          });
       });
    }
 
-   private buildMetricRequest(metricName: string, unit: string, startTime: Date, endTime: Date) {
+   private buildMetricRequest(metric: Metric, startTime: Date, endTime: Date):
+         CloudWatch.Types.GetMetricStatisticsInput {
       return {
          Dimensions: [
             {
@@ -42,12 +44,12 @@ export class CloudWatchMetricsBackend extends MetricsBackend {
             },
          ],
          EndTime: endTime,
-         MetricName: metricName,
+         MetricName: metric.metricName,
          Namespace: 'AWS/RDS',
          Period: this.period,
          StartTime: startTime,
          Statistics: this.statistics,
-         Unit: unit,
+         Unit: metric.unit,
       };
    }
 
