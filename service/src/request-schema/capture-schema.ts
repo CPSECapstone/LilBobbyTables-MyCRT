@@ -12,6 +12,7 @@ export const captureBody: joi.ObjectSchema = joi.object().keys({
    envId: value.envId.required(),
    status: captureValue.status.optional(),
    start: captureValue.timestamp.optional(),
+   scheduledStart: captureValue.timestamp.optional(),
 });
 
 export const envQuery: joi.ObjectSchema = joi.object().keys({

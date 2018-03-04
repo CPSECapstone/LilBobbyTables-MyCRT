@@ -37,6 +37,7 @@ CREATE TABLE Capture (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
    name VARCHAR(32),
    start DATETIME,
+   scheduledStart DATETIME DEFAULT NULL,
    end DATETIME,
    status VARCHAR(32),
    envId INT(11) REFERENCES Environment(id)

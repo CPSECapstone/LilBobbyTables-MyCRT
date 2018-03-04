@@ -111,64 +111,44 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
          // validation
          const initialStatus: string | undefined = request.body.status;
-         const startTime: Date = request.body.start;
+         const inputTime: Date = request.body.start;
 
          // changing the month, because node-schedule is weird
-
-         // const testTime: Date = new Date(2018, 2, 1, 10, 54, 30);  // make sure to set month to one less that current
+         const startTime: Date = this.fixDate(inputTime);
 
          const env = await environmentDao.getEnvironment(request.body.envId);
          if (!env) {
             throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
          }
 
-         const captureTemplate: ICapture = {
+         if (request.body.status === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
+         }
+
+         let captureTemplate: ICapture | null = {
             type: ChildProgramType.CAPTURE,
+            envId: env.id,
             status: initialStatus === ChildProgramStatus.SCHEDULED ?
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             name: request.body.name,
-            start: startTime,
+            start: inputTime,
+            scheduledStart: request.body.scheduledStart,
          };
 
-         if (captureTemplate.type !== undefined) {
-            logger.debug(captureTemplate.type.toString());
-         } else {
-            logger.debug("type is UNDEFINED");
-         }
+         // assign capture, insert into db
+         captureTemplate = await captureDao.makeCapture(captureTemplate);
 
-         if (captureTemplate.status !== undefined) {
-            logger.debug(captureTemplate.status.toString());
-         } else {
-            logger.debug("status is UNDEFINED");
+         if (captureTemplate === null) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
          }
-
-         if (captureTemplate.name !== undefined) {
-            logger.debug(captureTemplate.name.toString());
-         } else {
-            logger.debug("name is UNDEFINED");
-         }
-
-         if (captureTemplate.start !== undefined) {
-            logger.debug(captureTemplate.start.toString());
-         } else {
-            logger.debug("startTime is UNDEFINED");
-         }
-
-         // FOR DEBUGGING
-         // if (captureTemplate.start) {
-         //    logger.debug(captureTemplate.start.toString());
-         // }
 
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             // schedule job
-            schedule.scheduleJob(startTime, () => { this.startCapture(captureTemplate); });
-            // schedule.scheduleJob(testTime, () => { logger.debug("scheduled capture"); });
+            schedule.scheduleJob(startTime, () => { this.startCapture(captureTemplate!); });
          }
 
-         // // assign capture
-         const capture = await captureDao.makeCapture(captureTemplate);
-         // // return response
-         response.json(capture).end();
+         // return response
+         response.json(captureTemplate).end();
          // logger.info(`Successfully created capture!`);
 
          this.startCapture(captureTemplate);
