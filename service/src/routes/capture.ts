@@ -117,26 +117,27 @@ export default class CaptureRouter extends SelfAwareRouter {
             start: startTime,
          };
 
-         if (captureTemplate.start) {
-            logger.debug(captureTemplate.start.toString());
-         }
+         // if (initialStatus !== undefined)
+         //    logger.debug(initialStatus.toString());
+         // else
+         //    logger.debug("initalStatus is UNDEFINED");
+
+         // FOR DEBUGGING
+         // if (captureTemplate.start) {
+         //    logger.debug(captureTemplate.start.toString());
+         // }
 
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             // schedule job
-            // if (schedule.isValidDate(startTime)) {
             schedule.scheduleJob(startTime, () => { this.startCapture(captureTemplate); });
             // schedule.scheduleJob(testTime, () => { logger.debug("scheduled capture"); });
-            // }
          }
-         // else {
-         //    // otherwise, start capture immediately
-         // }
 
-         // assign capture
+         // // assign capture
          const capture = await captureDao.makeCapture(captureTemplate);
-         // return response
+         // // return response
          response.json(capture).end();
-         logger.info(`Successfully created capture!`);
+         // logger.info(`Successfully created capture!`);
 
          this.startCapture(captureTemplate);
       }));
