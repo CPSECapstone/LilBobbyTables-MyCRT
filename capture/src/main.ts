@@ -30,15 +30,12 @@ async function runCapture(): Promise<void> {
    const env = await environmentDao.getEnvironmentFull(config.envId);
    if (env) {
       const buildCapture = (): Capture => {
-         const storage = new S3Backend(
-            new S3({region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey}), env.bucket,
-         );
-         const metrics = new CloudWatchMetricsBackend(
-            new CloudWatch({region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey}),
-            DBIdentifier, env.instance, period, statistics,
-         );
-         const workloadLogger: WorkloadLogger = new AwsWorkloadLogger(ChildProgramType.CAPTURE, config.id, new RDS(),
-            storage, env);
+         const awsConfig = {region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey};
+         const storage = new S3Backend(new S3(awsConfig), env.bucket);
+         const metrics = new CloudWatchMetricsBackend(new CloudWatch(awsConfig), DBIdentifier, env.instance, period,
+            statistics);
+         const workloadLogger: WorkloadLogger = new AwsWorkloadLogger(ChildProgramType.CAPTURE, config.id,
+            new RDS(awsConfig), storage, env);
          return new Capture(config, workloadLogger, storage, metrics, env);
       };
 

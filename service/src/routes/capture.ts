@@ -4,8 +4,8 @@ import * as http from 'http-status-codes';
 const schedule = require('node-schedule');
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
-import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric,
-         IMetricsList, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, Logging,
+   MetricType } from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
@@ -58,8 +58,18 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const type: MetricType | undefined = request.query.type;
          const capture = await captureDao.getCapture(request.params.id);
+         if (capture === null) {
+            throw new HttpError(http.NOT_FOUND);
+         } else if (!capture.envId) {
+            throw new HttpError(http.CONFLICT, `Capture ${capture.id} has no envId`);
+         }
 
-         const result = await getMetrics(capture, type);
+         const environment = await environmentDao.getEnvironmentFull(capture.envId);
+         if (environment === null) {
+            throw new HttpError(http.CONFLICT, `Capture ${capture.id}'s environment does not exist`);
+         }
+
+         const result = await getMetrics(capture, environment, type);
          response.json(result);
 
       }));
@@ -102,6 +112,9 @@ export default class CaptureRouter extends SelfAwareRouter {
          // validation
          const initialStatus: string | undefined = request.body.status;
          const startTime: Date = request.body.start;
+
+         // changing the month, because node-schedule is weird
+
          // const testTime: Date = new Date(2018, 2, 1, 10, 54, 30);  // make sure to set month to one less that current
 
          const env = await environmentDao.getEnvironment(request.body.envId);
@@ -117,10 +130,29 @@ export default class CaptureRouter extends SelfAwareRouter {
             start: startTime,
          };
 
-         // if (initialStatus !== undefined)
-         //    logger.debug(initialStatus.toString());
-         // else
-         //    logger.debug("initalStatus is UNDEFINED");
+         if (captureTemplate.type !== undefined) {
+            logger.debug(captureTemplate.type.toString());
+         } else {
+            logger.debug("type is UNDEFINED");
+         }
+
+         if (captureTemplate.status !== undefined) {
+            logger.debug(captureTemplate.status.toString());
+         } else {
+            logger.debug("status is UNDEFINED");
+         }
+
+         if (captureTemplate.name !== undefined) {
+            logger.debug(captureTemplate.name.toString());
+         } else {
+            logger.debug("name is UNDEFINED");
+         }
+
+         if (captureTemplate.start !== undefined) {
+            logger.debug(captureTemplate.start.toString());
+         } else {
+            logger.debug("startTime is UNDEFINED");
+         }
 
          // FOR DEBUGGING
          // if (captureTemplate.start) {
@@ -189,5 +221,17 @@ export default class CaptureRouter extends SelfAwareRouter {
       config.interval = settings.captures.interval;
       config.intervalOverlap = settings.captures.intervalOverlap;
       launch(config);
+   }
+
+   private fixDate(input: Date): Date {
+      return new Date(
+        input.getFullYear(),
+        input.getMonth() - 1,
+        input.getDate(),
+        input.getHours(),
+        input.getMinutes(),
+        input.getSeconds(),
+        input.getMilliseconds(),
+      );
    }
 }
