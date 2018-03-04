@@ -57,11 +57,8 @@ class DashboardApp extends React.Component<any, any> {
         this.setReplays();
     }
 
-    public deleteEnv(id: number, deleteLogs: boolean) {
-        mycrt.deleteEnvironment(id, deleteLogs);
-  }
-
-    public handleDeletedEnv() {
+    public async deleteEnv(id: number, deleteLogs: boolean) {
+        await mycrt.deleteEnvironment(id, deleteLogs);
         window.location.assign('./environments');
     }
 
@@ -95,10 +92,10 @@ class DashboardApp extends React.Component<any, any> {
                 captureObj = this.state.captures.find((item: IChildProgram) => item.id === replay.captureId);
             }
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
-                pastReplays.push((<ReplayPanel title={name} replay={replay}
+                pastReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
                     capture={captureObj} envId = {this.state.envId}/>));
             } else {
-                liveReplays.push((<ReplayPanel title={name} replay={replay}
+                liveReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
                     capture={captureObj} envId = {this.state.envId}/>));
             }
          }
@@ -117,17 +114,16 @@ class DashboardApp extends React.Component<any, any> {
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.name}</h1>
                      <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
-                           data-target="#deleteEnvModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                           data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
-                               name={this.state.env.name} delete={this.deleteEnv}
-                               type="Environment" update={this.handleDeletedEnv}/>
+                               name={this.state.env.name} delete={this.deleteEnv} type="Environment"/>
                   </div>
                </div>
                <br></br>
                <div className="row">
-                  <div className="col-xs-12 col-md-6 mb-r">
+                  <div className="col-xs-12 col-md-5 mb-r">
                      <div>
                         <h2 style={{display: "inline"}}>Captures</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
@@ -144,7 +140,7 @@ class DashboardApp extends React.Component<any, any> {
                      {pastCaptures}
                      <br></br>
                   </div>
-                  <div className="col-xs-12 col-md-6 mb-r">
+                  <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
                      <div>
                         <h2 style={{display: "inline"}}>Replays</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
