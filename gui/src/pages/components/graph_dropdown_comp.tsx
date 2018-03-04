@@ -11,20 +11,22 @@ export class GraphSelectDrop extends React.Component<any, any>  {
 
     public selectGraphTypes(event: any) {
         const target = event.currentTarget;
-        this.props.update(target.checked, JSON.parse(target.value));
+        this.props.update(target.checked, target.value);
      }
 
     public render() {
         if (!this.props.graphs) { return (<div></div>); }
         const checkboxes: JSX.Element[] = [];
-        for (const graph of this.props.graphs) {
+        for (const type in this.props.graphs) {
+            const graph = this.props.graphs[type];
             checkboxes.push(
                 // https://codepen.io/bseth99/pen/fboKH
-                <li><p className="small" data-value={graph} tabIndex={-1}
-                    style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
-                <input type="checkbox" onChange={(e) => this.selectGraphTypes(e)} value={JSON.stringify(graph)}/>
+                <li key={graph.type}><p className="small" data-value={graph.type} tabIndex={-1}
+                    style={{ color: "#3498DB", margin: "10px", marginLeft: "20px"}}>
+                <input type="checkbox" onChange={(e) => this.selectGraphTypes(e)} value={graph.type}
+                    defaultChecked={type === "CPU" ? true : false}/>
                     &nbsp;&nbsp;&nbsp;{graph.displayName}</p>
-            </li>);
+                </li>);
         }
         return (
             <div className="button-group" style ={{display: "inline"}}>
