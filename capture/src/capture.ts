@@ -14,12 +14,14 @@ import { CaptureConfig } from './args';
 import { captureDao } from './dao';
 import { fakeRequest } from './workload/local-workload-logger';
 import { WorkloadLogger } from './workload/workload-logger';
+import { WorkloadStorage } from './workload/workload-storage';
 
 const logger = Logging.defaultLogger(__dirname);
 
 export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
    public env: IEnvironmentFull;
+
    private ipcNode: IpcNode;
 
    constructor(public config: CaptureConfig, private workloadLogger: WorkloadLogger, storage: StorageBackend,
@@ -81,7 +83,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       }
    }
 
-   protected loop(): void {
+   protected async loop(): Promise<void> {
       logger.info('-----------==[ LOOP ]==-----------');
 
       const end = new Date();
@@ -90,8 +92,11 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          start.setTime(this.startTime!.getTime());
       }
 
+      logger.info('   process workload...');
+      await this.sendWorkloadToS3(start, end);
+
       logger.info('   process metrics...');
-      this.sendMetricsToS3(start, end);
+      await this.sendMetricsToS3(start, end);
 
       if (this.config.mock) {
          logger.info('   generate fake traffic for the mock workload');
@@ -106,20 +111,21 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info("record end time");
          await captureDao.updateCaptureEndTime(this.id);
 
+         logger.info("Setting status to 'done'");
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
+
          logger.info("set status to 'stopping'");
          await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STOPPING);
 
          logger.info("turning off RDS logging");
          await this.workloadLogger.setLogging(false);
 
-         logger.info("Persisting workload");
-         await this.workloadLogger.persistWorkload();
+         logger.info("building final workload file");
+         const workloadStorage = new WorkloadStorage(this.storage);
+         await workloadStorage.buildFinalWorkloadFile(this.asIChildProgram());
 
          logger.info('Stopping ipc node');
          await this.ipcNode.stop();
-
-         logger.info("Setting status to 'done'");
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
 
          logger.info(`Teardown for Capture ${this.id} complete!`);
       } catch (error) {
@@ -131,9 +137,19 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       return captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
    }
 
-   private async sendMetricsToS3(start: Date, end: Date, firstTry: boolean = true) {
-      try {
+   private async sendWorkloadToS3(start: Date, end: Date) {
+      this.tryTwice(async () => {
+         const fragment = await this.workloadLogger.getWorkloadFragment(start, end);
+         logger.info(`Got ${fragment.commands.length} commands`);
 
+         const key = schema.workload.getSingleSampleKey(this.asIChildProgram(), end);
+         logger.info(`Saving workload fragment to ${key}`);
+         await this.storage.writeJson(key, fragment);
+      }, "Send workload fragment to S3");
+   }
+
+   private async sendMetricsToS3(start: Date, end: Date) {
+      this.tryTwice(async () => {
          const data = [
             await this.metrics.getMetricsForType(CPUMetric, start, end),
             await this.metrics.getMetricsForType(ReadMetric, start, end),
@@ -144,18 +160,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
          logger.info(`Saving metrics to ${key}`);
          await this.storage.writeJson(key, data);
-
-      } catch (error) {
-         if (firstTry) {
-            logger.warn(`Failed to get metrics: ${error}`);
-            logger.warn("Trying again...");
-            this.sendMetricsToS3(start, end, false);
-
-         } else {
-            logger.error(`Failed to get metrics the second time: ${error}`);
-            // TODO: mark capture as broken?
-         }
-      }
+      }, "send metrics to S3");
    }
 
 }

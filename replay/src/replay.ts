@@ -96,7 +96,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       }
    }
 
-   protected loop(): void {
+   protected async loop(): Promise<void> {
       logger.info(`Replay ${this.id}: loop`);
 
       let finished = true;

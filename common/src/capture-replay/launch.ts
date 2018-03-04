@@ -14,19 +14,23 @@ export const launch = (id: string, cmd: string, args: string[]) => {
    const childLogger = noopLogger(__dirname);
 
    process.stdout.on('data', (data: string) => {
-      childLogger.info(`[${id} stdout] ${data.toString().trim()}`);
+      data.toString().trim().split('\n').forEach((line) => {
+         childLogger.info(`[${id} stdout] ~{ ${line} }~`);
+      });
    });
 
    process.stderr.on('data', (data: string) => {
-      childLogger.error(`[${id} stderr] ${data.toString().trim()}`);
+      data.toString().trim().split('\n').forEach((line) => {
+         childLogger.error(`[${id} stderr] ~{ ${line} }~`);
+      });
    });
 
    process.on('close', (code: any) => {
-      logger.info(`[${id} exited] ${code}`);
+      logger.info(`[${id} exited] ## ${code} ##`);
    });
 
    process.on('error', (error: string) => {
-      logger.error(`[${id} ERROR] ${error.toString().trim()}`);
+      logger.error(`[${id} ERROR] !! ${error.toString().trim()} !!`);
    });
 
 };

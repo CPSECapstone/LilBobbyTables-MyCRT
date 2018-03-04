@@ -15,7 +15,7 @@ export abstract class FragmentedStorage<T> {
     * @param fragmentType The type of fragmented storage to read from.
     * @param backend An interface to the storage mechanism.
     */
-   constructor(public readonly fragmentType: FragmentType, private backend: StorageBackend) {
+   constructor(public readonly fragmentType: FragmentType, protected backend: StorageBackend) {
       this.schema = path.getSchema(fragmentType);
    }
 

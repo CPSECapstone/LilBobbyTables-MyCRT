@@ -9,7 +9,6 @@
        "align": false,
        "no-empty": [ false ],
        "no-empty-interface": [ false ],
-       "no-unused-variable": [true, {"ignore-pattern": "^_"}],
        "no-unused-expression": false,
        "object-literal-sort-keys": false,
        "max-classes-per-file": [ true, 3, "exclude-class-expressions" ],

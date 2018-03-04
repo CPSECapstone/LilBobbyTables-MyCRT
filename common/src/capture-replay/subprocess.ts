@@ -43,9 +43,24 @@ export abstract class Subprocess {
    abstract get interval(): number;
 
    protected abstract async setup(): Promise<void>;
-   protected abstract loop(): void;
+   protected abstract async loop(): Promise<void>;
    protected abstract async teardown(): Promise<void>;
    protected abstract async dontPanic(): Promise<void>;
+
+   protected async tryTwice(action: () => void, desc: string, firstTry: boolean = true) {
+      try {
+         action();
+      } catch (error) {
+         if (firstTry) {
+            logger.warn(`Failed to ${desc}: ${error}`);
+            logger.warn(`Trying again...`);
+            this.tryTwice(action, desc, false);
+         } else {
+            logger.error(`Failed to ${desc} the second time: ${error}`);
+            // TODO: handle?
+         }
+      }
+   }
 
    protected async selfDestruct(reason: string) {
       try {

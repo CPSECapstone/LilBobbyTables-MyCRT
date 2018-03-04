@@ -1,7 +1,7 @@
 import { RDS } from 'aws-sdk';
 import mysql = require('mysql');
 
-import { ChildProgramType, IEnvironment, IEnvironmentFull } from '@lbt-mycrt/common';
+import { ChildProgramType, ICommand, IEnvironment, IEnvironmentFull } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
@@ -14,6 +14,12 @@ export class AwsWorkloadLogger extends WorkloadLogger {
       this.env = env;
    }
 
+   protected async queryGeneralLog(start: Date, end: Date): Promise<ICommand[]> {
+      const conn = await this.connect();
+      const result = await this.doGeneralLogQuery(conn, start, end);
+      return result;
+   }
+
    protected turnOnLogging(): Promise<void> {
       const params = this.getParameterGroup(true);
       return this.modifyParameterGroup(params);
@@ -24,27 +30,25 @@ export class AwsWorkloadLogger extends WorkloadLogger {
       return this.modifyParameterGroup(params);
    }
 
-   protected async queryGeneralLog(): Promise<any[]> {
-      const conn = mysql.createConnection({
+   private connect(): Promise<mysql.Connection> {
+      const conn: mysql.Connection = mysql.createConnection({
          database: this.env.dbName,
          host: this.env.host,
          password: this.env.pass,
          user: this.env.user,
       });
+      return new Promise<mysql.Connection>((resolve, reject) => conn.connect((connErr) => connErr ? reject(connErr)
+         : resolve(conn)));
+   }
 
-      return new Promise<any[]>((resolve, reject) => {
-         conn.connect((connErr) => {
-            if (connErr) {
-               reject(connErr);
-            } else {
-               const query = mysql.format('SELECT * FROM mysql.general_log where user_host = ?',
-                  ["nfl2015user[nfl2015user] @  [172.31.35.19]"]);
-
-               conn.query(query, (queryErr, rows) => {
-                  conn.end();
-                  queryErr ? reject(queryErr) : resolve(rows);
-               });
-            }
+   private doGeneralLogQuery(conn: mysql.Connection, start: Date, end: Date): Promise<ICommand[]> {
+      // TODO: clean up this query to use start, end, and environment
+      const query = mysql.format('SELECT * FROM mysql.general_log where user_host = ?',
+         ["nfl2015user[nfl2015user] @  [172.31.35.19]"]);
+      return new Promise<ICommand[]>((resolve, reject) => {
+         conn.query(query, (queryErr, rows) => {
+            conn.end();
+            queryErr ? reject(queryErr) : resolve(rows as ICommand[]);
          });
       });
    }
