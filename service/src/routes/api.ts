@@ -3,6 +3,7 @@ import EnvironmentRouter from './environment';
 import PingRouter from './ping';
 import ReplayRouter from './replay';
 import SelfAwareRouter from './self-aware-router';
+import ValidateRouter from './validate';
 
 export default class ApiRouter extends SelfAwareRouter {
 
@@ -19,6 +20,7 @@ export default class ApiRouter extends SelfAwareRouter {
       mountRouter(new ReplayRouter(this.ipcNode));
       mountRouter(new PingRouter(this.ipcNode));
       mountRouter(new EnvironmentRouter(this.ipcNode));
+      mountRouter(new ValidateRouter(this.ipcNode));
    }
 
 }

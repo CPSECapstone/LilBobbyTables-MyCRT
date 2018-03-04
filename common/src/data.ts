@@ -1,4 +1,3 @@
-
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
 
 /** The status of a capture/replay */
@@ -94,6 +93,28 @@ export interface IS3Reference {
    bucket?: string;
 }
 
+/** Commands in a Workload */
+export interface ICommand {
+
+   // fields obtained from mysql
+   event_time: string;
+   user_host: string;
+   thread_id: number;
+   server_id: number;
+   command_type: string;
+   argument: string;
+
+   // used in workload reading and storage
+   hash?: string;
+}
+
+/** Workload */
+export interface IWorkload {
+   start: string;
+   end: string;
+   commands: ICommand[];
+}
+
 /** The type of data */
 export enum MetricType { CPU = "CPU", WRITE = "WRITE", READ = "READ", MEMORY = "MEMORY" }
 
@@ -108,7 +129,7 @@ export interface IMetric {
 /** Interface for a list of a IMetrics gathered at different timestamps for a capture/replay */
 export interface IMetricsList {
    label: string;
-   type: MetricType;
+   type: string;
    displayName?: string;
    complete?: boolean;
    dataPoints: IMetric[];

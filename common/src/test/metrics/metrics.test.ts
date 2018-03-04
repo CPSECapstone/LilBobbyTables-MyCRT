@@ -2,7 +2,7 @@ import { CloudWatch } from 'aws-sdk';
 import { expect } from 'chai';
 import 'mocha';
 import mockito from 'ts-mockito';
-import { CloudWatchMetricsBackend, CPU, MEMORY, READ, WRITE } from '../../main';
+import { CloudWatchMetricsBackend, CPUMetric, MemoryMetric, Metric, ReadMetric, WriteMetric } from '../../main';
 import { dummyCPU, dummyMemory, dummyRead, dummyWrite } from './data';
 
 import Logging = require('./../../logging');
@@ -30,7 +30,7 @@ describe("CloudwatchMetricsBackend", () => {
             } as CloudWatch.GetMetricStatisticsOutput);
         });
 
-        await metrics.getCPUMetrics(new Date(), new Date())
+        await metrics.getMetricsForType(CPUMetric, new Date(), new Date())
          .then((cpuMetrics) => {
             expect(cpuMetrics.label).to.equal(dummyCPU.Label);
             expect(cpuMetrics.dataPoints).to.deep.equal(dummyCPU.Datapoints);
@@ -47,7 +47,7 @@ describe("CloudwatchMetricsBackend", () => {
             } as CloudWatch.GetMetricStatisticsOutput);
         });
 
-        await metrics.getReadMetrics(new Date(), new Date())
+        await metrics.getMetricsForType(ReadMetric, new Date(), new Date())
          .then((readMetrics) => {
             expect(readMetrics.label).to.equal(dummyRead.Label);
             expect(readMetrics.dataPoints).to.deep.equal(dummyRead.Datapoints);
@@ -64,7 +64,7 @@ describe("CloudwatchMetricsBackend", () => {
             } as CloudWatch.GetMetricStatisticsOutput);
         });
 
-        await metrics.getWriteMetrics(new Date(), new Date())
+        await metrics.getMetricsForType(WriteMetric, new Date(), new Date())
          .then((writeMetrics) => {
             expect(writeMetrics.label).to.equal(dummyWrite.Label);
             expect(writeMetrics.dataPoints).to.deep.equal(dummyWrite.Datapoints);
@@ -81,7 +81,7 @@ describe("CloudwatchMetricsBackend", () => {
                 } as CloudWatch.GetMetricStatisticsOutput);
             });
 
-        await metrics.getMemoryMetrics(new Date(), new Date())
+        await metrics.getMetricsForType(MemoryMetric, new Date(), new Date())
          .then((memoryMetrics) => {
             expect(memoryMetrics.label).to.equal(dummyMemory.Label);
             expect(memoryMetrics.dataPoints).to.deep.equal(dummyMemory.Datapoints);
@@ -95,7 +95,7 @@ describe("CloudwatchMetricsBackend", () => {
             callback("cpu metrics do not exist", null);
         });
 
-        const cpuMetrics = await metrics.getCPUMetrics(new Date(), new Date())
+        const cpuMetrics = await metrics.getMetricsForType(CPUMetric, new Date(), new Date())
          .catch((reason) => {
             expect(reason).to.not.be.null;
          });
@@ -107,7 +107,7 @@ describe("CloudwatchMetricsBackend", () => {
             callback("read (io) metrics do not exist", null);
         });
 
-        const readMetrics = await metrics.getReadMetrics(new Date(), new Date())
+        const readMetrics = await metrics.getMetricsForType(ReadMetric, new Date(), new Date())
          .catch((reason) => {
             expect(reason).to.not.be.null;
          });
@@ -119,7 +119,7 @@ describe("CloudwatchMetricsBackend", () => {
             callback("write (io) metrics do not exist", null);
         });
 
-        const writeMetrics = await metrics.getWriteMetrics(new Date(), new Date())
+        const writeMetrics = await metrics.getMetricsForType(WriteMetric, new Date(), new Date())
          .catch((reason) => {
             expect(reason).to.not.be.null;
          });
@@ -131,7 +131,7 @@ describe("CloudwatchMetricsBackend", () => {
             callback("memory metrics do not exist", null);
         });
 
-        const memoryMetrics = await metrics.getMemoryMetrics(new Date(), new Date())
+        const memoryMetrics = await metrics.getMetricsForType(MemoryMetric, new Date(), new Date())
          .catch((reason) => {
             expect(reason).to.not.be.null;
          });

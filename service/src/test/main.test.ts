@@ -35,6 +35,8 @@ describe("MyCrtService", () => {
    before(launchMyCrtService);
    after(closeMyCrtService);
 
+   // TODO: change the service tests to work on a different DB
+   // currently, this wipes a developer's database, which is anoying.
    beforeEach(async () => {
       await replayDao.nuke();
       await captureDao.nuke();

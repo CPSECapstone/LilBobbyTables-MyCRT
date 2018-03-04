@@ -3,8 +3,8 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
-import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric,
-         IMetricsList, Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, Logging,
+   MetricType } from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
@@ -56,8 +56,18 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const type: MetricType | undefined = request.query.type;
          const capture = await captureDao.getCapture(request.params.id);
+         if (capture === null) {
+            throw new HttpError(http.NOT_FOUND);
+         } else if (!capture.envId) {
+            throw new HttpError(http.CONFLICT, `Capture ${capture.id} has no envId`);
+         }
 
-         const result = await getMetrics(capture, type);
+         const environment = await environmentDao.getEnvironmentFull(capture.envId);
+         if (environment === null) {
+            throw new HttpError(http.CONFLICT, `Capture ${capture.id}'s environment does not exist`);
+         }
+
+         const result = await getMetrics(capture, environment, type);
          response.json(result);
 
       }));
