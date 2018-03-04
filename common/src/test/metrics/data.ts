@@ -1,23 +1,23 @@
 import { IMetricsList, MetricType } from '../../data';
-import { CPU, MEMORY, READ, WRITE } from '../../main';
+import { CPUMetric, MemoryMetric, ReadMetric, WriteMetric } from '../../main';
 
 export const dummyCPU = {
-    Label: CPU,
+    Label: CPUMetric.metricName,
     Datapoints: [],
 };
 
 export const dummyMemory = {
-    Label: MEMORY,
+    Label: MemoryMetric.metricName,
     Datapoints: [],
 };
 
 export const dummyRead = {
-    Label: READ,
+    Label: ReadMetric.metricName,
     Datapoints: [],
 };
 
 export const dummyWrite = {
-    Label: WRITE,
+    Label: WriteMetric.metricName,
     Datapoints: [],
 };
 
