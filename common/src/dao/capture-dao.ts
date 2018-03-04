@@ -30,8 +30,8 @@ export class CaptureDao extends Dao {
       const result = await this.query<any>('INSERT INTO Capture SET ?', {
          name: capture.name,
          status: capture.status,
-         // start: capture.start,
-         // envId: capture.envId,
+         start: capture.start,
+         envId: capture.envId,
       });
       return await this.getCapture(result.insertId);
    }

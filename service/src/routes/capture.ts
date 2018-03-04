@@ -101,7 +101,8 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
          // validation
          const initialStatus: string | undefined = request.body.status;
-         const startTime: any = request.body.start;
+         const startTime: Date = request.body.start;
+         // const testTime: Date = new Date(2018, 2, 1, 10, 54, 30);  // make sure to set month to one less that current
 
          const env = await environmentDao.getEnvironment(request.body.envId);
          if (!env) {
@@ -116,10 +117,15 @@ export default class CaptureRouter extends SelfAwareRouter {
             start: startTime,
          };
 
+         if (captureTemplate.start) {
+            logger.debug(captureTemplate.start.toString());
+         }
+
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             // schedule job
             // if (schedule.isValidDate(startTime)) {
             schedule.scheduleJob(startTime, () => { this.startCapture(captureTemplate); });
+            // schedule.scheduleJob(testTime, () => { logger.debug("scheduled capture"); });
             // }
          }
          // else {
