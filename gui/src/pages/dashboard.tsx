@@ -92,10 +92,10 @@ class DashboardApp extends React.Component<any, any> {
                 captureObj = this.state.captures.find((item: IChildProgram) => item.id === replay.captureId);
             }
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
-                pastReplays.push((<ReplayPanel title={name} replay={replay}
+                pastReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
                     capture={captureObj} envId = {this.state.envId}/>));
             } else {
-                liveReplays.push((<ReplayPanel title={name} replay={replay}
+                liveReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
                     capture={captureObj} envId = {this.state.envId}/>));
             }
          }

@@ -8,7 +8,7 @@ import ReactDom = require('react-dom');
 import { BrowserLogger as logger } from './../logging';
 import { Graph } from './components/graph_comp';
 
-import { ChartTypeDrop } from './components/chart_type_dropdown_comp';
+import { ChartTypeCheck } from './components/chart_type_checkbox_comp';
 import { DeleteModal } from './components/delete_modal_comp';
 import { GraphSelectDrop } from './components/graph_dropdown_comp';
 import { MessageModal } from './components/message_handler_comp';
@@ -37,14 +37,19 @@ class CaptureApp extends React.Component<any, any> {
             if (match) {
                   id = match[1];
             }
+            let defaultReplay: any = null;
+            const replayMatch = window.location.search.match(/.*\?.*replayId=(\d+)/);
+            if (replayMatch) {
+                  defaultReplay = replayMatch[1];
+            }
             let envId: any = null;
             const envMatch = window.location.search.match(/.*\?.*envId=(\d+)/);
             if (envMatch) {
                   envId = envMatch[1];
             }
 
-            this.state = {envId, env: null, captureId: id, capture: null,
-                  chartType: "Line Chart", allReplays: [], selectedReplays: [],
+            this.state = {envId, defaultReplay, env: null, captureId: id, capture: null,
+                  areaChart: false, allReplays: [], selectedReplays: [],
                   allGraphs: [], selectedGraphs: ["CPU"],
             };
       }
@@ -68,6 +73,9 @@ class CaptureApp extends React.Component<any, any> {
                         this.setState({allGraphs: this.makeObject(metrics, "type")});
                         this.setWorkloadData(true);
                   }
+            }
+            if (this.state.defaultReplay) {
+                  this.updateReplays(true, this.state.defaultReplay);
             }
       }
 
@@ -128,8 +136,8 @@ class CaptureApp extends React.Component<any, any> {
             this.setState({allReplays: replays});
       }
 
-      public updateChartType(type: string) {
-            this.setState({chartType: type});
+      public updateChartType(chartType: boolean) {
+            this.setState({areaChart: chartType});
       }
 
       public async updateReplays(checked: boolean, id: number) {
@@ -175,7 +183,7 @@ class CaptureApp extends React.Component<any, any> {
             if (this.state.selectedGraphs) {
                 for (const graphType of this.state.selectedGraphs) {
                     graphs.push((<Graph data={this.state.allGraphs[graphType]}
-                        id={this.state.captureId} type={this.state.chartType}/>));
+                        id={this.state.captureId} filled={this.state.areaChart}/>));
                 }
             }
             const replays: JSX.Element[] = [];
@@ -186,7 +194,7 @@ class CaptureApp extends React.Component<any, any> {
                         if (!name) {
                               name = `replay ${replay.id}`;
                         }
-                        replays.push((<ReplayPanel title={name} replay={replay}
+                        replays.push((<ReplayPanel title={name} replay={replay} compare={false}
                               capture={this.state.capture} envId = {this.state.envId}/>));
                 }
             }
@@ -216,12 +224,12 @@ class CaptureApp extends React.Component<any, any> {
                      </div>
                      <div className="modal-body">
                         <div className="page-header">
-                           <h2 style={{display: "inline"}}>Metrics</h2>
-                           <ChartTypeDrop prompt="Chart Type" update={this.updateChartType}/>
-                           <GraphSelectDrop prompt="Metric Types"
-                                graphs={this.state.allGraphs} update={this.updateGraphs}/>
-                           <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
-                              update={this.updateReplays}/>
+                              <h2 style={{display: "inline"}}>Metrics</h2>
+                              <GraphSelectDrop prompt="Metric Types"
+                                    graphs={this.state.allGraphs} update={this.updateGraphs}/>
+                              <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
+                                    update={this.updateReplays} default={this.state.defaultReplay}/>
+                              <ChartTypeCheck prompt="Chart Type" update={this.updateChartType}/>
                            <br></br>
                            {graphs}
                         </div>

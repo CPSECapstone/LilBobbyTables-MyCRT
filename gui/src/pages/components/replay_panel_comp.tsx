@@ -13,7 +13,8 @@ export class ReplayPanel extends React.Component<any, any>  {
     }
 
     public handleClick(event: any): void {
-        window.location.assign('./replay');
+         window.location.assign(`/capture?id=${this.props.capture.id}&`
+            + `replayId=${this.props.replay.id}envId=${this.props.envId}`);
     }
 
     public formatTimeStamp(date: string) {
@@ -35,6 +36,8 @@ export class ReplayPanel extends React.Component<any, any>  {
                 <div className="card-body" onClick={ (e) => this.handleClick(e)}>
                     <p><i><b>Start:</b> {this.formatTimeStamp(this.state.replay.start)}</i></p>
                     <p><i><b>End:</b> {this.formatTimeStamp(this.state.replay.end)}</i></p>
+                    {!this.state.live ? <button type="button" className="btn btn-success"
+                                               style={{zIndex: 10, float: "right"}}>Compare</button> : null}
                 </div>
             </div>
         );

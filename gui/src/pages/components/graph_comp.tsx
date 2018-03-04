@@ -22,12 +22,9 @@ export class Graph extends React.Component<any, any>  {
             let index = 0;
             for (const key in this.props.data.dataPoints[0]) {
                 if (key !== "Timestamp" && key !== "Unit" && key !== "Maximum") {
-                    if (this.props.type === "Line Chart") {
+                    if (!this.props.filled) {
                         metrics.push(<Line name={key} type="monotone" dataKey={key} stroke={colors[index]}
                         activeDot={{ r: 8 }} isAnimationActive={true} unit={unit} strokeWidth={1.5}/>);
-                    } else if (this.props.type === "Bar Chart") {
-                        metrics.push(<Bar name={key} dataKey={key} fill={colors[index]}
-                         isAnimationActive={true} unit={unit}/>);
                     } else {
                         metrics.push(<Area name={key} type="monotone" dataKey={key} stroke={colors[index]}
                         fillOpacity={0.5} fill={colors[index]} isAnimationActive={true}
@@ -38,7 +35,7 @@ export class Graph extends React.Component<any, any>  {
             }
         }
         let chart: JSX.Element;
-        if (this.props.type === "Line Chart") {
+        if (!this.props.filled) {
             chart = <LineChart width={1000} height={400} data={this.props.data.dataPoints}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <XAxis dataKey="Timestamp" />
@@ -50,18 +47,6 @@ export class Graph extends React.Component<any, any>  {
                     <Legend verticalAlign="bottom" height={36} />
                     {metrics}
                 </LineChart>;
-        } else if (this.props.type === "Bar Chart") {
-            chart = <BarChart width={1000} height={400} data={this.props.data.dataPoints}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <XAxis dataKey="Timestamp" />
-                    <YAxis allowDecimals={true}>
-                    {/* <Label value="Unit" position="insideLeft" angle={-90} /> */}
-                    </YAxis>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} />
-                    {metrics}
-            </BarChart>;
         } else {
             chart = <AreaChart width={1000} height={400} data={this.props.data.dataPoints}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>

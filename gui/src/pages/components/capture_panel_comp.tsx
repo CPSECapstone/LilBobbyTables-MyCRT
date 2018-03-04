@@ -19,7 +19,6 @@ export class CapturePanel extends React.Component<any, any>  {
     }
 
     public handleClick(event: any): void {
-
         window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}`);
     }
 
@@ -44,14 +43,17 @@ export class CapturePanel extends React.Component<any, any>  {
         return (
             <div className="card myCRT-panel mt-4 myCRT-card">
                 <div className={this.state.active ? "card-header myCRT-panel-running" : "myCRT-env-card card-header"}>
-                    <h5 style={{display: "inline", verticalAlign: "middle"}}>{this.props.title}</h5>
+                    <h5 style={{display: "inline", verticalAlign: "middle"}}
+                        onClick={ (e) => this.handleClick(e)}>{this.props.title}</h5>
                     {this.state.live ? <button type="button" className="btn btn-danger"
                                                style={{zIndex: 10, float: "right"}}
                                                onClick={(e) => this.stopCapture(e)}>Stop</button> : null}
                 </div>
-                <div className="card-body" onClick={ (e) => this.handleClick(e)}>
+                <div className="card-body">
                     <p><i><b>Start:</b> {this.formatTimeStamp(this.state.capture.start)}</i></p>
                     <p><i><b>End:</b> {this.formatTimeStamp(this.state.capture.end)}</i></p>
+                    {this.state.live ? null : <button type="button" className="btn btn-success"
+                        style={{zIndex: 10, float: "right"}} onClick={ (e) => this.handleClick(e)}>Compare</button>}
                 </div>
             </div>
         );
