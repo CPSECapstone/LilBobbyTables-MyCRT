@@ -7,6 +7,7 @@ import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramStatus, ChildProgramType, IChildProgram, IDbReference } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
+import { path as schema } from '@lbt-mycrt/common/dist/storage/backend-schema';
 
 import { ReplayConfig } from './args';
 import { captureDao, replayDao } from './dao';
@@ -95,7 +96,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       }
    }
 
-   protected loop(): void {
+   protected async loop(): Promise<void> {
       logger.info(`Replay ${this.id}: loop`);
 
       let finished = true;
@@ -231,7 +232,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
             await this.metrics.getMetricsForType(MemoryMetric, start, end),
          ];
 
-         const key = MetricsStorage.getSingleSampleMetricsKey(this.asIChildProgram(), end);
+         const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
          logger.info(`Saving metrics to ${key}`);
          await this.storage.writeJson(key, data);
 

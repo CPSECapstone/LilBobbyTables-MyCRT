@@ -1,38 +1,48 @@
+import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 
-import { ChildProgramStatus, ChildProgramType, IChildProgram, IMetricsList,
+import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironmentFull, IMetricsList,
     Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
+import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { HttpError } from '../http-error';
+import { settings } from '../settings';
 
 const logger = Logging.defaultLogger(__dirname);
 
 /**
  * Retrieve and return the capture/replay metrics from S3
  */
-export const getMetrics = (childProgram: IChildProgram | null, metricType?: MetricType | null):
-        Promise<IMetricsList | IMetricsList[]> => {
+export const getMetrics = (childProgram: IChildProgram, environment: IEnvironmentFull, metricType?: MetricType | null):
+      Promise<IMetricsList | IMetricsList[]> => {
 
-    // TODO: add configuration for choosing the backend
-    // const storage: MetricsStorage = new MetricsStorage(new S3Backend(new S3(), 'lil-test-environment'));
-    const storage = new MetricsStorage(new LocalBackend(getSandboxPath()));
+   logger.info(`Getting ${metricType} metrics for ${childProgram.type} ${childProgram.id}`);
 
-    if (!childProgram) {
-       throw new HttpError(http.NOT_FOUND);
-    }
+   const validStatus = childProgram.status && [ChildProgramStatus.DONE, ChildProgramStatus.RUNNING,
+   ChildProgramStatus.STOPPING].indexOf(childProgram.status) > -1;
+   if (!validStatus) {
+      throw new HttpError(http.CONFLICT);
+   }
 
-    logger.info(`Getting ${metricType} metrics for ${childProgram.type} ${childProgram.id}`);
+   let backend: StorageBackend;
+   const mocking: boolean = settings.captures.mock && childProgram.type === ChildProgramType.CAPTURE
+      || settings.replays.mock && childProgram.type === ChildProgramType.REPLAY;
+   if (mocking) {
+      backend = new LocalBackend(getSandboxPath());
+   } else {
+      const awsConfig: S3.ClientConfiguration = {
+         region: environment.region,
+         accessKeyId: environment.accessKey,
+         secretAccessKey: environment.secretKey,
+      };
+      backend = new S3Backend(new S3(awsConfig), environment.bucket);
+   }
+   const storage = new MetricsStorage(backend);
 
-    const validStatus = childProgram.status && [ChildProgramStatus.DONE, ChildProgramStatus.RUNNING,
-          ChildProgramStatus.STOPPING].indexOf(childProgram.status) > -1;
-    if (!validStatus) {
-       throw new HttpError(http.CONFLICT);
-    }
-
-    return storage.readMetrics(childProgram!, metricType);
+   return storage.readMetrics(childProgram!, metricType);
 };

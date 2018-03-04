@@ -55,8 +55,25 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const type: MetricType | undefined = request.query.type;
          const replay = await replayDao.getReplay(request.params.id);
+         if (replay === null) {
+            throw new HttpError(http.NOT_FOUND);
+         } else if (!replay.captureId) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id} has no captureId`);
+         }
 
-         const result = await getMetrics(replay, type);
+         const capture = await captureDao.getCapture(replay.captureId);
+         if (capture === null) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s capture does not exist`);
+         } else if (!capture.envId) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s has no envId`);
+         }
+
+         const environment = await environmentDao.getEnvironmentFull(capture.envId);
+         if (environment === null) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s environment does not exist`);
+         }
+
+         const result = await getMetrics(replay, environment, type);
          response.json(result);
 
       }));

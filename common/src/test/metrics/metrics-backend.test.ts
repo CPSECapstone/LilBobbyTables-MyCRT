@@ -5,6 +5,7 @@ import mockito from 'ts-mockito';
 import { ChildProgramStatus, ChildProgramType, IChildProgram, IMetric, IMetricsList, MetricType } from '../../data';
 import { MetricsStorage } from '../../metrics/metrics-storage';
 import { StorageBackend } from '../../storage/backend';
+import { path } from '../../storage/backend-schema';
 import { LocalBackend } from '../../storage/local-backend';
 
 describe("MetricsBackend", () => {
@@ -60,7 +61,7 @@ describe("MetricsBackend", () => {
    before(() => {
       backend = mockito.mock(LocalBackend);
 
-      const key = MetricsStorage.getDoneMetricsKey(c1);
+      const key = path.metrics.getDoneKey(c1);
       mockito.when(backend.exists(key)).thenReturn(new Promise((resolve, reject) => {
          resolve(true);
       }));
