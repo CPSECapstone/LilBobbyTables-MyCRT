@@ -52,6 +52,7 @@ export abstract class FragmentedStorage<T> {
       return result;
    }
 
+   protected abstract objectToString(obj: T): string;
    protected abstract getDefaultObject(): T;
    protected abstract mergeObjects(a: T, b: T): T;
 
@@ -70,14 +71,14 @@ export abstract class FragmentedStorage<T> {
          const time = this.schema.getTimeFromKey(key);
          if (time > lastTime) {
             const sample = await this.backend.readJson<T>(key);
-            logger.info(`   found at ${key} with time ${time}: ${sample}`);
+            logger.info(`   found at ${key} with time ${time}: ${this.objectToString(sample)}`);
             result = this.mergeObjects(result, sample);
             newTime = time;
          }
       }
 
       const newDate = new Date(newTime);
-      logger.info(`Got updated ${this.fragmentType}: ${result} at ${newDate.getTime()}`);
+      logger.info(`Got updated ${this.fragmentType}: ${this.objectToString(result)} at ${newDate.getTime()}`);
 
       return [result, newDate];
    }

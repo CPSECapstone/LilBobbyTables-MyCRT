@@ -31,20 +31,16 @@ export class AwsWorkloadLogger extends WorkloadLogger {
    }
 
    private connect(): Promise<mysql.Connection> {
-      const conn: mysql.Connection = mysql.createConnection({
-         database: this.env.dbName,
-         host: this.env.host,
-         password: this.env.pass,
-         user: this.env.user,
-      });
+      const conn: mysql.Connection = mysql.createConnection({database: this.env.dbName, host: this.env.host,
+         password: this.env.pass, user: this.env.user});
       return new Promise<mysql.Connection>((resolve, reject) => conn.connect((connErr) => connErr ? reject(connErr)
          : resolve(conn)));
    }
 
    private doGeneralLogQuery(conn: mysql.Connection, start: Date, end: Date): Promise<ICommand[]> {
-      // TODO: clean up this query to use start, end, and environment
-      const query = mysql.format('SELECT * FROM mysql.general_log where user_host = ?',
-         ["nfl2015user[nfl2015user] @  [172.31.35.19]"]);
+      // TODO: make sure we are only querying for user activity
+      const query = mysql.format('SELECT * FROM mysql.general_log where user_host = ? AND event_time BETWEEN ? AND ?',
+         ["nfl2015user[nfl2015user] @  [172.31.35.19]", start, end]);
       return new Promise<ICommand[]>((resolve, reject) => {
          conn.query(query, (queryErr, rows) => {
             conn.end();
@@ -68,9 +64,7 @@ export class AwsWorkloadLogger extends WorkloadLogger {
 
    private modifyParameterGroup(params: RDS.Types.ModifyDBParameterGroupMessage): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-         this.rds.modifyDBParameterGroup(params, (err, data) => {
-            err ? reject(err) : resolve();
-         });
+         this.rds.modifyDBParameterGroup(params, (err, data) => err ? reject(err) : resolve());
       });
    }
 

@@ -33,9 +33,16 @@ export class S3Backend extends StorageBackend {
       });
    }
 
-   public allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
-      // TODO: implement
-      throw new Error("Method not implemented.");
+   public async allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
+      const keys = await this.listObjects(dirPrefix);
+      const result: string[] = [];
+      keys.forEach((key) => {
+         const check = key.substring(dirPrefix.length);
+         if (check.match(pattern)) {
+            result.push(key);
+         }
+      });
+      return result;
    }
 
    public async readJson<T>(key: string): Promise<T> {
@@ -105,8 +112,25 @@ export class S3Backend extends StorageBackend {
    }
 
    public async deletePrefix(dirPrefix: string): Promise<void> {
-      // TODO: implement
-      throw new Error("Method not implemented.");
+      const keys = await this.listObjects(dirPrefix);
+      keys.forEach(async (key) => await this.deleteJson(key));
+   }
+
+   private async listObjects(prefix?: string): Promise<string[]> {
+      const params: S3.ListObjectsRequest = {
+         Bucket: this.bucket,
+         Prefix: prefix,
+      };
+      return new Promise<string[]>((resolve, reject) => this.s3.listObjects(params, (err, data) => {
+         if (err) {
+            logger.error(err.message);
+            reject(err);
+         } else if (!data.Contents) {
+            resolve([]);
+         } else {
+            resolve(data.Contents.map((s3Obj) => s3Obj.Key || ''));
+         }
+      }));
    }
 
 }

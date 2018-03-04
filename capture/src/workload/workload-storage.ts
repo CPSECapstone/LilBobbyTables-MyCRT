@@ -24,12 +24,12 @@ export class WorkloadStorage extends FragmentedStorage<IWorkload> {
       await this.backend.writeJson(key, workload);
    }
 
+   protected objectToString(obj: IWorkload): string {
+      return `<IWorkload start='${obj.start}' end='${obj.end}' commands=${obj.commands.length}>`;
+   }
+
    protected getDefaultObject(): IWorkload {
-      return {
-         start: '',
-         end: '',
-         commands: [],
-      };
+      return {start: '', end: '', commands: []};
    }
 
    protected mergeObjects(a: IWorkload, b: IWorkload): IWorkload {
@@ -41,7 +41,7 @@ export class WorkloadStorage extends FragmentedStorage<IWorkload> {
          workload.commands.forEach((command: ICommand) => {
             this.ensureHash(command);
             const current = map[command.hash!];
-            if (current) {
+            if (current && current.hash !== command.hash) {
                logger.info(`Received conflicting commands in the workloads.`);
             }
             map[command.hash!] = command;

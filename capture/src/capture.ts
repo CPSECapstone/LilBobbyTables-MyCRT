@@ -61,11 +61,11 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       try {
          logger.info(`Performing setup for Capture ${this.id}`);
 
-         logger.info(`Setting Capture ${this.id} status to 'starting'`);
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STARTING);
-
          logger.info(`Start ipc node`);
          await this.ipcNode.start();
+
+         logger.info(`Setting Capture ${this.id} status to 'starting'`);
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STARTING);
 
          logger.info(`Starting RDS logging`);
          await this.workloadLogger.setLogging(true);
@@ -111,9 +111,6 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info("record end time");
          await captureDao.updateCaptureEndTime(this.id);
 
-         logger.info("Setting status to 'done'");
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
-
          logger.info("set status to 'stopping'");
          await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STOPPING);
 
@@ -123,6 +120,9 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info("building final workload file");
          const workloadStorage = new WorkloadStorage(this.storage);
          await workloadStorage.buildFinalWorkloadFile(this.asIChildProgram());
+
+         logger.info("Setting status to 'done'");
+         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
 
          logger.info('Stopping ipc node');
          await this.ipcNode.stop();
