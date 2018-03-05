@@ -2,7 +2,9 @@ import { RDS } from 'aws-sdk';
 import * as moment from 'moment';
 import mysql = require('mysql');
 
-import { ChildProgramType, ICommand, IEnvironment, IEnvironmentFull, Logging } from '@lbt-mycrt/common';
+import { captureDao } from '../dao';
+
+import { ChildProgramType, ICapture, ICommand, IEnvironment, IEnvironmentFull, Logging } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
@@ -21,6 +23,13 @@ export class AwsWorkloadLogger extends WorkloadLogger {
       const conn = await this.connect();
       const result = await this.doGeneralLogQuery(conn, start, end);
       return result;
+   }
+
+   protected async otherCapturesNeedLogs(): Promise<ICapture[] | null> {
+      if (this.env && this.env.id) {
+         return await captureDao.getRunningCapturesForEnv(this.env.id);
+      }
+      return null;
    }
 
    protected turnOnLogging(): Promise<void> {
