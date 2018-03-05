@@ -111,10 +111,12 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
          // validation
          const initialStatus: string | undefined = request.body.status;
-         const inputTime: Date = request.body.start;
+         const inputTime: Date = request.body.scheduledStart;
 
          // changing the month, because node-schedule is weird
          const startTime: Date = this.fixDate(inputTime);
+
+         logger.debug(`The modified start time: ${startTime.toString()}`); // this is working
 
          const env = await environmentDao.getEnvironment(request.body.envId);
          if (!env) {
@@ -131,8 +133,7 @@ export default class CaptureRouter extends SelfAwareRouter {
             status: initialStatus === ChildProgramStatus.SCHEDULED ?
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             name: request.body.name,
-            start: inputTime,
-            scheduledStart: request.body.scheduledStart,
+            scheduledStart: inputTime,
          };
 
          // assign capture, insert into db
@@ -142,16 +143,20 @@ export default class CaptureRouter extends SelfAwareRouter {
             throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
          }
 
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            // schedule job
-            schedule.scheduleJob(startTime, () => { this.startCapture(captureTemplate!); });
-         }
-
          // return response
          response.json(captureTemplate).end();
-         // logger.info(`Successfully created capture!`);
 
-         this.startCapture(captureTemplate);
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            // schedule job
+            const me = this;
+            logger.info(`Scheduling capture for ${inputTime}`);
+            const job = schedule.scheduleJob(inputTime, () => { me.startCapture(captureTemplate!); });
+            logger.info(`Scheduled job: ${JSON.stringify(job)}`);
+         } else {
+            this.startCapture(captureTemplate);
+         }
+
+         logger.info(`Successfully created capture!`);
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
