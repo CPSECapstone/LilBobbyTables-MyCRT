@@ -1,10 +1,13 @@
 import { RDS } from 'aws-sdk';
+import * as moment from 'moment';
 import mysql = require('mysql');
 
-import { ChildProgramType, ICommand, IEnvironment, IEnvironmentFull } from '@lbt-mycrt/common';
+import { ChildProgramType, ICommand, IEnvironment, IEnvironmentFull, Logging } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
+
+const logger = Logging.defaultLogger(__dirname);
 
 export class AwsWorkloadLogger extends WorkloadLogger {
 
@@ -38,9 +41,12 @@ export class AwsWorkloadLogger extends WorkloadLogger {
    }
 
    private doGeneralLogQuery(conn: mysql.Connection, start: Date, end: Date): Promise<ICommand[]> {
-      // TODO: make sure we are only querying for user activity
-      const query = mysql.format('SELECT * FROM mysql.general_log where user_host = ? AND event_time BETWEEN ? AND ?',
-         ["nfl2015user[nfl2015user] @  [172.31.35.19]", start, end]);
+      const startDate = moment(start).add(8, 'hours').toDate();
+      const endDate = moment(end).add(8, 'hours').toDate();
+      const query = mysql.format("SELECT * FROM mysql.general_log " +
+         "WHERE user_host NOT LIKE 'rdsadmin%' AND user_host NOT LIKE '[rdsadmin]%' AND command_type = 'Query' " +
+         "AND event_time BETWEEN ? and ?", [startDate, endDate]);
+
       return new Promise<ICommand[]>((resolve, reject) => {
          conn.query(query, (queryErr, rows) => {
             conn.end();
