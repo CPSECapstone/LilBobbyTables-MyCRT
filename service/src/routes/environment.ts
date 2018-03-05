@@ -61,15 +61,15 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          s3Reference = await environmentDao.makeS3Reference(s3Reference);
          dbReference = await environmentDao.makeDbReference(dbReference);
 
-         let environment: data.IEnvironment | null = {
+         const environment: data.IEnvironment = {
             name: request.body.envName,
             iamId: iamReference.id!,
             s3Id: s3Reference.id!,
             dbId: dbReference.id!,
          };
 
-         environment = await environmentDao.makeEnvironment(environment);
-         response.json(environment!);
+         const env = await environmentDao.makeEnvironment(environment);
+         response.json(environment);
 
       }));
 
