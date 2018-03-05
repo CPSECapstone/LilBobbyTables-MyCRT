@@ -18,14 +18,18 @@ export class EnvironmentDao extends Dao {
    }
 
    public async getEnvironmentFull(id: number): Promise<data.IEnvironmentFull | null> {
-      const slct1 = 'SELECT e.name AS envName, d.name AS dbName, host, user, pass, instance, ';
-      const slct2 = 'parameterGroup, bucket, accessKey, secretKey, region ';
-      const from1 = 'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ';
-      const from2 = 'JOIN S3Reference AS s ON e.S3Id = s.id JOIN IAMReference AS i ON e.iamId = i.id ';
-      const where = 'WHERE e.id = ?';
+      const queryStr = 'SELECT e.name AS envName, d.name AS dbName, host, user, pass, instance, ' +
+         'parameterGroup, bucket, accessKey, secretKey, region ' +
+         'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ' +
+         'JOIN S3Reference AS s ON e.S3Id = s.id JOIN IAMReference AS i ON e.iamId = i.id ' +
+         'WHERE e.id = ?';
 
-      const rows = await this.query<any[]>(slct1.concat(slct2).concat(from1).concat(from2).concat(where), [id]);
-      return this.rowToIEnvironmentFull(rows[0]);
+      const rows = await this.query<any[]>(queryStr, [id]);
+      if (rows[0]) {
+         return this.rowToIEnvironmentFull(rows[0]);
+      } else {
+         return null;
+      }
    }
 
    public async makeEnvironment(environment: data.IEnvironment): Promise<data.IEnvironment | null> {
