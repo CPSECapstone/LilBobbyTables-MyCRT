@@ -1,4 +1,5 @@
 import { RDS } from 'aws-sdk';
+import * as moment from 'moment';
 import mysql = require('mysql');
 
 import { ChildProgramType, ICommand, IEnvironment, IEnvironmentFull, Logging } from '@lbt-mycrt/common';
@@ -40,15 +41,15 @@ export class AwsWorkloadLogger extends WorkloadLogger {
    }
 
    private doGeneralLogQuery(conn: mysql.Connection, start: Date, end: Date): Promise<ICommand[]> {
+      const startDate = moment(start).add(8, 'hours').toDate();
+      const endDate = moment(end).add(8, 'hours').toDate();
       const query = mysql.format("SELECT * FROM mysql.general_log " +
          "WHERE user_host NOT LIKE 'rdsadmin%' AND user_host NOT LIKE '[rdsadmin]%' AND command_type = 'Query' " +
-         "AND event_time BETWEEN ? and ?", [start, end]);
+         "AND event_time BETWEEN ? and ?", [startDate, endDate]);
 
-      logger.debug("The query is \n" + query);
       return new Promise<ICommand[]>((resolve, reject) => {
          conn.query(query, (queryErr, rows) => {
             conn.end();
-            logger.debug(JSON.stringify(rows));
             queryErr ? reject(queryErr) : resolve(rows as ICommand[]);
          });
       });
