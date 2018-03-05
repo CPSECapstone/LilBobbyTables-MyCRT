@@ -68,8 +68,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             dbId: dbReference.id!,
          };
 
-         const env = await environmentDao.makeEnvironment(environment);
-         response.json(environment);
+         const envId = await environmentDao.makeEnvironment(environment);
+         response.json(envId);
 
       }));
 
