@@ -12,6 +12,9 @@ export abstract class Config {
          throw new Error("Cannot make option arguments without a name or alias");
       }
 
+      if (value === null || value === undefined) {
+          throw Error(`Please provide a value for ${option.name}`);
+      }
       if (option.type !== Boolean) {
          return [key, value.toString()];
       } else if (value) {

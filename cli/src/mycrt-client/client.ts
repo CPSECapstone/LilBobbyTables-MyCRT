@@ -1,7 +1,7 @@
 import * as http from 'http-status-codes';
 
 import { ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull, IIamReference, IMetricsList,
-   IReplay, IS3Reference, MetricType } from '@lbt-mycrt/common/dist/data';
+   IReplay, IReplayFull, IS3Reference, MetricType } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
 
@@ -66,7 +66,7 @@ export class MyCrtClient {
    }
 
    /** Create a new Replay */
-   public async startReplay(replay: IReplay): Promise<number | null> {
+   public async startReplay(replay: IReplayFull): Promise<number | null> {
       return this.makeRequest<number>(HttpMethod.POST, '/replays', null, replay);
    }
 
@@ -89,6 +89,11 @@ export class MyCrtClient {
    public async getReplayMetrics(id: number, type: MetricType): Promise<IMetricsList | null> {
       return this.makeRequest<IMetricsList>(HttpMethod.GET, `/replays/${id}/metrics`, {type: type.toString()});
    }
+
+   /** Retrieve all of the metrics for a Replay */
+  public async getAllReplayMetrics(id: number): Promise<[IMetricsList] | null> {
+    return this.makeRequest<[IMetricsList]>(HttpMethod.GET, `/replays/${id}/metrics`);
+  }
 
    /** Delete a specific replay */
    public async deleteReplay(id: number): Promise<any> {
