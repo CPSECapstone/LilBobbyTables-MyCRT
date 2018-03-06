@@ -10,6 +10,7 @@ export const replayBody: joi.ObjectSchema = joi.object().keys({
    user: value.user.required(),
    pass: value.password.required(),
    instance: value.instance.required(),
+   parameterGroup: value.parameterGroup.required(),
 });
 
 export const replayValues = {

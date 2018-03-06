@@ -8,7 +8,7 @@ export const captureBody: joi.ObjectSchema = joi.object().keys({
 });
 
 export const envQuery: joi.ObjectSchema = joi.object().keys({
-    environmentId: value.envId.optional(),
+    envId: value.envId.optional(),
 });
 
 export * from './common-schema';
