@@ -39,7 +39,7 @@ export class ReplayPanel extends React.Component<any, any>  {
                     {!this.state.live ? <button type="button" className="btn btn-success"
                                             onClick={ (e) => this.handleClick(e)}
                                             style={{zIndex: 10, float: "right"}}>
-                                            <i className="fa fa-line-chart"></i>  Compare Metrics</button> : null}
+                                            <i className="fa fa-line-chart"></i>  Compare</button> : null}
                 </div>
             </div>
         );

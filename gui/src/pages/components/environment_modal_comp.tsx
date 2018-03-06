@@ -184,13 +184,29 @@ export class EnvModal extends React.Component<any, any>  {
                                 </div>
                                 <div className="tab-pane myCRT-tab-pane fade" id="step3">
                                     <div className="card card-body bg-light">
-                                        <label>DB Reference</label>
+                                        <label><b>DB Reference</b></label>
                                         {<select className="form-control input-lg"
                                             onChange={this.handleDBName.bind(this)}><option>Select Database...</option>
                                             {databases}
                                         </select>} <br/>
                                         <div style={this.state.dbName ? {display: "block"} : {display: "none"}}>
-                                            <label>Instance</label>
+                                            <dl>
+                                                <dt><b>Instance:</b></dt>
+                                                <dd>&nbsp;&nbsp;&nbsp;{this.state.instance}</dd>
+                                            </dl>
+                                            <dl>
+                                                <dt><b>Host:</b></dt>
+                                                <dd>&nbsp;&nbsp;&nbsp;{this.state.host}</dd>
+                                            </dl>
+                                            <dl>
+                                                <dt><b>Parameter Group:</b></dt>
+                                                <dd>&nbsp;&nbsp;&nbsp;{this.state.parameterGroup}</dd>
+                                            </dl>
+                                            <dl>
+                                                <dt><b>Username:</b></dt>
+                                                <dd>&nbsp;&nbsp;&nbsp;{this.state.user}</dd>
+                                            </dl>
+                                            {/* <label>Instance</label>
                                             <input className="form-control input-lg"
                                                 value={this.state.instance} id="instance" disabled/> <br/>
                                             <label>Parameter Group</label>
@@ -201,8 +217,9 @@ export class EnvModal extends React.Component<any, any>  {
                                                 value={this.state.host} id="host" disabled/> <br/>
                                             <label>Username</label>
                                             <input className="form-control input-lg"
-                                                value={this.state.user} id="user" disabled/> <br/>
-                                            <label>Password</label>
+                                            value={this.state.user} id="user" disabled/> <br/>*/}
+                                            <br/>
+                                            <label><b>Password</b></label>
                                             <input className={this.state.invalidDBPass ? "form-control is-invalid" :
                                                 "form-control"} id="pass" value={this.state.pass}
                                                 placeholder="Enter Password" type="password"

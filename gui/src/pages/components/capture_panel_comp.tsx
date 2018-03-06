@@ -54,7 +54,7 @@ export class CapturePanel extends React.Component<any, any>  {
                     <p><i><b>End:</b> {this.formatTimeStamp(this.state.capture.end)}</i></p>
                     {this.state.active ? null : <button type="button" className="btn btn-success"
                         style={{zIndex: 10, float: "right"}} onClick={ (e) => this.handleClick(e)}>
-                        <i className="fa fa-line-chart"></i>  View Metrics</button>}
+                        <i className="fa fa-line-chart"></i>  View</button>}
                 </div>
             </div>
         );
