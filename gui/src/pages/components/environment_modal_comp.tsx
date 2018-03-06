@@ -206,18 +206,6 @@ export class EnvModal extends React.Component<any, any>  {
                                                 <dt><b>Username:</b></dt>
                                                 <dd>&nbsp;&nbsp;&nbsp;{this.state.user}</dd>
                                             </dl>
-                                            {/* <label>Instance</label>
-                                            <input className="form-control input-lg"
-                                                value={this.state.instance} id="instance" disabled/> <br/>
-                                            <label>Parameter Group</label>
-                                            <input className="form-control input-lg"
-                                                value={this.state.parameterGroup} id="parameterGroup" disabled/> <br/>
-                                            <label>Host</label>
-                                            <input className="form-control input-lg"
-                                                value={this.state.host} id="host" disabled/> <br/>
-                                            <label>Username</label>
-                                            <input className="form-control input-lg"
-                                            value={this.state.user} id="user" disabled/> <br/>*/}
                                             <br/>
                                             <label><b>Password</b></label>
                                             <input className={this.state.invalidDBPass ? "form-control is-invalid" :
