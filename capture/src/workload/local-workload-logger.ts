@@ -1,6 +1,6 @@
 import mysql = require('mysql');
 
-import { ChildProgramType, ICommand, mycrtDbConfig } from '@lbt-mycrt/common';
+import { ChildProgramType, ICapture, ICommand, mycrtDbConfig } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
@@ -30,6 +30,10 @@ export class LocalWorkloadLogger extends WorkloadLogger {
       const result = await query<ICommand[]>(conn, qStr);
       conn.end();
       return result;
+   }
+
+   protected otherCapturesNeedLogs(): Promise<ICapture[] | null> {
+      return new Promise<ICapture[] | null>((resolve, reject) => { false; });
    }
 
    protected async turnOnLogging(): Promise<void> {

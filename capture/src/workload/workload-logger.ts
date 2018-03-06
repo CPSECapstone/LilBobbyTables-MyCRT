@@ -1,4 +1,4 @@
-import { ChildProgramType, ICommand, IWorkload } from '@lbt-mycrt/common';
+import { ChildProgramType, ICapture, ICommand, IWorkload } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 export abstract class WorkloadLogger {
@@ -28,17 +28,20 @@ export abstract class WorkloadLogger {
 
    public async setLogging(on: boolean): Promise<void> {
 
-      // TODO: check if any other captures have logging turned on
-
       if (on === this.logging) {
          throw new Error(`Logging is already ${on ? "on" : "off"}`);
       }
 
-      on ? await this.turnOnLogging() : await this.turnOffLogging();
-      this.logging = on;
+      // Only turn off general logging if there are no other captures in progress
+      const loggingInUse = await this.otherCapturesNeedLogs();
+      if (on || (!loggingInUse)) {
+         on ? await this.turnOnLogging() : await this.turnOffLogging();
+         this.logging = on;
+      }
 
    }
 
+   protected abstract otherCapturesNeedLogs(): Promise<ICapture[] | null>;
    protected abstract turnOnLogging(): Promise<void>;
    protected abstract turnOffLogging(): Promise<void>;
    protected abstract queryGeneralLog(start: Date, end: Date): Promise<ICommand[]>;
