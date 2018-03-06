@@ -60,7 +60,8 @@ export class ReplayModal extends React.Component<any, any>  {
     public render() {
         const captures: JSX.Element[] = [];
         if (this.props.captures) {
-           for (const capture of this.props.captures) {
+           for (const id in this.props.captures) {
+              const capture = this.props.captures[id];
               let name = `${capture.name}`;
               if (!name) {
                   name = `capture ${capture.id}`;

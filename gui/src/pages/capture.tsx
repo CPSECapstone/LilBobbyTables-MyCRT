@@ -227,8 +227,8 @@ class CaptureApp extends React.Component<any, any> {
                               <h2 style={{display: "inline"}}>Metrics</h2>
                               <GraphSelectDrop prompt="Metric Types"
                                     graphs={this.state.allGraphs} update={this.updateGraphs}/>
-                              <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
-                                    update={this.updateReplays} default={this.state.defaultReplay}/>
+                              {replays.length ? <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
+                                    update={this.updateReplays} default={this.state.defaultReplay}/> : null}
                               <ChartTypeCheck prompt="Chart Type" update={this.updateChartType}/>
                            <br></br>
                            {graphs}

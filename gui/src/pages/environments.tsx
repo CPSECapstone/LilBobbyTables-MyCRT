@@ -5,6 +5,8 @@ import '../../static/css/environments.css';
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { BrowserLogger as logger } from './../logging';
+
 import { EnvironmentPanel } from './components/env_panel_comp';
 import { EnvModal } from './components/environment_modal_comp';
 import { mycrt } from './utils/mycrt-client';
@@ -19,6 +21,7 @@ class EnvironmentsApp extends React.Component<any, any> {
 
   public async componentWillMount() {
     const envResponse = await mycrt.getEnvironments();
+    logger.info(JSON.stringify(envResponse));
     if (envResponse !== null) {
         this.setState({
             envs: envResponse,
@@ -29,7 +32,10 @@ class EnvironmentsApp extends React.Component<any, any> {
   public render() {
     const environments: JSX.Element[] = [];
     if (this.state.envs) {
+      logger.info("hi");
+      logger.info(JSON.stringify(this.state.envs));
       for (const env of this.state.envs) {
+        logger.info("WHAT?");
         let name = `${env.name}`;
         if (!name) {
           name = `Environment ${env.id}`;

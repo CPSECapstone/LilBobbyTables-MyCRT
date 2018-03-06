@@ -125,6 +125,21 @@ export class MyCrtClient {
       return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`, {deleteLogs: removeLogs});
    }
 
+   /** Validate credentials when creating an environment */
+   public async validateCredentials(iamRef: IIamReference): Promise< IDbReference[]| null> {
+     return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, iamRef);
+   }
+
+   /** Validate buckets when creating an environment */
+   public async validateBuckets(iamRef: IIamReference): Promise< string[]| null> {
+    return this.makeRequest<string[]>(HttpMethod.POST, `/validate/bucket`, null, iamRef);
+  }
+
+   /** Valid database credentials when creating an environment */
+   public async validateDatabase(dbRef: IDbReference): Promise<any | null> {
+     return this.makeRequest<any>(HttpMethod.POST, '/validate/database', null, dbRef);
+   }
+
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
 
       const fullUrl: URL = new URL(`${this.host}/api${url}`);
