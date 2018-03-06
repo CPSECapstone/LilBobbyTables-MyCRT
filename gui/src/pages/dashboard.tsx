@@ -83,6 +83,7 @@ class DashboardApp extends React.Component<any, any> {
     public render() {
         if (!this.state.env) { return (<div></div>); }
         const liveCaptures: JSX.Element[] = [];
+        const scheduledCaptures: JSX.Element[] = [];
         const pastCaptures: JSX.Element[] = [];
         if (this.state.captures) {
             const captureList = Object.keys(this.state.captures);
@@ -95,6 +96,9 @@ class DashboardApp extends React.Component<any, any> {
                 if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE) {
                     pastCaptures.push((<CapturePanel title={name} capture={capture} envId={this.state.envId}
                         update={this.updateCaptures}/>));
+                } else if (capture.status === ChildProgramStatus.SCHEDULED) {
+                    scheduledCaptures.push((<CapturePanel title={name} capture={capture} envId={this.state.envId}
+                        update={this.updateCaptures}/>));
                 } else {
                     liveCaptures.push((<CapturePanel title={name} capture={capture} envId = {this.state.envId}
                         update={this.updateCaptures}/>));
@@ -102,6 +106,7 @@ class DashboardApp extends React.Component<any, any> {
             }
         }
       const liveReplays: JSX.Element[] = [];
+      const scheduledReplays: JSX.Element[] = [];
       const pastReplays: JSX.Element[] = [];
       if (this.state.replays) {
          for (const replay of this.state.replays) {
@@ -111,6 +116,9 @@ class DashboardApp extends React.Component<any, any> {
             }
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
                 pastReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
+                    capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>));
+            } else if (replay.status === ChildProgramStatus.SCHEDULED) {
+                scheduledReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
                     capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>));
             } else {
                 liveReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
@@ -154,7 +162,13 @@ class DashboardApp extends React.Component<any, any> {
                      <h4>Live</h4>
                      <div className="myCRT-overflow-col">
                      {liveCaptures.length ? liveCaptures : <p className="myCRT-empty-col">
-                            No current captures running</p>}
+                            No currently active captures</p>}
+                    </div>
+                     <br></br>
+                     <h4>Scheduled</h4>
+                     <div className="myCRT-overflow-col">
+                     {scheduledCaptures.length ? scheduledCaptures : <p className="myCRT-empty-col">
+                            No currently scheduled captures</p>}
                     </div>
                      <br></br>
                      <h4>Past</h4>
@@ -178,7 +192,13 @@ class DashboardApp extends React.Component<any, any> {
                      <h4>Live</h4>
                      <div className="myCRT-overflow-col">
                         {liveReplays.length ? liveReplays : <p className="myCRT-empty-col">
-                            No current replays running</p>}
+                            No currently active replays</p>}
+                    </div>
+                     <br></br>
+                     <h4>Scheduled</h4>
+                     <div className="myCRT-overflow-col">
+                        {scheduledReplays.length ? scheduledReplays : <p className="myCRT-empty-col">
+                            No currently scheduled replays</p>}
                     </div>
                      <br></br>
                      <h4>Past</h4>

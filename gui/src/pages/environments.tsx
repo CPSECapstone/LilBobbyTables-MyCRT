@@ -66,7 +66,10 @@ class EnvironmentsApp extends React.Component<any, any> {
           <div className="row">
             <div className="col-sm-12 mb-r">
               <EnvModal id="envModal" update={this.componentWillMount}/>
-              {environments}
+              <div className="myCRT-overflow-col">
+                {environments.length ? environments : <p className="myCRT-empty-col">
+                            No environments currently exist.</p>}
+              </div>
             </div>
           </div>
         </div>
