@@ -205,7 +205,7 @@ class CaptureApp extends React.Component<any, any> {
                               <ol className="breadcrumb">
                                     <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
                                     <li className="breadcrumb-item">
-                                          <a href={`./dashboard?id=${this.state.envId}`}>{this.state.env.name}</a>
+                                          <a href={`./dashboard?id=${this.state.envId}`}>{this.state.env.envName}</a>
                                     </li>
                                     <li className="breadcrumb-item active">{this.state.capture.name}</li>
                               </ol>

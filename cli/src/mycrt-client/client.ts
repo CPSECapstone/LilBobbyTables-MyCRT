@@ -106,8 +106,8 @@ export class MyCrtClient {
    }
 
    /** Retrieve a specific environment */
-   public async getEnvironment(id: number): Promise<IEnvironment | null> {
-      return this.makeRequest<IEnvironment>(HttpMethod.GET, `/environments/${id}`);
+   public async getEnvironment(id: number): Promise<IEnvironmentFull | null> {
+      return this.makeRequest<IEnvironmentFull>(HttpMethod.GET, `/environments/${id}`);
    }
 
    /** Retrieve all of the environments */

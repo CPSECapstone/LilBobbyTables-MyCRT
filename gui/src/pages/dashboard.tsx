@@ -131,20 +131,20 @@ class DashboardApp extends React.Component<any, any> {
             <nav>
                <ol className="breadcrumb">
                   <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
-                  <li className="breadcrumb-item active">{this.state.env.name}</li>
+                  <li className="breadcrumb-item active">{this.state.env.envName}</li>
                </ol>
             </nav>
 
             <div className="container">
                <div className="row">
                   <div className="col-xs-12">
-                     <h1 style={{display: "inline"}}>{this.state.env.name}</h1>
+                     <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
                      <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
                            data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
-                               name={this.state.env.name} delete={this.deleteEnv} type="Environment"/>
+                               name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
                   </div>
                </div>
                <br></br>
@@ -186,7 +186,7 @@ class DashboardApp extends React.Component<any, any> {
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
                         <ReplayModal id="replayModal" captures={this.state.captures}
-                            envId = {this.state.envId} update={this.componentWillMount}/>
+                            env = {this.state.env} update={this.componentWillMount}/>
                      </div>
                      <br></br>
                      <h4>Live</h4>

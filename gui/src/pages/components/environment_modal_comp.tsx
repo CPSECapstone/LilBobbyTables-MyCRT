@@ -11,14 +11,26 @@ import { WarningAlert } from './alert_warning_comp';
 
 export class EnvModal extends React.Component<any, any>  {
 
+    private baseState = {} as any;
+
     constructor(props: any) {
         super(props);
         this.createEnvironment = this.createEnvironment.bind(this);
         this.validateCredentials = this.validateCredentials.bind(this);
         this.validateDB = this.validateDB.bind(this);
         this.goToNextStep = this.goToNextStep.bind(this);
+        this.cancelModal = this.cancelModal.bind(this);
+        this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [],
                       dbName: "", pass: "", bucket: "", dbRefs: [], invalidDBPass: false};
+        this.baseState = this.state;
+    }
+
+    public changeProgress(step: number) {
+        const percent = (step / 4) * 100;
+        $('.progress-bar').css({width: percent + '%'});
+        $('.progress-bar').text("Step " + step + " of 4");
+        $('#envWizard a[href="#step' + step + '"]').tab('show');
     }
 
     public async validateCredentials(event: any) {
@@ -26,11 +38,7 @@ export class EnvModal extends React.Component<any, any>  {
         const dbRefs = await mycrt.validateCredentials(iamRef);
         if (dbRefs) {
             this.setState({dbRefs});
-            const nextStep = 3;
-            const percent = (nextStep / 4) * 100;
-            $('.progress-bar').css({width: percent + '%'});
-            $('.progress-bar').text("Step " + nextStep + " of 4");
-            $('#envWizard a[href="#step' + nextStep + '"]').tab('show');
+            this.changeProgress(3);
         } else {
             logger.info("THERE WAS AN ERROR");
         }
@@ -49,11 +57,7 @@ export class EnvModal extends React.Component<any, any>  {
         const validate = await mycrt.validateDatabase(dbRef);
         if (validate) {
             this.setState({invalidDBPass: false});
-            const nextStep = 4;
-            const percent = (nextStep / 4) * 100;
-            $('.progress-bar').css({width: percent + '%'});
-            $('.progress-bar').text("Step " + nextStep + " of 4");
-            $('#envWizard a[href="#step' + nextStep + '"]').tab('show');
+            this.changeProgress(4);
         } else {
             this.setState({invalidDBPass: true});
         }
@@ -103,6 +107,11 @@ export class EnvModal extends React.Component<any, any>  {
         }
     }
 
+    public cancelModal(event: any) {
+        this.setState(this.baseState);
+        this.changeProgress(1);
+    }
+
     public render() {
         const databases: JSX.Element[] = [];
         if (this.state.dbRefs) {
@@ -123,7 +132,8 @@ export class EnvModal extends React.Component<any, any>  {
                     <div className="modal-content">
                         <div className="modal-header myCRT-modal-header">
                             <h4 className="modal-title">Environment Setup</h4>
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close"
+                                onClick={this.cancelModal}>
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
@@ -233,7 +243,7 @@ export class EnvModal extends React.Component<any, any>  {
                                 </div>
                                 <div className="modal-footer">
                                     <button className="btn btn-secondary" data-dismiss="modal" id="cancelBtn"
-                                        aria-hidden="true">Close</button>
+                                        aria-hidden="true" onClick={this.cancelModal}>Close</button>
                                     <button className="btn btn-info" onClick={this.createEnvironment}>
                                         Save changes</button>
                                 </div>

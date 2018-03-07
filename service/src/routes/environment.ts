@@ -29,7 +29,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
-         const environment = await environmentDao.getEnvironment(id);
+         const environment = await environmentDao.getEnvironmentFull(id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
          }
