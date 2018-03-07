@@ -25,11 +25,13 @@ export class AwsWorkloadLogger extends WorkloadLogger {
       return result;
    }
 
-   protected async otherCapturesNeedLogs(): Promise<ICapture[] | null> {
+   protected otherCapturesNeedLogs(): Promise<ICapture[] | null> {
       if (this.env && this.env.id) {
-         return await captureDao.getRunningCapturesForEnv(this.env.id);
+         return captureDao.getRunningCapturesForEnv(this.env.id);
       }
-      return null;
+      return new Promise<ICapture[] | null>((resolve, reject) => {
+         resolve(null);
+      });
    }
 
    protected turnOnLogging(): Promise<void> {

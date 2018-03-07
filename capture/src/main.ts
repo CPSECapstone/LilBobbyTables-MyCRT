@@ -42,7 +42,7 @@ async function runCapture(): Promise<void> {
       const buildMockCapture = (): Capture => {
          const storage = new LocalBackend(getSandboxPath());
          const metrics = new MockMetricsBackend(5);
-         const workloadLogger = new LocalWorkloadLogger(ChildProgramType.CAPTURE, config.id, storage);
+         const workloadLogger = new LocalWorkloadLogger(ChildProgramType.CAPTURE, config.id, storage, env);
          return new Capture(config, workloadLogger, storage, metrics, env);
       };
 

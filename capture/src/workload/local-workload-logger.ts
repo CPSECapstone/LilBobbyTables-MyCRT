@@ -1,6 +1,8 @@
 import mysql = require('mysql');
 
-import { ChildProgramType, ICapture, ICommand, mycrtDbConfig } from '@lbt-mycrt/common';
+import { captureDao } from '../dao';
+
+import { ChildProgramType, ICapture, ICommand, IEnvironmentFull, mycrtDbConfig } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { WorkloadLogger } from './workload-logger';
@@ -20,8 +22,9 @@ export class LocalWorkloadLogger extends WorkloadLogger {
       'SELECT event_time, user_host, thread_id, server_id, command_type, convert(argument using utf8) as argument '
       + 'FROM mysql.general_log WHERE event_time BETWEEN ? AND ?';
 
-   constructor(type: ChildProgramType, id: number, storage: StorageBackend) {
+   constructor(type: ChildProgramType, id: number, storage: StorageBackend, protected env: IEnvironmentFull) {
       super(type, id, storage);
+      this.env = env;
    }
 
    protected async queryGeneralLog(start: Date, end: Date): Promise<ICommand[]> {
@@ -33,7 +36,12 @@ export class LocalWorkloadLogger extends WorkloadLogger {
    }
 
    protected otherCapturesNeedLogs(): Promise<ICapture[] | null> {
-      return new Promise<ICapture[] | null>((resolve, reject) => { false; });
+      if (this.env && this.env.id) {
+         return captureDao.getRunningCapturesForEnv(this.env.id);
+      }
+      return new Promise<ICapture[] | null>((resolve, reject) => {
+          resolve(null);
+        });
    }
 
    protected async turnOnLogging(): Promise<void> {
