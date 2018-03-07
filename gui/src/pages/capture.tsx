@@ -107,7 +107,10 @@ class CaptureApp extends React.Component<any, any> {
                         } else {
                               const replay = this.state.allReplays[replayId!];
                               if (replay) {
-                                    dataPoint[replay.name] = replay.metrics[graphType].dataPoints[k].Maximum;
+                                    const replayMetric = replay.metrics[graphType].dataPoints[k];
+                                    if (replayMetric) {
+                                          dataPoint[replay.name] = replayMetric.Maximum;
+                                    }
                               }
                         }
                   }
