@@ -149,9 +149,12 @@ export default class CaptureRouter extends SelfAwareRouter {
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             // schedule job
             const me = this;
-            logger.info(`Scheduling capture for ${inputTime}`);
-            const job = schedule.scheduleJob(inputTime, () => { me.startCapture(captureTemplate!); });
-            logger.info(`Scheduled job: ${JSON.stringify(job)}`);
+
+            schedule.scheduleJob(new Date(2018, 2, 7, 11, 15, 0), () => { me.startCapture(captureTemplate!); });
+            // schedule.scheduleJob(, () => { me.startCapture(captureTemplate!); });
+            // logger.info(`Scheduling capture for ${inputTime}`);
+            // const job = schedule.scheduleJob(inputTime, () => { me.startCapture(captureTemplate!); });
+            // logger.info(`Scheduled job: ${JSON.stringify(job)}`);
          } else {
             this.startCapture(captureTemplate);
          }

@@ -34,7 +34,7 @@ export abstract class WorkloadLogger {
 
       // Only turn off general logging if there are no other captures in progress
       const loggingInUse = await this.otherCapturesNeedLogs();
-      if (on || (!loggingInUse)) {
+      if (on || (loggingInUse !== null && loggingInUse.length === 0)) {
          on ? await this.turnOnLogging() : await this.turnOffLogging();
          this.logging = on;
       }
