@@ -25,10 +25,10 @@ export class CapturePanel extends React.Component<any, any>  {
     public async stopCapture(event: any) {
         this.setState({ active: false, live: false });
         let result = await mycrt.stopCapture(this.state.capture.id);
-        logger.info(`${result}`);
         if (!result) {
             result = `Capture ${this.state.capture.id}: Failed to get capture result.`;
         }
+        this.props.update(this.state.capture.id);
     }
 
     public formatTimeStamp(date: string) {
@@ -43,7 +43,7 @@ export class CapturePanel extends React.Component<any, any>  {
         return (
             <div className="card myCRT-panel mt-4 myCRT-card">
                 <div className={this.state.active ? "card-header myCRT-panel-running" : "myCRT-env-card card-header"}>
-                    <h5 style={{display: "inline", verticalAlign: "middle"}}
+                    <h5 style={{display: "inline", verticalAlign: "middle", cursor: "pointer"}}
                         onClick={ (e) => this.handleClick(e)}>{this.props.title}</h5>
                     {this.state.live ? <button type="button" className="btn btn-danger"
                                                style={{zIndex: 10, float: "right"}}
@@ -52,8 +52,9 @@ export class CapturePanel extends React.Component<any, any>  {
                 <div className="card-body">
                     <p><i><b>Start:</b> {this.formatTimeStamp(this.state.capture.start)}</i></p>
                     <p><i><b>End:</b> {this.formatTimeStamp(this.state.capture.end)}</i></p>
-                    {this.state.live ? null : <button type="button" className="btn btn-success"
-                        style={{zIndex: 10, float: "right"}} onClick={ (e) => this.handleClick(e)}>Compare</button>}
+                    {this.state.active ? null : <button type="button" className="btn btn-success"
+                        style={{zIndex: 10, float: "right"}} onClick={ (e) => this.handleClick(e)}>
+                        <i className="fa fa-line-chart"></i>  View</button>}
                 </div>
             </div>
         );

@@ -33,11 +33,13 @@ export class ReplayPanel extends React.Component<any, any>  {
                     <h6 style={{display: "inline", verticalAlign: "middle", float: "right"}}><i>
                     {this.props.capture ? this.props.capture.name + '  ' : ''}</i></h6>
                 </div>
-                <div className="card-body" onClick={ (e) => this.handleClick(e)}>
+                <div className="card-body">
                     <p><i><b>Start:</b> {this.formatTimeStamp(this.state.replay.start)}</i></p>
                     <p><i><b>End:</b> {this.formatTimeStamp(this.state.replay.end)}</i></p>
                     {!this.state.live ? <button type="button" className="btn btn-success"
-                                               style={{zIndex: 10, float: "right"}}>Compare</button> : null}
+                                            onClick={ (e) => this.handleClick(e)}
+                                            style={{zIndex: 10, float: "right"}}>
+                                            <i className="fa fa-line-chart"></i>  Compare</button> : null}
                 </div>
             </div>
         );

@@ -13,10 +13,14 @@ import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/dat
 
 export class CaptureModal extends React.Component<any, any>  {
 
+    private baseState = {} as any;
+
     constructor(props: any) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
+        this.cancelModal = this.cancelModal.bind(this);
         this.state = { captureName: "" };
+        this.baseState = this.state;
     }
 
     public allFieldsFilled() {
@@ -46,6 +50,11 @@ export class CaptureModal extends React.Component<any, any>  {
         this.setState({captureName: event.target.value});
     }
 
+    public cancelModal(event: any) {
+        this.setState(this.baseState);
+        this.render();
+    }
+
     public render() {
         return (
             <div className="modal fade" id={this.props.id} role="dialog"
@@ -54,7 +63,8 @@ export class CaptureModal extends React.Component<any, any>  {
                     <div className="modal-content myCRT-modal">
                         <div className="modal-header myCRT-modal-header">
                             <h4 className="modal-title">New Capture</h4>
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close"
+                                onClick={this.cancelModal}>
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
@@ -87,7 +97,7 @@ export class CaptureModal extends React.Component<any, any>  {
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" id="cancelBtn"
-                                data-dismiss="modal">Cancel</button>
+                                data-dismiss="modal" onClick={this.cancelModal}>Cancel</button>
                             <button type="button" className="btn btn-info"
                                     onClick = { (e) => this.handleClick(e) }>Save Capture</button>
                         </div>
