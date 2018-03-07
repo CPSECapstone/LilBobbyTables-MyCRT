@@ -1,7 +1,6 @@
 import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
-// tslint:disable-next-line:no-var-requires  // consider fixing CR
-const schedule = require('node-schedule');
+import schedule = require('node-schedule');
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
 import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, Logging,
@@ -198,7 +197,9 @@ export default class CaptureRouter extends SelfAwareRouter {
       const logger = Logging.defaultLogger(__dirname);
       logger.info(`Launching capture with id ${capture!.id!}`);
 
-      const config = new CaptureConfig(capture!.id!, capture!.envId!);  // consider fixing CR
+      // TODO: change implementation so that CaptureConfig() doesn’t pass in the
+      //       environment id since that can be found in the database
+      const config = new CaptureConfig(capture!.id!, capture!.envId!);
       config.mock = settings.captures.mock;
       config.interval = settings.captures.interval;
       config.intervalOverlap = settings.captures.intervalOverlap;
