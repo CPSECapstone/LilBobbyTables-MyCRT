@@ -1,6 +1,6 @@
 import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
-// tslint:disable-next-line:no-var-requires
+// tslint:disable-next-line:no-var-requires  // consider fixing CR
 const schedule = require('node-schedule');
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
@@ -113,20 +113,18 @@ export default class CaptureRouter extends SelfAwareRouter {
          const initialStatus: string | undefined = request.body.status;
          const inputTime: Date = request.body.scheduledStart;
 
-         // changing the month, because node-schedule is weird
-         const startTime: Date = this.fixDate(inputTime);
-
-         logger.debug(`The modified start time: ${startTime.toString()}`); // this is working
-
+         // checks for existing environment
          const env = await environmentDao.getEnvironment(request.body.envId);
          if (!env) {
             throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
          }
 
+         // checks status and checks populated scheduled start time
          if (request.body.status === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
             throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
          }
 
+         // creation of generic capture template
          let captureTemplate: ICapture | null = {
             type: ChildProgramType.CAPTURE,
             envId: env.id,
@@ -139,22 +137,18 @@ export default class CaptureRouter extends SelfAwareRouter {
          // assign capture, insert into db
          captureTemplate = await captureDao.makeCapture(captureTemplate);
 
+         // error checking for failure to create capture in db
          if (captureTemplate === null) {
             throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
          }
 
          // return response
-         response.json(captureTemplate).end();
+         response.json(captureTemplate);
 
+         // if status is scheduled, wait until scheduled start time
+         // otherwise, start capture immediately
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            // schedule job
-            const me = this;
-
-            schedule.scheduleJob(new Date(2018, 2, 7, 11, 15, 0), () => { me.startCapture(captureTemplate!); });
-            // schedule.scheduleJob(, () => { me.startCapture(captureTemplate!); });
-            // logger.info(`Scheduling capture for ${inputTime}`);
-            // const job = schedule.scheduleJob(inputTime, () => { me.startCapture(captureTemplate!); });
-            // logger.info(`Scheduled job: ${JSON.stringify(job)}`);
+            schedule.scheduleJob(inputTime, () => { this.startCapture(captureTemplate!); });
          } else {
             this.startCapture(captureTemplate);
          }
@@ -204,22 +198,10 @@ export default class CaptureRouter extends SelfAwareRouter {
       const logger = Logging.defaultLogger(__dirname);
       logger.info(`Launching capture with id ${capture!.id!}`);
 
-      const config = new CaptureConfig(capture!.id!, capture!.envId!);
+      const config = new CaptureConfig(capture!.id!, capture!.envId!);  // consider fixing CR
       config.mock = settings.captures.mock;
       config.interval = settings.captures.interval;
       config.intervalOverlap = settings.captures.intervalOverlap;
       launch(config);
-   }
-
-   private fixDate(input: Date): Date {
-      return new Date(
-        input.getFullYear(),
-        input.getMonth() - 1,
-        input.getDate(),
-        input.getHours(),
-        input.getMinutes(),
-        input.getSeconds(),
-        input.getMilliseconds(),
-      );
    }
 }
