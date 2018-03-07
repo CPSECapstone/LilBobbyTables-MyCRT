@@ -34,13 +34,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    private workloadIndex: number = 0;
    private error: boolean = false;
 
-   private zoneOffset = {
-
-    'us-east-2': -3 * 60 * 60 * 1000,
-    'us-west-1': -8 * 60 * 60 * 1000,
-
-   };
-
    constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend, db: IDbReference) {
       super(storage, metrics);
       this.ipcNode = new ReplayIpcNode(this.id, logger, this);
@@ -100,12 +93,10 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    protected async loop(): Promise<void> {
 
+      logger.info('-----------==[ LOOP ]==-----------');
       if (this.firstLoop === true) {
-
         this.firstLoopInit();
       }
-
-      logger.info(`Replay ${this.id}: loop`);
 
       let finished = true;
 
@@ -129,14 +120,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
         finished = false;
       }
 
-      const end = moment();
-      let start = moment(end.subtract(this.interval + this.config.intervalOverlap));
-
-      if (start.diff(this.workloadStart) < 0) {
-        start = this.workloadStart!;
-      }
-
-      this.sendMetricsToS3(start.toDate(), end.toDate());
+      this.logMetrics();
 
       if (finished) {
         this.stop(false); // just once for now
@@ -159,25 +143,25 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    }
 
    private async firstLoopInit() {
-    this.firstLoop = false;
-    this.startTime = new Date();
-    this.replayStartTime = moment();
-    await replayDao.updateReplayStartTime(this.id);
+     try {
+        this.firstLoop = false;
+        this.startTime = new Date();
+        this.replayStartTime = moment();
+        await replayDao.updateReplayStartTime(this.id);
 
-    this.replayEndTime = this.replayStartTime.add(this.workloadEnd!.diff(this.workloadStart));
-    logger.info(`Replay ${this.id} startTime: ${this.replayStartTime.toJSON()}`);
-    logger.info(`Replay ${this.id}   endTime: ${this.replayEndTime.toJSON()}`);
+        this.replayEndTime = this.replayStartTime.clone().add(this.workloadEnd!.diff(this.workloadStart));
+        logger.info(`Replay ${this.id} startTime: ${this.replayStartTime.toJSON()}`);
+        logger.info(`Replay ${this.id}   endTime: ${this.replayEndTime.toJSON()}`);
 
-    await replayDao.updateReplayStatus(this.id, ChildProgramStatus.RUNNING);
+        await replayDao.updateReplayStatus(this.id, ChildProgramStatus.RUNNING);
+
+     } catch (error) {
+        this.selfDestruct(error);
+     }
    }
 
    private getCaptureWorkloadPath(id: number): string {
-
-    if (!this.config.mock) {
-      return `${this.storage.rootDirectory()}/capture${id}/workload.json`;
-    } else {
       return `capture${id}/workload.json`;
-    }
   }
 
    private async getWorkload() {
@@ -213,10 +197,9 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          return 0;
       } else if (index >= 0 && index < this.workload!.commands.length) {
 
-         const queryStart: Moment = moment(this.workload!.commands[index].event_time);
-         const captureStart: Moment = moment(this.capture!.start!);
-
+         const queryStart: Moment = moment(this.workload!.commands[index].event_time).subtract(8, 'hours');
          const delay = (queryStart.diff(this.workloadStart)) - (moment().diff(this.replayStartTime));
+
          return delay;
       } else {
          return 0;
@@ -239,9 +222,11 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    }
 
    private processQuery(query: ICommand) {
-      // This may cause errors because targetDb is of type IDbReference
-      // which has more fields than what mysql.createConnection takes
-      const db = this.config.mock ? mycrtDbConfig : this.targetDb;
+
+      const db = this.config.mock ? mycrtDbConfig : { database: this.targetDb.name,
+                                                      host: this.targetDb.host,
+                                                      password: this.targetDb.pass,
+                                                      user: this.targetDb.user };
 
       if (this.config.mock && this.validMockQuery(query) === false) {
         return null;
@@ -271,6 +256,20 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       } else { return null; }
    }
+
+   private logMetrics() {
+
+      const end = moment();
+      let start = end.clone().subtract(this.interval + this.config.intervalOverlap);
+
+      if (start.diff(this.workloadStart) < 0) {
+        start = this.workloadStart!;
+      }
+
+      this.sendMetricsToS3(start.toDate(), end.toDate());
+
+   }
+
    private async sendMetricsToS3(start: Date, end: Date, firstTry: boolean = true) {
       try {
 
