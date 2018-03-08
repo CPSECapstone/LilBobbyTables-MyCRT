@@ -104,7 +104,7 @@ export const environmentTests = (mycrt: MyCrtService) => () => {
 
    it("should delete an environment", async () => {
       const responsePost = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      const response = await request(mycrt.getServer()).del('/api/environemnts/1');
+      const response = await request(mycrt.getServer()).del('/api/environments/1');
       expect(response).to.have.status(http.OK);
       expect(response.body.affectedRows).to.equal(1);
    });
