@@ -65,7 +65,8 @@ export const environmentTests = (mycrt: MyCrtService) => () => {
 
    it("should edit an environment", async () => {
       const responsePost = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      const response = await request(mycrt.getServer()).put('/api/environments/1').send(editEnvBody);
+      const id = responsePost.body.id;
+      const response = await request(mycrt.getServer()).put('/api/environments/' + id).send(editEnvBody);
       expect(response).to.have.status(http.OK);
       expect(response.body.changedRows).to.equal(1);
    });
