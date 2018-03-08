@@ -19,8 +19,9 @@ export const captureTests = (mycrt: MyCrtService) => () => {
    it("should fail to stop a capture that isn't running", async () => {
       try {
          await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-         const response = await request(mycrt.getServer()).post('/api/captures/1/stop').send({});
+         const capture = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
+         const id = capture.body.id;
+         const response = await request(mycrt.getServer()).post('/api/captures/' + id + '/stop');
       } catch (err) {
          expect(err).to.have.status(http.CONFLICT);
       }
@@ -36,24 +37,26 @@ export const captureTests = (mycrt: MyCrtService) => () => {
    });
 
    it("should get all captures", async () => {
-      await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-      await request(mycrt.getServer()).post('/api/captures/').send(scheduledCaptureBody);
+      const env = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      const cap1 = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
+      const cap2 = await request(mycrt.getServer()).post('/api/captures/').send(scheduledCaptureBody);
       const response = await request(mycrt.getServer()).get('/api/captures');
       expect(response).to.have.status(http.OK);
+      expect(response.body.length).to.equal(2);
    });
 
    it("should get an existing capture", async () => {
       await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-      const response = await request(mycrt.getServer()).get('/api/captures/1');
+      const capture = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
+      const id = capture.body.id;
+      const response = await request(mycrt.getServer()).get('/api/captures/' + id);
       expect(response).to.have.status(http.OK);
-      expect(response.body.id).to.equal(1);
+      expect(response.body.name).equals(capture.body.name);
    });
 
    it("should fail to get capture metrics that do not exist", async () => {
       try {
-         const response = await request(mycrt.getServer()).get('/api/captures/5/metrics/');
+         const response = await request(mycrt.getServer()).get('/api/captures/50/metrics/');
       } catch (err) {
          expect(err).to.have.status(http.NOT_FOUND);
       }
@@ -72,7 +75,7 @@ export const captureTests = (mycrt: MyCrtService) => () => {
    it("should reject the edit of a capture", async () => {
       try {
          await request(mycrt.getServer()).post('/api/captures/').send(scheduledCaptureBody);
-         const response = await request(mycrt.getServer()).put('/api/captures/2').send(badCaptureBody);
+         const response = await request(mycrt.getServer()).put('/api/captures/1').send(badCaptureBody);
       } catch (err) {
          expect(err).to.have.status(http.BAD_REQUEST);
       }
