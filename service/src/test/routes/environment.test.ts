@@ -47,21 +47,6 @@ const editEnvBody = {
    parameterGroup: "supergroup",
 };
 
-const logger = Logging.defaultLogger(__dirname);
-
-function handleErrors(promise: Promise<any> | null) {
-   if (promise) {
-      return promise.catch((err) => {
-         if (err.code === 400) {
-            return err;
-         }
-         throw err;
-      });
-   } else {
-      return promise;
-   }
- }
-
 export const environmentTests = (mycrt: MyCrtService) => () => {
 
    it("should post an environment", async () => {
