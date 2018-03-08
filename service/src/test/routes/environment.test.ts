@@ -73,7 +73,7 @@ export const environmentTests = (mycrt: MyCrtService) => () => {
    it("should reject the edit of environment", async () => {
       try {
          const responsePost = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         const response = await handleErrors(request(mycrt.getServer()).put('/api/environments/1').send(badEnvBody));
+         const response = await request(mycrt.getServer()).put('/api/environments/1').send(badEnvBody);
       } catch (err) {
          expect(err).to.have.status(http.BAD_REQUEST);
       }
