@@ -5,7 +5,7 @@ import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-
 import { CPUMetric, MemoryMetric, Metric, MetricsBackend, ReadMetric, WriteMetric } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
-   IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
+   IEnvironmentFull, IWorkload } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { path as schema } from '@lbt-mycrt/common/dist/storage/backend-schema';
@@ -13,6 +13,7 @@ import { path as schema } from '@lbt-mycrt/common/dist/storage/backend-schema';
 import { CaptureConfig } from './args';
 import { captureDao } from './dao';
 import { fakeRequest } from './workload/local-workload-logger';
+import { prepareWorkload } from './workload/replay-prep';
 import { WorkloadLogger } from './workload/workload-logger';
 import { WorkloadStorage } from './workload/workload-storage';
 
@@ -143,13 +144,21 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
    private async sendWorkloadToS3(start: Date, end: Date) {
       this.tryTwice(async () => {
+
+         // download the fragment
          const fragment = await this.workloadLogger.getWorkloadFragment(start, end);
          logger.info(`Got ${fragment.commands.length} commands from ${fragment.start} to`
             + ` ${fragment.end}`);
 
+         // clean up the fragment and prepare it for replay use
+         logger.info(`Preparing fragment for replay`);
+         prepareWorkload(fragment, this.config.mock);
+
+         // upload the fragment to S3
          const key = schema.workload.getSingleSampleKey(this.asIChildProgram(), end);
          logger.info(`Saving workload fragment to ${key}`);
          await this.storage.writeJson(key, fragment);
+
       }, "Send workload fragment to S3");
    }
 
