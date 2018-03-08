@@ -24,15 +24,15 @@ export class WorkloadStorage extends FragmentedStorage<IWorkload> {
       await this.backend.writeJson(key, workload);
    }
 
-   protected objectToString(obj: IWorkload): string {
+   public objectToString(obj: IWorkload): string {
       return `<IWorkload start='${obj.start}' end='${obj.end}' commands=${obj.commands.length}>`;
    }
 
-   protected getDefaultObject(): IWorkload {
+   public getDefaultObject(): IWorkload {
       return {start: '', end: '', commands: []};
    }
 
-   protected mergeObjects(a: IWorkload, b: IWorkload): IWorkload {
+   public mergeObjects(a: IWorkload, b: IWorkload): IWorkload {
       const start = new Date(a.start).getTime() < new Date(b.start).getTime() ? a.start : b.start;
       const end = new Date(a.end).getTime() < new Date(b.end).getTime() ? a.end : b.end;
 
