@@ -7,6 +7,7 @@ import 'mocha';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
 
+import { captureTests } from './routes/captures.test';
 import { environmentTests } from './routes/environment.test';
 
 const expect = chai.expect;
@@ -49,5 +50,6 @@ describe("MyCrtService", () => {
    });
 
    describe("environment router", environmentTests(mycrt));
+   describe("capture router", captureTests(mycrt));
 
 });
