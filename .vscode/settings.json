@@ -1,0 +1,12 @@
+{
+    "workbench.editor.enablePreview": false,
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "editor.renderWhitespace": "all",
+    "editor.renderIndentGuides": true,
+    "editor.tabSize": 3,
+    "editor.detectIndentation": false,
+    "editor.trimAutoWhitespace": true,
+    "git.enabled": false,
+}

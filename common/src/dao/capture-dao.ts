@@ -2,6 +2,9 @@ import * as data from '../data';
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
 
+import { Logging } from '../main';
+const logger = Logging.defaultLogger(__dirname);
+
 export class CaptureDao extends Dao {
 
    // TODO: should we paginate this?
@@ -36,6 +39,7 @@ export class CaptureDao extends Dao {
          name: capture.name,
          status: capture.status,
          envId: capture.envId,
+         scheduledStart: capture.scheduledStart,
       });
       return await this.getCapture(result.insertId);
    }
@@ -56,8 +60,16 @@ export class CaptureDao extends Dao {
       return this.query('UPDATE Capture SET status = ? WHERE id = ?', [status, id]);
    }
 
-   public updateCaptureStartTime(id: number): Promise<void> {
-      return this.query('UPDATE Capture SET start = NOW() WHERE id = ?', [id]);
+   public updateCaptureStartTime(id: number, time: Date | null): Promise<void> {
+      // TODO: output time with logger to see what value is being output
+
+      // logger.info(`time is ` + time);
+      if (time !== null) {
+         return this.query('UPDATE Capture SET start = ? WHERE id = ?',
+            [time.toISOString().slice(0, 19), id]);
+      } else {
+         return this.query('UPDATE Capture SET start = NOW() WHERE id = ?', [id]);
+      }
    }
 
    public updateCaptureEndTime(id: number): Promise<void> {
