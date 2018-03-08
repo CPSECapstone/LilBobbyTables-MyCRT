@@ -107,7 +107,10 @@ class CaptureApp extends React.Component<any, any> {
                         } else {
                               const replay = this.state.allReplays[replayId!];
                               if (replay) {
-                                    dataPoint[replay.name] = replay.metrics[graphType].dataPoints[k].Maximum;
+                                    const replayMetric = replay.metrics[graphType].dataPoints[k];
+                                    if (replayMetric) {
+                                          dataPoint[replay.name] = replayMetric.Maximum;
+                                    }
                               }
                         }
                   }
@@ -205,7 +208,7 @@ class CaptureApp extends React.Component<any, any> {
                               <ol className="breadcrumb">
                                     <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
                                     <li className="breadcrumb-item">
-                                          <a href={`./dashboard?id=${this.state.envId}`}>{this.state.env.name}</a>
+                                          <a href={`./dashboard?id=${this.state.envId}`}>{this.state.env.envName}</a>
                                     </li>
                                     <li className="breadcrumb-item active">{this.state.capture.name}</li>
                               </ol>
@@ -227,8 +230,8 @@ class CaptureApp extends React.Component<any, any> {
                               <h2 style={{display: "inline"}}>Metrics</h2>
                               <GraphSelectDrop prompt="Metric Types"
                                     graphs={this.state.allGraphs} update={this.updateGraphs}/>
-                              <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
-                                    update={this.updateReplays} default={this.state.defaultReplay}/>
+                              {replays.length ? <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
+                                    update={this.updateReplays} default={this.state.defaultReplay}/> : null}
                               <ChartTypeCheck prompt="Chart Type" update={this.updateChartType}/>
                            <br></br>
                            {graphs}

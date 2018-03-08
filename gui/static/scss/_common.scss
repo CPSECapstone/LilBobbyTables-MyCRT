@@ -26,8 +26,21 @@
     margin-bottom: 20px;
 }
 
-.myCRT-panel:hover {
-    cursor: pointer;
+.myCRT-overflow-col {
+    overflow-y: scroll;
+    max-height: 800px;
+    background-color: #ecf0f1;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+    padding: 0px 20px 20px;
+}
+
+.myCRT-empty-col {
+    margin: 0;
+    vertical-align: middle;
+    margin-top: 20px;
+    text-align: center;
+    color: #7b8a8b;
 }
 
 .myCRT-panel-running {
@@ -37,8 +50,8 @@
 }
 
 .myCRT-multi-select {
-    border:2px solid #ccc;
-    width:250px; 
+    border: 2px solid #ccc;
+    width: 250px; 
     height: 150px;
     overflow-y: scroll;
     margin-left: 20px;

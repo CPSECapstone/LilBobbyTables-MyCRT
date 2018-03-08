@@ -32,12 +32,13 @@ export class EnvironmentPanel extends React.Component<any, any>  {
     }
 
     public render() {
-        if (!this.state.replayNum) {return <div></div>; }
+        if (this.state.replayNum === null) {return <div></div>; }
         return (
-            <div onClick={ (e) => this.handleClick(e)} className="myCRT-panel">
+            <div className="myCRT-panel">
                 <div className="card mt-3 w-100 myCRT-card">
                     <div className="card-header myCRT-env-card">
-                        <h5>{this.props.title}</h5>
+                        <h5 role="button" onClick={ (e) => this.handleClick(e)}
+                            style={{cursor: "pointer"}}>{this.props.title}</h5>
                     </div>
                     <div className="card-body">
                         <p>Current Captures: <b>{this.state.captureNum}</b></p>
