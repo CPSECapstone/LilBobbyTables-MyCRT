@@ -2,50 +2,8 @@ import { expect, request } from 'chai';
 import * as http from 'http-status-codes';
 import 'mocha';
 
-import { Logging } from '@lbt-mycrt/common/dist/main';
 import MyCrtService from '../../main';
-
-const newEnvBody = {
-   accessKey: "ACCESSKEY",
-   secretKey: "SECRETKEY",
-   region: "us-east-2",
-   bucket: "nfllogbucket",
-   dbName: "NFL",
-   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
-   user: "nfl2015user",
-   pass: "nfl2015pass",
-   envName: "NFL environment",
-   instance: "nfl2015",
-   parameterGroup: "supergroup",
-};
-
-const badEnvBody = {
-   accessKey: "ACCESSKEY",
-   secretKey: "SECRETKEY",
-   region: "somewhereineastasia",
-   bucket: "nfllogbucket",
-   dbName: "NFL",
-   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
-   user: "nfl2015user",
-   pass: "nfl2015pass",
-   envName: "NFL environment",
-   instance: "nfl2015",
-   parameterGroup: "supergroup",
-};
-
-const editEnvBody = {
-   accessKey: "ACCESSKEY",
-   secretKey: "SECRETKEY",
-   region: "us-east-2",
-   bucket: "nfllogbucket",
-   dbName: "NFL",
-   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
-   user: "nfl2015user",
-   pass: "nfl2015pass",
-   envName: "NFL sequel",
-   instance: "nfl2015",
-   parameterGroup: "supergroup",
-};
+import { badEnvBody, editEnvBody, newEnvBody} from './data';
 
 export const environmentTests = (mycrt: MyCrtService) => () => {
 
