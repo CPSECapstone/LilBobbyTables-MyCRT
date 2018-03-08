@@ -75,7 +75,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
          this.startTime = new Date();
          logger.info(`Setting Capture ${this.id} startTime = ${this.startTime!.toJSON()}`);
-         await captureDao.updateCaptureStartTime(this.id, this.startTime);
+         await captureDao.updateCaptureStartTime(this.id);
 
          logger.info(`Setup for Capture ${this.id} complete!`);
       } catch (error) {
@@ -100,7 +100,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
       if (this.config.mock) {
          logger.info('   generate fake traffic for the mock workload');
-         fakeRequest();
+         await fakeRequest();
       }
    }
 
@@ -117,17 +117,21 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info("turning off RDS logging");
          await this.workloadLogger.setLogging(false);
 
-         logger.info("building final workload file");
-         const workloadStorage = new WorkloadStorage(this.storage);
-         await workloadStorage.buildFinalWorkloadFile(this.asIChildProgram());
+         const workloadDelay = this.config.mock ? 5000 : 15000;
+         setTimeout(async () => {
+            logger.info("building final workload file");
+            const workloadStorage = new WorkloadStorage(this.storage);
+            await workloadStorage.buildFinalWorkloadFile(this.asIChildProgram());
 
-         logger.info("Setting status to 'done'");
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
+            logger.info('Stopping ipc node');
+            await this.ipcNode.stop();
 
-         logger.info('Stopping ipc node');
-         await this.ipcNode.stop();
+            logger.info("Setting status to 'done'");
+            await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
 
-         logger.info(`Teardown for Capture ${this.id} complete!`);
+            logger.info(`Teardown for Capture ${this.id} complete!`);
+         }, workloadDelay);
+
       } catch (error) {
          this.selfDestruct(`teardown failed: ${error}`);
       }
@@ -140,7 +144,8 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
    private async sendWorkloadToS3(start: Date, end: Date) {
       this.tryTwice(async () => {
          const fragment = await this.workloadLogger.getWorkloadFragment(start, end);
-         logger.info(`Got ${fragment.commands.length} commands`);
+         logger.info(`Got ${fragment.commands.length} commands from ${fragment.start} to`
+            + ` ${fragment.end}`);
 
          const key = schema.workload.getSingleSampleKey(this.asIChildProgram(), end);
          logger.info(`Saving workload fragment to ${key}`);

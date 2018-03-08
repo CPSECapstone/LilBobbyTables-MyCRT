@@ -34,7 +34,7 @@ export class WorkloadStorage extends FragmentedStorage<IWorkload> {
 
    public mergeObjects(a: IWorkload, b: IWorkload): IWorkload {
       const start = new Date(a.start).getTime() < new Date(b.start).getTime() ? a.start : b.start;
-      const end = new Date(a.end).getTime() < new Date(b.end).getTime() ? a.end : b.end;
+      const end = new Date(a.end).getTime() > new Date(b.end).getTime() ? a.end : b.end;
 
       const map: {[key: string]: ICommand | undefined} = {};
       [a, b].forEach((workload: IWorkload) => {
