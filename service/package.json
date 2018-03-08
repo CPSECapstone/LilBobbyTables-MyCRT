@@ -23,6 +23,7 @@
     "joi": "^13.1.2",
     "mustache": "^2.3.0",
     "mysql": "^2.15.0",
+    "node-schedule": "^1.3.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
@@ -36,6 +37,7 @@
     "@types/mustache": "^0.8.30",
     "@types/mysql": "^2.15.2",
     "@types/node": "8.0.53",
+    "@types/node-schedule": "^1.2.2",
     "@types/underscore": "^1.8.5",
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",

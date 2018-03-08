@@ -1,6 +1,6 @@
 import { S3 } from 'aws-sdk';
-
 import * as http from 'http-status-codes';
+import schedule = require('node-schedule');
 
 import { CaptureConfig, launch } from '@lbt-mycrt/capture';
 import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, Logging,
@@ -9,6 +9,7 @@ import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
+import { Template } from '@lbt-mycrt/gui/dist/main';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
@@ -107,31 +108,51 @@ export default class CaptureRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
+         // validation
+         const initialStatus: string | undefined = request.body.status;
+         const inputTime: Date = request.body.scheduledStart;
 
+         // checks for existing environment
          const env = await environmentDao.getEnvironment(request.body.envId);
          if (!env) {
             throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
          }
 
-         const captureTemplate: ICapture = {
+         // checks status and checks populated scheduled start time
+         if (request.body.status === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
+         }
+
+         // creation of generic capture template
+         let captureTemplate: ICapture | null = {
             type: ChildProgramType.CAPTURE,
-            status: ChildProgramStatus.STARTED, // no scheduled captures yet
+            envId: env.id,
+            status: initialStatus === ChildProgramStatus.SCHEDULED ?
+               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             name: request.body.name,
-            envId: request.body.envId,
+            scheduledStart: inputTime,
          };
 
-         const capture = await captureDao.makeCapture(captureTemplate);
+         // assign capture, insert into db
+         captureTemplate = await captureDao.makeCapture(captureTemplate);
 
-         logger.info(`Launching capture with id ${capture!.id!}`);
-         const config = new CaptureConfig(capture!.id!, request.body.envId);
-         config.mock = settings.captures.mock;
-         config.interval = settings.captures.interval;
-         config.intervalOverlap = settings.captures.intervalOverlap;
+         // error checking for failure to create capture in db
+         if (captureTemplate === null) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
+         }
 
-         launch(config);
-         response.json(capture).end();
+         // return response
+         response.json(captureTemplate);
+
+         // if status is scheduled, wait until scheduled start time
+         // otherwise, start capture immediately
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            schedule.scheduleJob(inputTime, () => { this.startCapture(captureTemplate!); });
+         } else {
+            this.startCapture(captureTemplate);
+         }
+
          logger.info(`Successfully created capture!`);
-
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
@@ -170,6 +191,18 @@ export default class CaptureRouter extends SelfAwareRouter {
          response.json(capture);
 
       }));
+   }
 
+   private startCapture(capture: ICapture): void {
+      const logger = Logging.defaultLogger(__dirname);
+      logger.info(`Launching capture with id ${capture!.id!}`);
+
+      // TODO: change implementation so that CaptureConfig() doesn’t pass in the
+      //       environment id since that can be found in the database
+      const config = new CaptureConfig(capture!.id!, capture!.envId!);
+      config.mock = settings.captures.mock;
+      config.interval = settings.captures.interval;
+      config.intervalOverlap = settings.captures.intervalOverlap;
+      launch(config);
    }
 }

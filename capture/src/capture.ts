@@ -75,7 +75,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
          this.startTime = new Date();
          logger.info(`Setting Capture ${this.id} startTime = ${this.startTime!.toJSON()}`);
-         await captureDao.updateCaptureStartTime(this.id);
+         await captureDao.updateCaptureStartTime(this.id, this.startTime);
 
          logger.info(`Setup for Capture ${this.id} complete!`);
       } catch (error) {
