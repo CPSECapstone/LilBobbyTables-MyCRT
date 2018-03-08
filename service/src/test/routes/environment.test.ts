@@ -78,4 +78,42 @@ export const environmentTests = (mycrt: MyCrtService) => () => {
          expect(err).to.have.status(http.BAD_REQUEST);
       }
    });
+
+   it("should get all environments", async () => {
+      const responsePost1 = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      const responsePost2 = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      const response = await request(mycrt.getServer()).get('/api/environments');
+      expect(response).to.have.status(http.OK);
+      expect(response.body.length).to.equal(2);
+   });
+
+   it("should get environment 1", async () => {
+      const responsePost = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      const response = await request(mycrt.getServer()).get('/api/environments/1');
+      expect(response).to.have.status(http.OK);
+      expect(response.body.dbName).equals("NFL");
+   });
+
+   it("should not find environment a nonexisting environment", async () => {
+      try {
+         const response = await request(mycrt.getServer()).get('/api/environments/42');
+      } catch (err) {
+         expect(err).to.have.status(http.NOT_FOUND);
+      }
+   });
+
+   it("should delete an environment", async () => {
+      const responsePost = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      const response = await request(mycrt.getServer()).del('/api/environemnts/1');
+      expect(response).to.have.status(http.OK);
+      expect(response.body.affectedRows).to.equal(1);
+   });
+
+   it("should not delete a nonexisting environment", async () => {
+      try {
+         const response = await request(mycrt.getServer()).del('/api/environments/42');
+      } catch (err) {
+         expect(err).to.have.status(http.NOT_FOUND);
+      }
+   });
 };
