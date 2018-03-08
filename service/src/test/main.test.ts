@@ -9,6 +9,7 @@ import MyCrtService from '../main';
 
 import { captureTests } from './routes/captures.test';
 import { environmentTests } from './routes/environment.test';
+import { replayTests } from './routes/replay.test';
 
 const expect = chai.expect;
 chai.use(chaiHttp);
@@ -51,5 +52,5 @@ describe("MyCrtService", () => {
 
    describe("environment router", environmentTests(mycrt));
    describe("capture router", captureTests(mycrt));
-
+   describe("replay router", replayTests(mycrt));
 });
