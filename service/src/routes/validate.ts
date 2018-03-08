@@ -19,10 +19,6 @@ export default class ValidateRouter extends SelfAwareRouter {
 
    protected mountRoutes(): void {
 
-      this.router.get('/', this.handleHttpErrors(async (request, response) => {
-         response.sendStatus(http.OK);
-      }));
-
       this.router.post('/credentials', check.validBody(schema.credentialsBody),
          this.handleHttpErrors(async (request, response) => {
 
