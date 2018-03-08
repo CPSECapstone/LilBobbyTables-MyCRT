@@ -16,17 +16,6 @@ export const captureTests = (mycrt: MyCrtService) => () => {
       expect(response.body.id).to.equal(1);
    });
 
-   it("should fail to stop a capture that isn't running", async () => {
-      try {
-         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         const capture = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-         const id = capture.body.id;
-         const response = await request(mycrt.getServer()).post('/api/captures/' + id + '/stop');
-      } catch (err) {
-         expect(err).to.have.status(http.CONFLICT);
-      }
-   });
-
    it("should reject the post of a capture with bad status", async () => {
       try {
          await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
