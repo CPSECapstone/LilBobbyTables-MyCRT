@@ -53,7 +53,7 @@ export const environmentTests = (mycrt: MyCrtService) => () => {
       expect(response.body.dbName).equals("NFL");
    });
 
-   it("should not find environment a nonexisting environment", async () => {
+   it("should not find a nonexisting environment", async () => {
       try {
          const response = await request(mycrt.getServer()).get('/api/environments/42');
       } catch (err) {
