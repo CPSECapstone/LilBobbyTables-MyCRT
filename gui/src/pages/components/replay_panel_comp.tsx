@@ -11,7 +11,8 @@ import { mycrt } from '../utils/mycrt-client';
 export class ReplayPanel extends React.Component<any, any>  {
     public constructor(props: any) {
         super(props);
-        this.handleClick = this.handleClick.bind(this);
+        this.handleMetricClick = this.handleMetricClick.bind(this);
+        this.handleInfoClick = this.handleInfoClick.bind(this);
         this.timer = this.timer.bind(this);
         this.state = {active: this.props.replay.status === ChildProgramStatus.RUNNING ||
                      this.props.replay.status === ChildProgramStatus.STARTING ||
@@ -67,10 +68,21 @@ export class ReplayPanel extends React.Component<any, any>  {
       }
    }
 
-    public handleClick(event: any): void {
+    public handleMetricClick(event: any): void {
          window.location.assign(`/capture?id=${this.props.capture.id}&`
             + `replayId=${this.props.replay.id}envId=${this.props.envId}&view=metrics`);
     }
+
+    public handleInfoClick(event: any): void {
+      if (this.state.replay.status === ChildProgramStatus.DONE) {
+         window.location.assign(`/capture?id=${this.props.capture.id}&`
+         + `replayId=${this.props.replay.id}envId=${this.props.envId}&view=replays`);
+      }
+   }
+
+   public handleCaptureClick(event: any): void {
+      window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=info`);
+   }
 
     public formatTimeStamp(date: string) {
         if (!date) {
@@ -99,11 +111,13 @@ export class ReplayPanel extends React.Component<any, any>  {
             <div className="card myCRT-panel mt-4 myCRT-card">
                 <div className={`card-header ${className}`}>
                     <div style={{display: "inline-block"}}>
-                     <h5 style={{display: "inline", verticalAlign: "middle"}}>{this.props.title}</h5>
-                     <p style={{margin: 0}}><i>({this.state.capture.name})</i></p>
+                    <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle"}}
+                        onClick={ (e) => this.handleInfoClick(e)}>{this.props.title}</h5>
+                     <p className="hover-text" style={{margin: 0}}
+                        onClick={ (e) => this.handleCaptureClick(e)}><i>({this.state.capture.name})</i></p>
                     </div>
                     {!this.state.active ? <button type="button" className="btn btn-success"
-                                            onClick={ (e) => this.handleClick(e)}
+                                            onClick={ (e) => this.handleMetricClick(e)}
                                             style={{zIndex: 10, float: "right"}}>
                                             <i className="fa fa-line-chart"></i>  Compare</button> : null}
                 </div>

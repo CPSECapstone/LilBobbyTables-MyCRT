@@ -81,6 +81,11 @@ p {
    margin-bottom: 0.7em;
 }
 
+.hover-text:hover {
+   color: #2C3E50;
+   cursor: pointer;
+}
+
 .myCRT-status-failed {
    @extend %myCRT-status;
    background-color: $secondary-danger;

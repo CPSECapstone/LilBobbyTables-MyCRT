@@ -25,7 +25,9 @@ export class CapturePanel extends React.Component<any, any>  {
     }
 
     public handleInfoClick(event: any): void {
-        window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=info`);
+       if (this.state.capture.status === ChildProgramStatus.DONE) {
+         window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=info`);
+       }
     }
 
     public handleMetricClick(event: any): void {
@@ -86,7 +88,7 @@ export class CapturePanel extends React.Component<any, any>  {
         return (
             <div className="card myCRT-panel mt-4 myCRT-card">
                 <div className={`card-header ${className}`}>
-                    <h5 style={{display: "inline", verticalAlign: "middle", cursor: "pointer"}}
+                    <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle", cursor: "pointer"}}
                         onClick={ (e) => this.handleInfoClick(e)}>{this.props.title}</h5>
                     {this.state.live ? <button type="button" className="btn btn-danger"
                                                style={{zIndex: 10, float: "right"}}
