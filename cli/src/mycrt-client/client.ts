@@ -57,7 +57,7 @@ export class MyCrtClient {
 
    /** Retrieve all of the captures for an environment */
    public async getCapturesForEnvironment(envId: number): Promise<ICapture[] | null> {
-    return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures', {environmentId: envId});
+    return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures', {envId});
    }
 
    /** Delete a specific capture. Optional: Delete the S3 logs associated with it */

@@ -45,13 +45,18 @@ export class CapturePanel extends React.Component<any, any>  {
 
     public render() {
        let className = "myCRT-env-card";
+       let statusStyle = "myCRT-status-past";
        if (this.state.active) {
           className = "myCRT-panel-running";
+          statusStyle = "myCRT-status-running";
        } else if (this.state.scheduled) {
           className = "myCRT-panel-scheduled";
+          statusStyle = "myCRT-status-scheduled";
        } else if (this.state.failed) {
           className = "myCRT-panel-failed";
+          statusStyle = "myCRT-status-failed";
        }
+       if (!this.props.capture) { return (<div></div>); }
         return (
             <div className="card myCRT-panel mt-4 myCRT-card">
                 <div className={`card-header ${className}`}>
@@ -64,10 +69,10 @@ export class CapturePanel extends React.Component<any, any>  {
                         className="btn btn-success" style={{zIndex: 10, float: "right"}}
                            onClick={ (e) => this.handleClick(e)}>
                         <i className="fa fa-line-chart"></i>  View</button>}
-                     {this.state.failed ?
-                     <h6 style={{display: "inline", verticalAlign: "middle", float: "right"}}>
-                     <i>Failed</i></h6> : null}
                 </div>
+                <div className={`card-footer ${statusStyle}`}>
+                  Status: {this.props.capture.status}
+               </div>
                 <div className="card-body">
                   {this.state.scheduled ?
                      <p><i><b>Scheduled Start:</b> {this.formatTimeStamp(this.state.capture.scheduledStart)}</i></p> :

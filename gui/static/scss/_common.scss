@@ -1,5 +1,10 @@
 @import 'theme';
 
+$secondary-danger: #ed7669;
+$secondary-info: #5faee3;
+$secondary-warning: #f5b043;
+$secondary-success: #24e3be;
+
 .myCRT-env-navbar {
     display: flex;
     justify-content: center;
@@ -59,6 +64,36 @@
    background-image: none;
    background-color: #E74C3C;
    color: white;
+}
+
+%myCRT-status {
+   padding: 0;
+   text-align: center;
+   color: #ecf0f1;
+}
+
+.myCRT-status-running {
+   @extend %myCRT-status;
+   background-color: $secondary-success;
+}
+
+p {
+   margin-bottom: 0.7em;
+}
+
+.myCRT-status-failed {
+   @extend %myCRT-status;
+   background-color: $secondary-danger;
+}
+
+.myCRT-status-scheduled {
+   @extend %myCRT-status;
+   background-color: $secondary-warning;
+}
+
+.myCRT-status-past {
+   @extend %myCRT-status;
+   background-color: $secondary-info;
 }
 
 .myCRT-multi-select {

@@ -32,11 +32,12 @@ class DashboardApp extends React.Component<any, any> {
     }
 
    public async setCaptures() {
-       const capturesResponse = await mycrt.getCaptures();
+       const capturesResponse = await mycrt.getCapturesForEnvironment(this.state.envId);
        if (capturesResponse !== null) {
            this.setState({
                 captures: this.makeObject(capturesResponse, "id"),
             });
+            this.setReplays();
         }
     }
 
@@ -51,12 +52,15 @@ class DashboardApp extends React.Component<any, any> {
   }
 
     public async setReplays() {
-        const replaysResponse = await mycrt.getReplays();
-        if (replaysResponse !== null) {
-            this.setState({
-                replays: replaysResponse,
-            });
+       let allReplays = this.state.replays;
+        for (const id in this.state.captures) {
+           const capture = this.state.captures[id];
+           const replays = await mycrt.getReplaysForCapture(capture.id);
+           if (replays) {
+               allReplays = allReplays.concat(replays);
+           }
         }
+        this.setState({replays: allReplays});
     }
 
     public updateCaptures(id: string) {
@@ -72,7 +76,6 @@ class DashboardApp extends React.Component<any, any> {
             });
         }
         this.setCaptures();
-        this.setReplays();
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
@@ -111,7 +114,8 @@ class DashboardApp extends React.Component<any, any> {
       const scheduledReplays: JSX.Element[] = [];
       const pastReplays: JSX.Element[] = [];
       if (this.state.replays) {
-         for (const replay of this.state.replays) {
+         for (let id = this.state.replays.length - 1; id >= 0; id--) {
+            const replay = this.state.replays[id];
             let name = `${replay.name}`;
             if (!name) {
                 name = `replay ${replay.id}`;
@@ -145,6 +149,12 @@ class DashboardApp extends React.Component<any, any> {
                            data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
+                     <div className="myCRT-overflow-col" style={{padding: 0, paddingTop: "10px"}}>
+                        <label><b>Source DB: </b>{this.state.env.dbName}</label>
+                        <label><b>Host: </b>{this.state.env.host}</label>
+                        <label><b>Parameter Group: </b>{this.state.env.parameterGroup}</label>
+                        <label><b>User: </b>{this.state.env.user}</label>
+                     </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
                                name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
                   </div>
