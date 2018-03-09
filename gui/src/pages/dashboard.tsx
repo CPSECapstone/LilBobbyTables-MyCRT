@@ -93,7 +93,9 @@ class DashboardApp extends React.Component<any, any> {
                 if (!name) {
                     name = `capture ${capture.id}`;
                 }
-                if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE) {
+                logger.info(capture.status);
+                if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE ||
+                     capture.status === ChildProgramStatus.FAILED) {
                     pastCaptures.push((<CapturePanel title={name} capture={capture} envId={this.state.envId}
                         update={this.updateCaptures}/>));
                 } else if (capture.status === ChildProgramStatus.SCHEDULED) {
