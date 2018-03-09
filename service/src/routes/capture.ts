@@ -110,7 +110,10 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
          // validation
          const initialStatus: string | undefined = request.body.status;
-         const inputTime: Date = request.body.scheduledStart;
+         const inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+         const endTime: Date = request.body.scheduledEnd;      // retrieve end time
+         const durationOfCapture: number = request.body.duration;            // retrieve duration of capture
+         // TODO: Ask how to stop a capture
 
          // checks for existing environment
          const env = await environmentDao.getEnvironment(request.body.envId);
@@ -131,6 +134,8 @@ export default class CaptureRouter extends SelfAwareRouter {
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             name: request.body.name,
             scheduledStart: inputTime,
+            scheduledEnd: endTime,
+            duration: durationOfCapture,
          };
 
          // assign capture, insert into db
