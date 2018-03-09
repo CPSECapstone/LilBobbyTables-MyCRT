@@ -11,6 +11,7 @@ export const dbReferenceTests = (mycrt: MyCrtService) => () => {
       const id = responsePost.body.id;
       const response = await request(mycrt.getServer()).get('/api/dbReferences/' + id);
       expect(response).to.have.status(http.OK);
+      // TODO test the body of the response
    });
 
    it("should not find a nonexisting db reference", async () => {
