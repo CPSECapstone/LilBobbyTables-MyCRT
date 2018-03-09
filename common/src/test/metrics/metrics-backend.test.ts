@@ -30,13 +30,13 @@ describe("MetricsBackend", () => {
 
    const dummyMetrics: IMetricsList[] = [
       {
-         label: "ReadLatency",
+         label: "ReadIOPS",
          type: MetricType.READ,
          displayName: "READ",
          dataPoints: [],
       },
       {
-        label: "WriteLatency",
+        label: "WriteIOPS",
         type: MetricType.WRITE,
         displayName: "WRITE",
         dataPoints: [],
@@ -81,13 +81,13 @@ describe("MetricsBackend", () => {
    it("should read capture read IO metrics", async () => {
       const result = await metrics.readMetrics(c1, MetricType.READ) as IMetricsList;
       expect(result.type).to.equal(MetricType.READ);
-      expect(result.label).to.equal("ReadLatency");
+      expect(result.label).to.equal("ReadIOPS");
    });
 
    it("should read capture write IO metrics", async () => {
       const result = await metrics.readMetrics(c1, MetricType.WRITE) as IMetricsList;
       expect(result.type).to.equal(MetricType.WRITE);
-      expect(result.label).to.equal("WriteLatency");
+      expect(result.label).to.equal("WriteIOPS");
    });
 
    it("should read capture Memory metrics", async () => {

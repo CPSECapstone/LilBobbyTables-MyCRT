@@ -86,7 +86,7 @@ export default class CaptureRouter extends SelfAwareRouter {
             case ChildProgramStatus.RUNNING:
                await this.ipcNode.stopCapture(capture.id!);
                logger.info(`Capture ${capture.id!} stopped`);
-               response.json({status: http.OK}).end();
+               response.json({status: http.OK});
                return;
 
             case ChildProgramStatus.SCHEDULED:
