@@ -63,9 +63,9 @@ class DashboardApp extends React.Component<any, any> {
         this.setState({replays: allReplays});
     }
 
-    public updateCaptures(id: string) {
+    public updateCaptures(id: string, status: ChildProgramStatus) {
         const captures = this.state.captures;
-        captures[id].status = ChildProgramStatus.DONE;
+        captures[id].status = status;
         this.setState({captures});
     }
 
@@ -96,7 +96,6 @@ class DashboardApp extends React.Component<any, any> {
                 if (!name) {
                     name = `capture ${capture.id}`;
                 }
-                logger.info(capture.status);
                 if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE ||
                      capture.status === ChildProgramStatus.FAILED) {
                     pastCaptures.push((<CapturePanel title={name} capture={capture} envId={this.state.envId}
@@ -149,11 +148,15 @@ class DashboardApp extends React.Component<any, any> {
                            data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
-                     <div className="myCRT-overflow-col" style={{padding: 0, paddingTop: "10px"}}>
-                        <label><b>Source DB: </b>{this.state.env.dbName}</label>
-                        <label><b>Host: </b>{this.state.env.host}</label>
-                        <label><b>Parameter Group: </b>{this.state.env.parameterGroup}</label>
-                        <label><b>User: </b>{this.state.env.user}</label>
+                     <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
+                        paddingLeft: "20px", width: "1050px"}}>
+                        <h5>DB Info:</h5>
+                        <label><b>&nbsp;&nbsp;&nbsp;Source DB: </b>{this.state.env.dbName}</label><br/>
+                        <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.state.env.host}</label><br/>
+                        <label><b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>{this.state.env.parameterGroup}</label><br/>
+                        <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}</label><br/><br/>
+                        <h5>S3 Info:</h5>
+                        <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label>
                      </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
                                name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>

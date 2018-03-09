@@ -22,7 +22,11 @@ export class ReplayPanel extends React.Component<any, any>  {
                      failed: this.props.replay.status === ChildProgramStatus.FAILED};
     }
 
-    public componentWillMount() {
+    public async componentWillMount() {
+       const replayDB = await mycrt.getReplayDB(this.props.replay.dbId);
+       if (replayDB) {
+          this.setState({db: replayDB.name});
+       }
        const startCaptureTime = new Date(this.state.capture.start);
        const endCaptureTime = new Date(this.state.capture.end);
        const duration = moment(endCaptureTime, "DD/MM/YYYY HH:mm:ss").diff(moment(
@@ -65,7 +69,7 @@ export class ReplayPanel extends React.Component<any, any>  {
 
     public handleClick(event: any): void {
          window.location.assign(`/capture?id=${this.props.capture.id}&`
-            + `replayId=${this.props.replay.id}envId=${this.props.envId}`);
+            + `replayId=${this.props.replay.id}envId=${this.props.envId}&view=metrics`);
     }
 
     public formatTimeStamp(date: string) {
@@ -98,7 +102,7 @@ export class ReplayPanel extends React.Component<any, any>  {
                      <h5 style={{display: "inline", verticalAlign: "middle"}}>{this.props.title}</h5>
                      <p style={{margin: 0}}><i>({this.state.capture.name})</i></p>
                     </div>
-                    {!this.state.live ? <button type="button" className="btn btn-success"
+                    {!this.state.active ? <button type="button" className="btn btn-success"
                                             onClick={ (e) => this.handleClick(e)}
                                             style={{zIndex: 10, float: "right"}}>
                                             <i className="fa fa-line-chart"></i>  Compare</button> : null}
@@ -107,9 +111,9 @@ export class ReplayPanel extends React.Component<any, any>  {
                   Status: {this.props.replay.status}
                </div>
                 <div className="card-body">
-                    <p><i><b>DB:</b> {this.state.replay.dbName}</i></p>
-                    <p><i><b>Start:</b> {this.formatTimeStamp(this.state.replay.start)}</i></p>
-                    <p style={{margin: 0}}><i><b>End:</b> {this.formatTimeStamp(this.state.replay.end)}</i></p>
+                    <p><b>DB:</b><i> {this.state.db}</i></p>
+                    <p><b>Start:</b><i> {this.formatTimeStamp(this.state.replay.start)}</i></p>
+                    <p style={{margin: 0}}><b>End:</b><i> {this.formatTimeStamp(this.state.replay.end)}</i></p>
                      <div className="progress" style={this.state.live ? {display: "block"} : {display: "none"}}>
                         <div className="progress-bar progress-bar-striped progress-bar-animated bg-success"
                            role="progressbar" aria-valuenow={this.state.currentDuration}

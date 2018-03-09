@@ -30,7 +30,7 @@ export class GraphSelectDrop extends React.Component<any, any>  {
         }
         return (
             <div className="button-group" style ={{display: "inline"}}>
-                <button type="button" className="btn btn-default btn-sm dropdown-toggle"
+                <button type="button" className="btn btn-default btn-md dropdown-toggle"
                     data-toggle="dropdown" style={{marginBottom: "20px",
                         marginLeft: "20px", border: "1px solid"}}>
                     {this.props.prompt}

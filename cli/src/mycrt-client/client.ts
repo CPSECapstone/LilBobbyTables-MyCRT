@@ -140,6 +140,11 @@ export class MyCrtClient {
      return this.makeRequest<any>(HttpMethod.POST, '/validate/database', null, dbRef);
    }
 
+   /** Get database credentials for a replay */
+   public async getReplayDB(id: number): Promise<IDbReference | null> {
+      return this.makeRequest<IDbReference>(HttpMethod.GET, `/dbReferences/${id}`);
+    }
+
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
 
       const fullUrl: URL = new URL(`${this.host}/api${url}`);
