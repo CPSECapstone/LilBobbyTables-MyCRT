@@ -79,7 +79,6 @@ export class ReplayModal extends React.Component<any, any>  {
         const index = event.target.selectedIndex;
         const optionElement = event.target.childNodes[index];
         const captureId =  optionElement.getAttribute('id');
-        logger.info(captureId);
         this.setState({captureId});
     }
 

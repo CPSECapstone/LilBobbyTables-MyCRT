@@ -2,6 +2,7 @@ import React = require('react');
 import ReactDom = require('react-dom');
 
 import * as $ from 'jquery';
+import * as moment from 'moment';
 
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
@@ -19,7 +20,9 @@ export class CaptureModal extends React.Component<any, any>  {
         super(props);
         this.handleClick = this.handleClick.bind(this);
         this.cancelModal = this.cancelModal.bind(this);
-        this.state = { captureName: "" };
+        this.state = { captureName: "", scheduledStart: "", captureType: "immediately" };
+        this.handleTimeChange = this.handleTimeChange.bind(this);
+        this.handleCaptureTypeChange = this.handleCaptureTypeChange.bind(this);
         this.baseState = this.state;
     }
 
@@ -33,7 +36,12 @@ export class CaptureModal extends React.Component<any, any>  {
             $('#captureWarning').show();
             return;
         }
-        const captureObj = await mycrt.startCapture({name: this.state.captureName, envId: this.props.envId});
+        const capture = {name: this.state.captureName, envId: this.props.envId} as any;
+        if (this.state.captureType === "specific") {
+           capture.status = ChildProgramStatus.SCHEDULED;
+           capture.scheduledStart = this.state.scheduledStart;
+        }
+        const captureObj = await mycrt.startCapture(capture);
         if (!captureObj) {
             logger.error("Could not start capture");
         } else {
@@ -44,6 +52,15 @@ export class CaptureModal extends React.Component<any, any>  {
                 cancelBtn.click();
             }
         }
+    }
+
+    public handleTimeChange(date: string) {
+       const newDate = new Date(date);
+       this.setState({scheduledStart: newDate});
+    }
+
+    public handleCaptureTypeChange(type: string) {
+       this.setState({captureType: type});
     }
 
     public handleNameChange(event: any) {
@@ -81,7 +98,8 @@ export class CaptureModal extends React.Component<any, any>  {
                                                 aria-describedby="captureName" placeholder="Enter name"></input>
                                         <small id="captureName" className="form-text text-muted"></small>
                                         <br/>
-                                        <StartDateTime />
+                                        <StartDateTime updateTime={this.handleTimeChange}
+                                          updateType={this.handleCaptureTypeChange}/>
                                         <br/>
                                         <label><b>Duration</b></label>
                                         <div className="container">
