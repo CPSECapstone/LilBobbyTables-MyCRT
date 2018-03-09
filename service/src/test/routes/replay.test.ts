@@ -140,23 +140,23 @@ export const replayTests = (mycrt: MyCrtService) => () => {
       }
    });
 
-   // replay 1's capture does not exist ???
+   // replay 1's capture does not exist
    it("should fail since replay 1's capture does not exist", async () => {
       await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      const replay = await request(mycrt.getServ er()).post('/api/replays/').send(replayBody);
+      const replay = await request(mycrt.getServer()).post('/api/replays/').send(replayBody);
       const response = await request(mycrt.getServer()).get('/api/replays/1');
       expect(response).to.have.status(http.CONFLICT);
    });
 
-   // replay 1's environment does not exist ???
-   // it("should fail since replay 1 does not have an environment", async () => {
-   //    await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-   //    await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-   //    await request(mycrt.getServer()).post('/api/replays/').send(replayBody);
-   //    await request(mycrt.getServer()).del('/api/environments/1').send();
-   //    const response = await request(mycrt.getServer()).get('/api/replays/1');
-   //    expect(response).to.have.status(http.CONFLICT);
-   // });
+   // replay 1's environment does not exist
+   it("should fail since replay 1 does not have an environment", async () => {
+      await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
+      await request(mycrt.getServer()).post('/api/replays/').send(replayBody);
+      await request(mycrt.getServer()).del('/api/environments/1').send();
+      const response = await request(mycrt.getServer()).get('/api/replays/1');
+      expect(response).to.have.status(http.CONFLICT);
+   });
 
    // delete
    it("should successfully delete a replay", async () => {
