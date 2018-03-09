@@ -121,9 +121,7 @@ export class ReplayPanel extends React.Component<any, any>  {
                                             style={{zIndex: 10, float: "right"}}>
                                             <i className="fa fa-line-chart"></i>  Compare</button> : null}
                 </div>
-                <div className={`card-footer ${statusStyle}`}>
-                  Status: {this.props.replay.status}
-               </div>
+                <div className={`card-footer ${statusStyle}`}>{this.props.replay.status}</div>
                 <div className="card-body">
                     <p><b>DB:</b><i> {this.state.db}</i></p>
                     <p><b>Start:</b><i> {this.formatTimeStamp(this.state.replay.start)}</i></p>

@@ -98,9 +98,7 @@ export class CapturePanel extends React.Component<any, any>  {
                            onClick={ (e) => this.handleMetricClick(e)}>
                         <i className="fa fa-line-chart"></i>  View</button>}
                 </div>
-                <div className={`card-footer ${statusStyle}`}>
-                  Status: {this.props.capture.status}
-               </div>
+                <div className={`card-footer ${statusStyle}`}>{this.props.capture.status}</div>
                 <div className="card-body">
                   {this.state.scheduled ?
                      <p><b>Scheduled Start:</b><i> {this.formatTimeStamp(this.state.capture.scheduledStart)}</i></p> :

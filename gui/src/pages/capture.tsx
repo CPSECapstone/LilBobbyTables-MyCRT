@@ -10,11 +10,13 @@ import { Graph } from './components/graph_comp';
 
 import * as $ from 'jquery';
 
+import { CaptureInfo } from './components/capture_info_comp';
 import { ChartTypeCheck } from './components/chart_type_checkbox_comp';
 import { DeleteModal } from './components/delete_modal_comp';
 import { GraphSelectDrop } from './components/graph_dropdown_comp';
 import { MessageModal } from './components/message_handler_comp';
 import { ReplaySelectDrop } from './components/replay_compare_dropdown_comp';
+import { ReplayInfo } from './components/replay_info_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 
 import { IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
@@ -30,7 +32,6 @@ class CaptureApp extends React.Component<any, any> {
       this.setWorkloadData = this.setWorkloadData.bind(this);
       this.updateReplays = this.updateReplays.bind(this);
       this.setReplayMetrics = this.setReplayMetrics.bind(this);
-      this.compareReplay = this.compareReplay.bind(this);
       this.removeWorkloadData = this.removeWorkloadData.bind(this);
       this.deleteCapture = this.deleteCapture.bind(this);
 
@@ -200,16 +201,6 @@ class CaptureApp extends React.Component<any, any> {
       }
    }
 
-   public formatTimeStamp(date: string) {
-      const time = new Date(date);
-      return time.toLocaleString();
-   }
-
-   public compareReplay() {
-      window.location.assign(`/capture?id=${this.state.capture.id}&`
-         + `replayId=${this.state.replayObj.id}envId=${this.state.envId}&view=metrics`);
-   }
-
    public render() {
       if (this.state.allGraphs.length === 0) { return (<div></div>); }
       const graphs: JSX.Element[] = [];
@@ -223,18 +214,11 @@ class CaptureApp extends React.Component<any, any> {
       if (this.state.allReplays) {
          for (const id in this.state.allReplays) {
             const replay = this.state.allReplays[id];
-            let name = `${replay.name}`;
-            if (!name) {
-               name = `replay ${replay.id}`;
-            }
+            const name = replay.name || `replay ${replay.id}`;
             replays.push((<ReplayPanel title={name} replay={replay} compare={false}
                capture={this.state.capture} envId = {this.state.envId}/>));
          }
       }
-      const compareButton = (<button type="button" className="btn btn-success"
-         style={{marginLeft: "20px", marginBottom: "15px"}}
-         onClick={this.compareReplay}>
-         <i className="fa fa-line-chart"></i>  Compare</button>);
       const metricsTarget = `./metrics?id=${this.state.captureId}`;
       return (
          <div>
@@ -256,12 +240,12 @@ class CaptureApp extends React.Component<any, any> {
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
                         <DeleteModal id="deleteCaptureModal" deleteId={this.state.captureId}
-                               name={this.state.capture.name} delete={this.deleteCapture} type="Capture"/>
+                           name={this.state.capture.name} delete={this.deleteCapture} type="Capture"/>
                      </div>
                      <br/>
                      <ul className="nav nav-tabs" role="tablist" id="captureTabs">
                         <li className="nav-item">
-                           <a className="nav-link" data-toggle="tab" href="#info" role="tab">Capture Info</a>
+                           <a className="nav-link" data-toggle="tab" href="#info" role="tab">Details</a>
                         </li>
                         <li className="nav-item">
                            <a className="nav-link" data-toggle="tab" href="#metrics" role="tab">Metrics</a>
@@ -272,30 +256,20 @@ class CaptureApp extends React.Component<any, any> {
                      </ul>
                      <div className="tab-content">
                         <div className="tab-pane" id="info" role="tabpanel">
-                           <br/><div className="page-header">
-                              <h2>Capture Info</h2><br/>
-                           </div>
-                           <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
-                              paddingLeft: "20px", width: "1050px"}}>
-                              <h5>General Info:</h5>
-                              <label><b>&nbsp;&nbsp;&nbsp;Start Time: </b>
-                                 {this.formatTimeStamp(this.state.capture.start)}</label><br/>
-                              <label><b>&nbsp;&nbsp;&nbsp;End Time: </b>{this.formatTimeStamp(this.state.capture.end)}
-                                 </label><br/><br/>
-                              <h5>DB Info:</h5>
-                              <label><b>&nbsp;&nbsp;&nbsp;Target DB: </b>{this.state.env.dbName}</label><br/>
-                              <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.state.env.host}</label><br/>
-                           </div>
+                           <CaptureInfo capture={this.state.capture} env={this.state.env}/>
                         </div>
                         <div className="tab-pane" id="metrics" role="tabpanel">
                            <div className="modal-body">
                               <div className="page-header">
-                                    <br/><h2 style={{display: "inline"}}>Metrics</h2>
-                                    <GraphSelectDrop prompt="Metric Types"
-                                          graphs={this.state.allGraphs} update={this.updateGraphs}/>
-                                    {replays.length ? <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
-                                          update={this.updateReplays} default={this.state.defaultReplay}/> : null}
-                                    <ChartTypeCheck prompt="Chart Type" update={this.updateChartType}/>
+                                 <br/>
+                                 <h2 style={{display: "inline"}}>Metrics</h2>
+                                 <GraphSelectDrop prompt="Metric Types"
+                                    graphs={this.state.allGraphs} update={this.updateGraphs}/>
+                                 {replays.length ?
+                                    <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
+                                          update={this.updateReplays} default={this.state.defaultReplay}/> : null
+                                 }
+                                 <ChartTypeCheck prompt="Chart Type" update={this.updateChartType}/>
                                  <br/>
                                  {graphs}
                                  <br/><br/>
@@ -304,29 +278,17 @@ class CaptureApp extends React.Component<any, any> {
                         </div>
                         <div className="tab-pane" id="replays" role="tabpanel">
                            {this.state.replayObj ?
-                           <div><br/><div className="page-header"><h2 style={{display: "inline"}}>
-                              {this.state.replayObj.name}</h2>{compareButton}</div>
-                           <div className="myCRT-overflow-col" style={{padding: 0, paddingTop: "10px",
-                           paddingLeft: "20px", width: "1050px"}}>
-                              <h5>General Info:</h5>
-                              <label><b>&nbsp;&nbsp;&nbsp;Start Time: </b>
-                                 {this.formatTimeStamp(this.state.replayObj.start)}</label><br/>
-                              <label><b>&nbsp;&nbsp;&nbsp;End Time: </b>{this.formatTimeStamp(this.state.replayObj.end)}
-                                 </label><br/><br/>
-                              <h5>DB Info:</h5>
-                              <label><b>&nbsp;&nbsp;&nbsp;DB: </b>{this.state.replayObj.db.name}</label><br/>
-                              <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.state.replayObj.db.host}</label><br/>
-                              <label><b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>
-                                 {this.state.replayObj.db.parameterGroup}</label><br/>
-                              <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.replayObj.db.user}</label><br/>
-                              <br/></div></div> : null}
-                           <br/><div className="page-header">
+                              <ReplayInfo replay={this.state.replayObj} envId={this.state.envId}/> : null
+                           }
+                           <br/>
+                           <div className="page-header">
                               <h2>Replays</h2><br/>
                            </div>
                            <div className="myCRT-overflow-col">
-                              {replays.length ? <div className="card-columns">{replays}</div> :
-                                 <p className="myCRT-empty-col">
-                              No replays exist.</p>}
+                              {replays.length ?
+                                 <div className="card-columns">{replays}</div> :
+                                 <p className="myCRT-empty-col">No replays exist.</p>
+                              }
                            </div>
                         </div>
                      </div>

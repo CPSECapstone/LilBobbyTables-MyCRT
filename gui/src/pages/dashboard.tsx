@@ -92,20 +92,16 @@ class DashboardApp extends React.Component<any, any> {
             const captureList = Object.keys(this.state.captures);
             for (let i = captureList.length - 1; i >= 0; i--) {
                 const capture = this.state.captures[captureList[i]];
-                let name = `${capture.name}`;
-                if (!name) {
-                    name = `capture ${capture.id}`;
-                }
+                const name = capture.name || `capture ${capture.id}`;
+                const captureComp = (<CapturePanel title={name} capture={capture}
+                  envId={this.state.envId} update={this.updateCaptures}/>);
                 if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE ||
                      capture.status === ChildProgramStatus.FAILED) {
-                    pastCaptures.push((<CapturePanel title={name} capture={capture} envId={this.state.envId}
-                        update={this.updateCaptures}/>));
+                    pastCaptures.push(captureComp);
                 } else if (capture.status === ChildProgramStatus.SCHEDULED) {
-                    scheduledCaptures.push((<CapturePanel title={name} capture={capture} envId={this.state.envId}
-                        update={this.updateCaptures}/>));
+                    scheduledCaptures.push(captureComp);
                 } else {
-                    liveCaptures.push((<CapturePanel title={name} capture={capture} envId = {this.state.envId}
-                        update={this.updateCaptures}/>));
+                    liveCaptures.push(captureComp);
                 }
             }
         }
@@ -115,19 +111,15 @@ class DashboardApp extends React.Component<any, any> {
       if (this.state.replays) {
          for (let id = this.state.replays.length - 1; id >= 0; id--) {
             const replay = this.state.replays[id];
-            let name = `${replay.name}`;
-            if (!name) {
-                name = `replay ${replay.id}`;
-            }
+            const name = replay.name || `replay ${replay.id}`;
+            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true}
+               capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>);
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
-                pastReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
-                    capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>));
+                pastReplays.push(replayComp);
             } else if (replay.status === ChildProgramStatus.SCHEDULED) {
-                scheduledReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
-                    capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>));
+                scheduledReplays.push(replayComp);
             } else {
-                liveReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
-                    capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>));
+                liveReplays.push(replayComp);
             }
          }
       }
@@ -150,13 +142,23 @@ class DashboardApp extends React.Component<any, any> {
                         </a>
                      <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>
-                        <h5>DB Info:</h5>
-                        <label><b>&nbsp;&nbsp;&nbsp;Source DB: </b>{this.state.env.dbName}</label><br/>
-                        <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.state.env.host}</label><br/>
-                        <label><b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>{this.state.env.parameterGroup}</label><br/>
-                        <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}</label><br/><br/>
-                        <h5>S3 Info:</h5>
-                        <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label>
+                        <div className="row">
+                           <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
+                              <h5>Source Database:</h5>
+                              <label><b>&nbsp;&nbsp;&nbsp;Name: </b>{this.state.env.dbName}</label><br/>
+                              <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.state.env.host}</label><br/>
+                              <label>
+                                 <b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>
+                                 {this.state.env.parameterGroup}</label><br/>
+                              <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}
+                              </label>
+                              <br/><br/>
+                           </div>
+                           <div className="col-xs-6" style={{padding: "20px 40px 0px"}}>
+                              <h5>S3 File Storage:</h5>
+                              <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label>
+                           </div>
+                        </div>
                      </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
                                name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
@@ -224,7 +226,6 @@ class DashboardApp extends React.Component<any, any> {
                      <br></br>
                   </div>
                </div>
-
             </div>
          </div>
       );
