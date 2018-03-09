@@ -70,7 +70,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          const envId = await environmentDao.makeEnvironment(environment);
          response.json(envId);
-
       }));
 
       // TODO: Figure out exactly what is allowed to be edited.
@@ -78,14 +77,12 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
-
          let environment: data.IEnvironment | null = {
             name: request.body.envName,
          };
 
          environment = await environmentDao.editEnvironment(id, environment);
          response.json(environment!);
-
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
