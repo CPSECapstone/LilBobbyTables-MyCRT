@@ -55,7 +55,14 @@ export const liveCaptureBody = {
    end: null,
 };
 
-export const badCaptureBody = {
+export const captureBadEnv = {
+   name: 'BadCapture',
+   envId: 56,
+   status: "STARTING",
+   start: "2018-03-04 20:53:00",
+};
+
+export const captureBadStatus = {
    name: 'BadCapture',
    envId: 1,
    status: "I'M BAD YO",

@@ -5,7 +5,7 @@ import 'mocha';
 import { Logging } from '@lbt-mycrt/common/dist/main';
 import MyCrtService from '../../main';
 
-import { badCaptureBody, liveCaptureBody, newEnvBody, scheduledCaptureBody } from './data';
+import { captureBadEnv, captureBadStatus, liveCaptureBody, newEnvBody, scheduledCaptureBody } from './data';
 
 export const captureTests = (mycrt: MyCrtService) => () => {
 
@@ -19,7 +19,16 @@ export const captureTests = (mycrt: MyCrtService) => () => {
    it("should reject the post of a capture with bad status", async () => {
       try {
          await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         const response = await request(mycrt.getServer()).post('/api/captures/').send(badCaptureBody);
+         const response = await request(mycrt.getServer()).post('/api/captures/').send(captureBadStatus);
+      } catch (err) {
+         expect(err).to.have.status(http.BAD_REQUEST);
+      }
+   });
+
+   it("should reject the post of a capture with bad environment", async () => {
+      try {
+         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+         const response = await request(mycrt.getServer()).post('/api/captures/').send(captureBadEnv);
       } catch (err) {
          expect(err).to.have.status(http.BAD_REQUEST);
       }
@@ -73,7 +82,7 @@ export const captureTests = (mycrt: MyCrtService) => () => {
    it("should reject the edit of a capture", async () => {
       try {
          await request(mycrt.getServer()).post('/api/captures/').send(scheduledCaptureBody);
-         const response = await request(mycrt.getServer()).put('/api/captures/1').send(badCaptureBody);
+         const response = await request(mycrt.getServer()).put('/api/captures/1').send(scheduledCaptureBody);
       } catch (err) {
          expect(err).to.have.status(http.BAD_REQUEST);
       }
