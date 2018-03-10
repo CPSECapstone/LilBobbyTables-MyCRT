@@ -135,7 +135,6 @@ export default class CaptureRouter extends SelfAwareRouter {
             name: request.body.name,
             scheduledStart: inputTime,
             scheduledEnd: endTime,
-            duration: durationOfCapture,
          };
 
          // assign capture, insert into db

@@ -5,7 +5,6 @@ import { value } from './common-schema';
 export const captureValue = {
    status: joi.string().regex(/^(?:scheduled|starting|started)?$/i).uppercase(),
    timestamp: joi.date(),
-   duration: joi.number(),
 };
 
 export const captureBody: joi.ObjectSchema = joi.object().keys({
@@ -13,7 +12,6 @@ export const captureBody: joi.ObjectSchema = joi.object().keys({
    envId: value.envId.required(),
    status: captureValue.status.optional(),
    start: captureValue.timestamp.optional(),
-   duration: captureValue.duration.optional(),
    scheduledStart: captureValue.timestamp.optional(),
    scheduledEnd: captureValue.timestamp.optional(),
 });
