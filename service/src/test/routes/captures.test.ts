@@ -61,6 +61,15 @@ export const captureTests = (mycrt: MyCrtService) => () => {
       }
    });
 
+   it("should fail to stop a capture that does not exist", async () => {
+      try {
+         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+         const response = await request(mycrt.getServer()).post('/api/captures/50/stop/').send();
+      } catch (err) {
+         expect(err).to.have.status(http.NOT_FOUND);
+      }
+   });
+
    it("should reject the edit of a capture", async () => {
       try {
          await request(mycrt.getServer()).post('/api/captures/').send(scheduledCaptureBody);
@@ -69,4 +78,20 @@ export const captureTests = (mycrt: MyCrtService) => () => {
          expect(err).to.have.status(http.BAD_REQUEST);
       }
    });
+
+   it("should successfully delete an existing capture", async () => {
+      await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      const capture = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
+      const id = capture.body.id;
+      const response = await request(mycrt.getServer()).del('/api/captures/' + id).send();
+      expect(response).to.have.status(http.OK);
+   });
+
+   it("should fail to delete a capture that does not exist", async () => {
+      try {
+         const response = await request(mycrt.getServer()).del('/api/captures/100').send();
+      } catch (err) {
+         expect(err).to.have.status(http.NOT_FOUND);
+      }
+});
 };

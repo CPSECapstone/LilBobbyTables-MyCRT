@@ -94,10 +94,12 @@ export const replayTests = (mycrt: MyCrtService) => () => {
    });
 
    // fail delete
-   it("should fail since replay 1 does not exist", async () => {
-         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-         const response = await request(mycrt.getServer()).del('/api/replays/1').send();
-         expect(response).to.have.status(http.OK);
+   it("should fail since replay 56 does not exist", async () => {
+      try  {
+         const response = await request(mycrt.getServer()).del('/api/replays/56').send();
+      } catch (err) {
+         expect(err).to.have.status(http.NOT_FOUND);
+      }
    });
+
 };
