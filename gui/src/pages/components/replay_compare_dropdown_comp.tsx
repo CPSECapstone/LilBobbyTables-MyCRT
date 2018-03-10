@@ -11,7 +11,7 @@ export class ReplaySelectDrop extends React.Component<any, any>  {
 
     public selectReplays(event: any) {
         const target = event.currentTarget;
-        this.props.update(target.checked, target.value);
+        this.props.update(target.checked, target.value, false);
      }
 
     public render() {

@@ -1,11 +1,10 @@
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Label, Legend, Line, LineChart,
-    Tooltip, XAxis, YAxis } from 'recharts';
-
 import React = require('react');
 import ReactDom = require('react-dom');
 
 import { colors } from '../utils/color-picker';
 
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Label, Legend, Line, LineChart,
+   Tooltip, XAxis, YAxis } from 'recharts';
 import { BrowserLogger as logger } from '../../logging';
 
 export class Graph extends React.Component<any, any>  {
@@ -17,25 +16,25 @@ export class Graph extends React.Component<any, any>  {
       const lineNum = Object.keys(this.props.data).length;
 
       const metrics: JSX.Element[] = [];
-      if (this.props.data.dataPoints) {
+      if (this.props.data.dataPoints.length > 0) {
          const unit = `  ${this.props.data.dataPoints[0].Unit}`;
          let index = 0;
-            for (const key in this.props.data.dataPoints[0]) {
-               if (key !== "Timestamp" && key !== "Unit" && key !== "Maximum") {
-                  const LineType = this.props.filled ? Area : Line;
-                  metrics.push(<LineType name={key} type="monotone" dataKey={key} stroke={colors[index]}
-                        fillOpacity={0.5} fill={colors[index]} isAnimationActive={true}
-                        activeDot={{ r: 8 }} unit={unit} strokeWidth={1.5}/>);
+         for (const key in this.props.data.dataPoints[0]) {
+            if (key !== "Timestamp" && key !== "Unit" && key !== "Maximum") {
+               const LineType = this.props.filled ? Area : Line;
+               metrics.push(<LineType name={key} type="monotone" dataKey={key} stroke={colors[index]}
+                  fillOpacity={0.5} fill={colors[index]} isAnimationActive={true}
+                  activeDot={{ r: 8 }} unit={unit} strokeWidth={1.5}/>);
                index++;
             }
          }
       }
       const ChartType = this.props.filled ? AreaChart : LineChart;
       return (
-         <div style={{paddingTop: "20px"}}>
-            <h3 style={{ paddingLeft: "20px", display: "inline" }}>{this.props.data.displayName}</h3>
-            <a role="button" href={downloadLink} className="btn btn-primary"
-               style={{ marginBottom: "10px", marginLeft: "10px" }} download={downloadFileName}>
+         <div className="graph">
+            <h3 className="graphName">{this.props.data.displayName}</h3>
+            <a role="button" href={downloadLink} className="btn btn-primary downloadBtn"
+               download={downloadFileName}>
                <i className="fa fa-download" aria-hidden="true"></i> Download
             </a>
             <ChartType width={1000} height={400} data={this.props.data.dataPoints}
@@ -46,7 +45,7 @@ export class Graph extends React.Component<any, any>  {
                <Tooltip />
                <Legend verticalAlign="bottom" height={36} />
                {metrics}
-            </ChartType>;
+            </ChartType>
          </div>
       );
    }

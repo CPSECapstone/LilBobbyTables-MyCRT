@@ -47,8 +47,6 @@ export class ReplayInfo extends React.Component<any, any>  {
                      <h5>Target Database:</h5>
                      <label><b>&nbsp;&nbsp;&nbsp;Name: </b>{this.props.replay.db.name}</label><br/>
                      <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.props.replay.db.host}</label><br/>
-                     <label><b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>
-                        {this.props.replay.db.parameterGroup}</label><br/>
                      <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.props.replay.db.user}</label><br/><br/>
                   </div>
                </div>

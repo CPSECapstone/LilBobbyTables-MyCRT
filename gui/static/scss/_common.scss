@@ -81,6 +81,29 @@ p {
    margin-bottom: 0.7em;
 }
 
+.graphName {
+   padding-left: 20px;
+   display: inline;
+}
+
+.graph {
+   padding-top: 20px;
+}
+
+.deleteBtn {
+   margin-bottom: 20px,;
+   margin-left: 12px;
+}
+
+.downloadBtn {
+   margin-bottom: 10px;
+   margin-left: 10px;
+}
+
+.align {
+   display: inline;
+}
+
 .hover-text:hover {
    color: #2C3E50;
    cursor: pointer;

@@ -93,7 +93,7 @@ class DashboardApp extends React.Component<any, any> {
             for (let i = captureList.length - 1; i >= 0; i--) {
                 const capture = this.state.captures[captureList[i]];
                 const name = capture.name || `capture ${capture.id}`;
-                const captureComp = (<CapturePanel title={name} capture={capture}
+                const captureComp = (<CapturePanel title={name} capture={capture} key={name}
                   envId={this.state.envId} update={this.updateCaptures}/>);
                 if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE ||
                      capture.status === ChildProgramStatus.FAILED) {
@@ -112,7 +112,7 @@ class DashboardApp extends React.Component<any, any> {
          for (let id = this.state.replays.length - 1; id >= 0; id--) {
             const replay = this.state.replays[id];
             const name = replay.name || `replay ${replay.id}`;
-            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true}
+            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true} key={name}
                capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>);
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
                 pastReplays.push(replayComp);
@@ -167,7 +167,7 @@ class DashboardApp extends React.Component<any, any> {
                <br></br>
                <div className="row">
                   <div className="col-xs-12 col-md-5 mb-r">
-                     <div>
+                     <div><br/>
                         <h2 style={{display: "inline"}}>Captures</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
@@ -196,7 +196,7 @@ class DashboardApp extends React.Component<any, any> {
                      <br></br>
                   </div>
                   <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
-                     <div>
+                     <div><br/>
                         <h2 style={{display: "inline"}}>Replays</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
                             data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>

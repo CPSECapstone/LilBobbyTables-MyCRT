@@ -81,7 +81,7 @@ export class ReplayPanel extends React.Component<any, any>  {
    }
 
    public handleCaptureClick(event: any): void {
-      window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=info`);
+      window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=details`);
    }
 
     public formatTimeStamp(date: string) {
