@@ -1,28 +1,25 @@
 import './common';
 
-import '../../static/css/capture.css';
-
 import React = require('react');
 import ReactDom = require('react-dom');
 
-import { BrowserLogger as logger } from './../logging';
-import { Graph } from './components/graph_comp';
-
 import * as $ from 'jquery';
+import '../../static/css/capture.css';
+
+import { IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
+import { BrowserLogger as logger } from './../logging';
+import { mycrt } from './utils/mycrt-client';
 
 import { Breadcrumbs } from './components/breadcrumbs_comp';
 import { CaptureInfo } from './components/capture_info_comp';
 import { ChartTypeCheck } from './components/chart_type_checkbox_comp';
 import { DeleteModal } from './components/delete_modal_comp';
+import { Graph } from './components/graph_comp';
 import { GraphSelectDrop } from './components/graph_dropdown_comp';
 import { MessageModal } from './components/message_handler_comp';
 import { ReplaySelectDrop } from './components/replay_compare_dropdown_comp';
 import { ReplayInfo } from './components/replay_info_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
-
-import { IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
-
-import { mycrt } from './utils/mycrt-client';
 
 class CaptureApp extends React.Component<any, any> {
 
