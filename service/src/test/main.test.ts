@@ -10,6 +10,7 @@ import MyCrtService from '../main';
 import { captureTests } from './routes/captures.test';
 import { dbReferenceTests } from './routes/db-reference.test';
 import { environmentTests } from './routes/environment.test';
+import { MyCrtServiceTestClient } from './routes/mycrt';
 import { replayTests } from './routes/replay.test';
 import { validateTests } from './routes/validate.test';
 
@@ -52,10 +53,11 @@ describe("MyCrtService", () => {
       expect(response).to.have.status(http.OK);
    });
 
-   describe("environment router", environmentTests(mycrt));
-   describe("capture router", captureTests(mycrt));
-   describe("replay router", replayTests(mycrt));
-   describe("validate router", validateTests(mycrt));
-   describe("dbReference router", dbReferenceTests(mycrt));
+   const client = new MyCrtServiceTestClient(mycrt);
+   describe("environment router", environmentTests(client));
+   describe("capture router", captureTests(client));
+   describe("replay router", replayTests(client));
+   describe("validate router", validateTests(client));
+   describe("dbReference router", dbReferenceTests(client));
 
 });

@@ -3,114 +3,79 @@ import * as http from 'http-status-codes';
 import 'mocha';
 
 import { Logging } from '@lbt-mycrt/common/dist/main';
-import MyCrtService from '../../main';
 
 import { badScheduledCapture, captureBadEnv, captureBadStatus, liveCaptureBody, newEnvBody,
    scheduledCaptureBody } from './data';
+import { MyCrtServiceTestClient } from './mycrt';
 
-export const captureTests = (mycrt: MyCrtService) => () => {
+export const captureTests = (mycrt: MyCrtServiceTestClient) => () => {
 
    it("should post a capture", async () => {
-      await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      const response = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-      expect(response).to.have.status(http.OK);
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const response = await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
       expect(response.body.id).to.equal(1);
    });
 
    it("should fail to schedule a capture without a start time", async () => {
-      try {
-         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         const response = await request(mycrt.getServer()).post('/api/captures/').send(badScheduledCapture);
-      } catch (err) {
-         expect(err).to.have.status(http.BAD_REQUEST);
-      }
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const response = await mycrt.post(http.BAD_REQUEST, '/api/captures/', badScheduledCapture);
    });
 
    it("should reject the post of a capture with invalid status", async () => {
-      try {
-         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         const response = await request(mycrt.getServer()).post('/api/captures/').send(captureBadStatus);
-      } catch (err) {
-         expect(err).to.have.status(http.BAD_REQUEST);
-      }
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const response = await mycrt.post(http.BAD_REQUEST, '/api/captures/', captureBadStatus);
    });
 
    it("should reject the post of a capture with bad environment", async () => {
-      try {
-         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         const response = await request(mycrt.getServer()).post('/api/captures/').send(captureBadEnv);
-      } catch (err) {
-         expect(err).to.have.status(http.BAD_REQUEST);
-      }
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const response = await mycrt.post(http.BAD_REQUEST, '/api/captures/', captureBadEnv);
    });
 
    it("should get all captures", async () => {
-      const env = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      const cap1 = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-      const cap2 = await request(mycrt.getServer()).post('/api/captures/').send(scheduledCaptureBody);
-      const response = await request(mycrt.getServer()).get('/api/captures');
-      expect(response).to.have.status(http.OK);
+      const env = await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const cap1 = await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
+      const cap2 = await mycrt.post(http.OK, '/api/captures/', scheduledCaptureBody);
+      const response = await mycrt.get(http.OK, '/api/captures');
       expect(response.body.length).to.equal(2);
    });
 
    it("should get an existing capture", async () => {
-      await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      const capture = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const capture = await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
       const id = capture.body.id;
-      const response = await request(mycrt.getServer()).get('/api/captures/' + id);
-      expect(response).to.have.status(http.OK);
+      const response = await mycrt.get(http.OK, '/api/captures/' + id);
       expect(response.body.name).equals(capture.body.name);
    });
 
    it("should fail to get a capture that does not exist", async () => {
-      try {
-         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
-         const response = await request(mycrt.getServer()).get('/api/captures/10');
-      } catch (err) {
-         expect(err).to.have.status(http.NOT_FOUND);
-      }
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
+      const response = await mycrt.get(http.NOT_FOUND, '/api/captures/10');
    });
 
    it("should fail to get capture metrics that do not exist", async () => {
-      try {
-         const response = await request(mycrt.getServer()).get('/api/captures/50/metrics/');
-      } catch (err) {
-         expect(err).to.have.status(http.NOT_FOUND);
-      }
+      const response = await mycrt.get(http.NOT_FOUND, '/api/captures/50/metrics/');
    });
 
    it("should fail to stop a capture that does not exist", async () => {
-      try {
-         await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-         const response = await request(mycrt.getServer()).post('/api/captures/50/stop/').send();
-      } catch (err) {
-         expect(err).to.have.status(http.NOT_FOUND);
-      }
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const response = await mycrt.post(http.NOT_FOUND, '/api/captures/50/stop/');
    });
 
    it("should reject the edit of a capture", async () => {
-      try {
-         await request(mycrt.getServer()).post('/api/captures/').send(scheduledCaptureBody);
-         const response = await request(mycrt.getServer()).put('/api/captures/1').send(scheduledCaptureBody);
-      } catch (err) {
-         expect(err).to.have.status(http.BAD_REQUEST);
-      }
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      await mycrt.post(http.OK, '/api/captures/', scheduledCaptureBody);
+      const response = await mycrt.put(http.NOT_FOUND, '/api/captures/1', scheduledCaptureBody);
    });
 
    it("should successfully delete an existing capture", async () => {
-      await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
-      const capture = await request(mycrt.getServer()).post('/api/captures/').send(liveCaptureBody);
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const capture = await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
       const id = capture.body.id;
-      const response = await request(mycrt.getServer()).del('/api/captures/' + id).send();
-      expect(response).to.have.status(http.OK);
+      const response = await mycrt.delete(http.OK, '/api/captures/' + id);
    });
 
    it("should fail to delete a capture that does not exist", async () => {
-      try {
-         const response = await request(mycrt.getServer()).del('/api/captures/100').send();
-      } catch (err) {
-         expect(err).to.have.status(http.NOT_FOUND);
-      }
-});
+      const response = await mycrt.delete(http.NOT_FOUND, '/api/captures/100');
+   });
 };

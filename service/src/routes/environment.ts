@@ -95,6 +95,11 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          const id = request.params.id;
          const deleteLogs: boolean | undefined = request.query.deleteLogs;
 
+         const environment = await environmentDao.deleteEnvironment(id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
          if (deleteLogs === true) {
             const env = await environmentDao.getEnvironmentFull(id);
             if (env) {
@@ -109,10 +114,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             }
          }
 
-         const environment = await environmentDao.deleteEnvironment(id);
-         if (!environment) {
-            throw new HttpError(http.NOT_FOUND);
-         }
          response.json(environment);
 
       }));

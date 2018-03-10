@@ -44,7 +44,11 @@ export class CaptureDao extends Dao {
       return await this.getCapture(result.insertId);
    }
 
-   public async deleteCapture(id: number): Promise<data.ICapture> {
+   public async deleteCapture(id: number): Promise<data.ICapture | null> {
+      const capture = await this.getCapture(id);
+      if (capture === null) {
+         return null;
+      }
       return this.query<any>('DELETE FROM Capture WHERE id = ?', [id]);
    }
 
