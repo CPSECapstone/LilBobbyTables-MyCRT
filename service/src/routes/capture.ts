@@ -111,8 +111,13 @@ export default class CaptureRouter extends SelfAwareRouter {
          // validation
          const initialStatus: string | undefined = request.body.status;
          const inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
-         const endTime: Date = request.body.scheduledEnd;      // retrieve end time
-         const durationOfCapture: number = request.body.duration;            // retrieve duration of capture
+
+         // retrieve seconds
+         const duration = request.body.duration;
+         const endTime = this.createEndDate(inputTime, duration);
+         logger.debug(`endtime is: ` + endTime.toString());
+
+         // const endTime: Date = request.body.scheduledEnd;      // retrieve end time
          // TODO: Ask how to stop a capture
 
          // checks for existing environment
@@ -134,7 +139,6 @@ export default class CaptureRouter extends SelfAwareRouter {
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             name: request.body.name,
             scheduledStart: inputTime,
-            scheduledEnd: endTime,
          };
 
          // assign capture, insert into db
@@ -208,5 +212,11 @@ export default class CaptureRouter extends SelfAwareRouter {
       config.interval = settings.captures.interval;
       config.intervalOverlap = settings.captures.intervalOverlap;
       launch(config);
+   }
+
+   private createEndDate(startTime: Date, seconds: number): Date {
+      const endTime = startTime;
+      endTime.setSeconds(startTime.getSeconds() + seconds);
+      return endTime;
    }
 }
