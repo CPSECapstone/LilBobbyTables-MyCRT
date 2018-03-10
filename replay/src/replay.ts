@@ -5,7 +5,8 @@ import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging } from '@lbt-mycrt/c
 import { mycrtDbConfig, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
 import { CPUMetric, MemoryMetric, MetricsBackend, ReadMetric, WriteMetric } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
-import { ChildProgramStatus, ChildProgramType, IChildProgram, IDbReference } from '@lbt-mycrt/common/dist/data';
+import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram,
+   IDbReference } from '@lbt-mycrt/common/dist/data';
 import { ICommand, IWorkload } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
@@ -273,11 +274,18 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    private async sendMetricsToS3(start: Date, end: Date, firstTry: boolean = true) {
       try {
 
+         const memoryMetrics = await this.metrics.getMetricsForType(MemoryMetric, start, end);
+
+         memoryMetrics.dataPoints.forEach((metric) => {
+            metric.Unit = "Megabytes";
+            metric.Maximum *= ByteToMegabyte;
+         });
+
          const data = [
             await this.metrics.getMetricsForType(CPUMetric, start, end),
             await this.metrics.getMetricsForType(ReadMetric, start, end),
             await this.metrics.getMetricsForType(WriteMetric, start, end),
-            await this.metrics.getMetricsForType(MemoryMetric, start, end),
+            memoryMetrics,
          ];
 
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
