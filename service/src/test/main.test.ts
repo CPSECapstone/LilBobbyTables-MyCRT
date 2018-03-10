@@ -48,16 +48,12 @@ describe("MyCrtService", () => {
       await environmentDao.nuke();
    });
 
-   afterEach((done) => {
-      setTimeout(done, 150);
-   });
-
    it("should return 200 on '/'", async () => {
       const response = await chai.request(mycrt.getServer()).get('/');
       expect(response).to.have.status(http.OK);
    });
 
-   const client = new MyCrtServiceTestClient(mycrt, 100);
+   const client = new MyCrtServiceTestClient(mycrt);
    describe("environment router", environmentTests(client));
    describe("capture router", captureTests(client));
    describe("replay router", replayTests(client));

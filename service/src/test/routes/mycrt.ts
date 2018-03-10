@@ -26,7 +26,7 @@ export class MyCrtServiceTestClient {
       return `[Request: ${method} to ${url}] -> [Response: <${response.status}> | ${body}]`;
    }
 
-   constructor(public mycrt: MyCrtService, private requestDelay: number) {}
+   constructor(public mycrt: MyCrtService) {}
 
    public async get(expectedStatus: number, url: string, params?: any): Promise<ChaiHttp.Response> {
       return this.doRequest(expectedStatus, 'GET', url, params);
@@ -75,18 +75,8 @@ export class MyCrtServiceTestClient {
       assert.equal(response.status, expectedStatus,
          MyCrtServiceTestClient.describeRequestAndResponse(method, url, response));
 
-      await this.sleep(this.requestDelay);
-
       return response;
 
-   }
-
-   private sleep(ms: number): Promise<void> {
-      return new Promise((resolve, reject) => {
-         setTimeout(() => {
-            resolve();
-         }, ms);
-      });
    }
 
 }
