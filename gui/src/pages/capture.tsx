@@ -70,12 +70,16 @@ class CaptureApp extends React.Component<any, any> {
 
    public async componentWillMount() {
       if (this.state.envId) {
-         this.setState({
-            env: await mycrt.getEnvironment(this.state.envId),
-         });
+         const env = await mycrt.getEnvironment(this.state.envId);
+         if (env) {
+            this.setState({env});
+         }
       }
       if (this.state.captureId) {
-         this.setState({capture: await mycrt.getCapture(this.state.captureId)});
+         const capture = await mycrt.getCapture(this.state.captureId);
+         if (capture) {
+            this.setState({capture});
+         }
          const replays = await mycrt.getReplaysForCapture(this.state.captureId);
          if (replays) {
             this.setState({allReplays: this.makeObject(replays, "id")});
