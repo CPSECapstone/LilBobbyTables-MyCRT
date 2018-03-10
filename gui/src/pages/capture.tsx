@@ -10,6 +10,7 @@ import { Graph } from './components/graph_comp';
 
 import * as $ from 'jquery';
 
+import { Breadcrumbs } from './components/breadcrumbs_comp';
 import { CaptureInfo } from './components/capture_info_comp';
 import { ChartTypeCheck } from './components/chart_type_checkbox_comp';
 import { DeleteModal } from './components/delete_modal_comp';
@@ -63,7 +64,7 @@ class CaptureApp extends React.Component<any, any> {
 
       this.state = {envId, view, defaultReplay, replayInfo, env: null, captureId: id, capture: null,
             areaChart: false, allReplays: [], selectedReplays: [],
-            allGraphs: [], selectedGraphs: ["CPU"],
+            allGraphs: [], selectedGraphs: ["WRITE"], navTabs: ["Details", "Metrics", "Replays"],
       };
    }
 
@@ -79,15 +80,15 @@ class CaptureApp extends React.Component<any, any> {
          if (replays) {
             this.setState({allReplays: this.makeObject(replays, "id")});
          }
-
          const metrics = await mycrt.getAllCaptureMetrics(this.state.captureId);
          if (metrics) {
             this.setState({allGraphs: this.makeObject(metrics, "type")});
-            this.setWorkloadData(true);
+            if (this.state.defaultReplay) {
+               this.updateReplays(true, this.state.defaultReplay, true);
+            } else {
+               this.setWorkloadData(true);
+            }
          }
-      }
-      if (this.state.defaultReplay) {
-         this.updateReplays(true, this.state.defaultReplay);
       }
       if (this.state.replayInfo) {
          const chosenReplay = this.state.allReplays[this.state.replayInfo];
@@ -125,7 +126,8 @@ class CaptureApp extends React.Component<any, any> {
                const time = new Date(dataPoint.Timestamp);
                dataPoint.Timestamp = time.toLocaleString();
                dataPoint[this.state.capture.name] = dataPoint.Maximum;
-            } else {
+            }
+            if (replayId) {
                const replay = this.state.allReplays[replayId!];
                if (replay) {
                   const replayMetric = replay.metrics[graphType].dataPoints[k];
@@ -164,7 +166,7 @@ class CaptureApp extends React.Component<any, any> {
       this.setState({areaChart: chartType});
    }
 
-   public async updateReplays(checked: boolean, id: number) {
+   public async updateReplays(checked: boolean, id: number, updateCaptures: boolean) {
       const replay = this.state.allReplays[id];
       if (checked) {
          if (!replay.metrics) {
@@ -173,7 +175,7 @@ class CaptureApp extends React.Component<any, any> {
          this.setState((prevState: any) => ({
             selectedReplays: [id, ...prevState.selectedReplays],
          }));
-         this.setWorkloadData(false, id);
+         this.setWorkloadData(updateCaptures, id);
       } else {
          this.setState({
             selectedReplays: this.state.selectedReplays.filter((selectedId: any) => {
@@ -206,7 +208,7 @@ class CaptureApp extends React.Component<any, any> {
       const graphs: JSX.Element[] = [];
       if (this.state.selectedGraphs) {
          for (const graphType of this.state.selectedGraphs) {
-            graphs.push((<div><Graph data={this.state.allGraphs[graphType]}
+            graphs.push((<div><Graph data={this.state.allGraphs[graphType]} key={graphType}
                id={this.state.captureId} filled={this.state.areaChart}/><br/></div>));
          }
       }
@@ -215,87 +217,65 @@ class CaptureApp extends React.Component<any, any> {
          for (const id in this.state.allReplays) {
             const replay = this.state.allReplays[id];
             const name = replay.name || `replay ${replay.id}`;
-            replays.push((<ReplayPanel title={name} replay={replay} compare={false}
+            replays.push((<ReplayPanel title={name} replay={replay} compare={false} key={name}
                capture={this.state.capture} envId = {this.state.envId}/>));
          }
+      }
+      const navTabs: JSX.Element[] = [];
+      for (const tabName of this.state.navTabs) {
+         navTabs.push(<li className="nav-item">
+            <a className="nav-link" data-toggle="tab" href={`#${tabName.toLowerCase()}`} role="tab">
+            {tabName}</a></li>);
       }
       const metricsTarget = `./metrics?id=${this.state.captureId}`;
       return (
          <div>
-            <nav>
-               <ol className="breadcrumb">
-                  <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
-                  <li className="breadcrumb-item">
-                     <a href={`./dashboard?id=${this.state.envId}`}>{this.state.env.envName}</a></li>
-                  <li className="breadcrumb-item active">{this.state.capture.name}</li>
-               </ol>
-            </nav>
-            <div className="container">
-               <div className="row">
-                  <div className="col-sm-12 mb-r">
-                     <div className="page-header">
-                        <h1 style={{display: "inline"}}>{ this.state.capture.name }</h1>
-                        <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
-                           data-target="#deleteCaptureModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
-                            <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
-                        </a>
-                        <DeleteModal id="deleteCaptureModal" deleteId={this.state.captureId}
-                           name={this.state.capture.name} delete={this.deleteCapture} type="Capture"/>
-                     </div>
-                     <br/>
-                     <ul className="nav nav-tabs" role="tablist" id="captureTabs">
-                        <li className="nav-item">
-                           <a className="nav-link" data-toggle="tab" href="#info" role="tab">Details</a>
-                        </li>
-                        <li className="nav-item">
-                           <a className="nav-link" data-toggle="tab" href="#metrics" role="tab">Metrics</a>
-                        </li>
-                        <li className="nav-item">
-                           <a className="nav-link" data-toggle="tab" href="#replays" role="tab">Replays</a>
-                        </li>
-                     </ul>
-                     <div className="tab-content">
-                        <div className="tab-pane" id="info" role="tabpanel">
-                           <CaptureInfo capture={this.state.capture} env={this.state.env}/>
-                        </div>
-                        <div className="tab-pane" id="metrics" role="tabpanel">
-                           <div className="modal-body">
-                              <div className="page-header">
-                                 <br/>
-                                 <h2 style={{display: "inline"}}>Metrics</h2>
-                                 <GraphSelectDrop prompt="Metric Types"
-                                    graphs={this.state.allGraphs} update={this.updateGraphs}/>
-                                 {replays.length ?
-                                    <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
-                                          update={this.updateReplays} default={this.state.defaultReplay}/> : null
-                                 }
-                                 <ChartTypeCheck prompt="Chart Type" update={this.updateChartType}/>
-                                 <br/>
-                                 {graphs}
-                                 <br/><br/>
-                              </div>
-                           </div>
-                        </div>
-                        <div className="tab-pane" id="replays" role="tabpanel">
-                           {this.state.replayObj ?
-                              <ReplayInfo replay={this.state.replayObj} envId={this.state.envId}/> : null
+            <Breadcrumbs env={this.state.env} capture={this.state.capture}/>
+            <div className="container"><div className="row"><div className="col-sm-12 mb-r">
+               <div className="page-header">
+                  <h1 className="align">{this.state.capture.name}</h1>
+                  <a role="button" className="btn btn-danger deleteBtn" data-toggle="modal" href="#"
+                     data-target="#deleteCaptureModal">
+                     <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
+                  </a>
+                  <DeleteModal id="deleteCaptureModal" deleteId={this.state.captureId}
+                     name={this.state.capture.name} delete={this.deleteCapture} type="Capture"/>
+               </div><br/>
+               <ul className="nav nav-tabs" role="tablist" id="captureTabs">{navTabs}</ul>
+               <div className="tab-content">
+                  <div className="tab-pane" id="details" role="tabpanel">
+                     <CaptureInfo capture={this.state.capture} env={this.state.env}/>
+                  </div>
+                  <div className="tab-pane" id="metrics" role="tabpanel">
+                     <div className="modal-body">
+                        <div className="page-header"><br/>
+                           <h2 className="align">Metrics</h2>
+                           <GraphSelectDrop prompt="Metric Types"
+                              graphs={this.state.allGraphs} update={this.updateGraphs}/>
+                           {replays.length ?
+                              <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
+                                 update={this.updateReplays} default={this.state.defaultReplay}/> : null
                            }
-                           <br/>
-                           <div className="page-header">
-                              <h2>Replays</h2><br/>
-                           </div>
-                           <div className="myCRT-overflow-col">
-                              {replays.length ?
-                                 <div className="card-columns">{replays}</div> :
-                                 <p className="myCRT-empty-col">No replays exist.</p>
-                              }
-                           </div>
+                           <ChartTypeCheck prompt="Chart Type" update={this.updateChartType}/><br/>
+                           {graphs}<br/><br/>
                         </div>
+                     </div>
+                  </div>
+                  <div className="tab-pane" id="replays" role="tabpanel">
+                     {this.state.replayObj ?
+                        <ReplayInfo replay={this.state.replayObj} envId={this.state.envId}/> : null
+                     }<br/>
+                     <div className="page-header"><h2>Replays</h2><br/></div>
+                     <div className="myCRT-overflow-col">
+                        {replays.length ?
+                           <div className="card-columns">{replays}</div> :
+                           <p className="myCRT-empty-col">No replays exist.</p>
+                        }
                      </div>
                   </div>
                </div>
             </div>
-         </div>
+         </div></div></div>
       );
    }
 

@@ -26,7 +26,7 @@ export class CapturePanel extends React.Component<any, any>  {
 
     public handleInfoClick(event: any): void {
        if (this.state.capture.status === ChildProgramStatus.DONE) {
-         window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=info`);
+         window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=details`);
        }
     }
 

@@ -37,7 +37,7 @@ class EnvironmentsApp extends React.Component<any, any> {
          if (!name) {
            name = `Environment ${env.id}`;
          }
-         environments.push((<EnvironmentPanel title={name} env={env} />));
+         environments.push((<EnvironmentPanel title={name} env={env} key={name} />));
       }
     }
     return (
