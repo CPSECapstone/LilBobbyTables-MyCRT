@@ -117,9 +117,6 @@ export default class CaptureRouter extends SelfAwareRouter {
          const endTime = this.createEndDate(inputTime, duration);
          logger.debug(`endtime is: ` + endTime.toString());
 
-         // const endTime: Date = request.body.scheduledEnd;      // retrieve end time
-         // TODO: Ask how to stop a capture
-
          // checks for existing environment
          const env = await environmentDao.getEnvironment(request.body.envId);
          if (!env) {
@@ -127,7 +124,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          // checks status and checks populated scheduled start time
-         if (request.body.status === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
             throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
          }
 
@@ -162,6 +159,13 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          logger.info(`Successfully created capture!`);
+
+         // prepare for stopping the capture at scheduled end time
+         if (initialStatus === ChildProgramStatus.RUNNING && !request.body.scheduledEnd) {
+            logger.debug(`i made it inside the if`);
+            schedule.scheduleJob(endTime, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
+            response.json({status: http.OK});   // send response to finish stopped capture
+         }
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
@@ -219,5 +223,11 @@ export default class CaptureRouter extends SelfAwareRouter {
       const endTime = startTime;
       endTime.setSeconds(startTime.getSeconds() + seconds);
       return endTime;
+   }
+
+   private async stopScheduledCapture(capture: ICapture): Promise<void> {
+      const logger = Logging.defaultLogger(__dirname);
+      await this.ipcNode.stopCapture(capture.id!);
+      logger.info(`Capture ${capture.id!} stopped`);
    }
 }

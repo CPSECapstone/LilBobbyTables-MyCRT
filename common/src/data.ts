@@ -20,6 +20,7 @@ export interface IChildProgram {
    start?: Date;
    end?: Date;
    scheduledStart?: Date;
+   scheduledEnd?: Date;
    status?: ChildProgramStatus;
 }
 

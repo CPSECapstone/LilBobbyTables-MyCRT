@@ -40,6 +40,7 @@ export class CaptureDao extends Dao {
          status: capture.status,
          envId: capture.envId,
          scheduledStart: capture.scheduledStart,
+         scheduledEnd: capture.scheduledEnd,
       });
       return await this.getCapture(result.insertId);
    }
