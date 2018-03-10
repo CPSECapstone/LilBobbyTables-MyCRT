@@ -48,6 +48,10 @@ describe("MyCrtService", () => {
       await environmentDao.nuke();
    });
 
+   afterEach((done) => {
+      setTimeout(done, 250);
+   });
+
    it("should return 200 on '/'", async () => {
       const response = await chai.request(mycrt.getServer()).get('/');
       expect(response).to.have.status(http.OK);
