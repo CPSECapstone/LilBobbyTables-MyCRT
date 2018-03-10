@@ -90,7 +90,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                return;
 
             case ChildProgramStatus.SCHEDULED:
-               // TODO: unschedule the capture
+               // TODO: unschedule the capture)
                throw new HttpError(http.NOT_IMPLEMENTED,
                   "No support for stopping scheduled captures that haven't started");
 
@@ -139,6 +139,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             name: request.body.name,
             scheduledStart: inputTime,
+            scheduledEnd: endTime,
          };
 
          // assign capture, insert into db
