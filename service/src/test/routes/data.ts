@@ -55,6 +55,13 @@ export const liveCaptureBody = {
    end: null,
 };
 
+export const badScheduledCapture = {
+   name: "ScheduledCapture",
+   envId: 1,
+   status: "SCHEDULED",
+   scheduledStart: null,
+};
+
 export const captureBadEnv = {
    name: 'BadCapture',
    envId: 56,
