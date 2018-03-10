@@ -49,7 +49,7 @@ describe("MyCrtService", () => {
    });
 
    afterEach((done) => {
-      setTimeout(done, 250);
+      setTimeout(done, 150);
    });
 
    it("should return 200 on '/'", async () => {
@@ -57,7 +57,7 @@ describe("MyCrtService", () => {
       expect(response).to.have.status(http.OK);
    });
 
-   const client = new MyCrtServiceTestClient(mycrt);
+   const client = new MyCrtServiceTestClient(mycrt, 100);
    describe("environment router", environmentTests(client));
    describe("capture router", captureTests(client));
    describe("replay router", replayTests(client));
