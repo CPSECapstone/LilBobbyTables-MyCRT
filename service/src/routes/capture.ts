@@ -163,6 +163,11 @@ export default class CaptureRouter extends SelfAwareRouter {
          const deleteLogs: boolean | undefined = request.query.deleteLogs;
          const captureRow = await captureDao.getCapture(id);
 
+         const capture = await captureDao.deleteCapture(id);
+         if (!capture) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
          if (deleteLogs === true && captureRow && captureRow.envId) {
             const env = await environmentDao.getEnvironmentFull(captureRow.envId);
 
@@ -184,10 +189,6 @@ export default class CaptureRouter extends SelfAwareRouter {
             }
          }
 
-         const capture = await captureDao.deleteCapture(id);
-         if (!capture) {
-            throw new HttpError(http.NOT_FOUND);
-         }
          response.json(capture);
 
       }));

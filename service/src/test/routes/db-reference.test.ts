@@ -2,23 +2,18 @@ import { expect, request } from 'chai';
 import * as http from 'http-status-codes';
 import 'mocha';
 
-import MyCrtService from '../../main';
 import { newEnvBody } from './data';
+import { MyCrtServiceTestClient } from './mycrt';
 
-export const dbReferenceTests = (mycrt: MyCrtService) => () => {
+export const dbReferenceTests = (mycrt: MyCrtServiceTestClient) => () => {
    it("should get a db reference", async () => {
-      const responsePost = await request(mycrt.getServer()).post('/api/environments/').send(newEnvBody);
+      const responsePost = await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       const id = responsePost.body.id;
-      const response = await request(mycrt.getServer()).get('/api/dbReferences/' + id);
-      expect(response).to.have.status(http.OK);
+      const response = await mycrt.get(http.OK, '/api/dbReferences/' + id);
       // TODO test the body of the response
    });
 
    it("should not find a nonexisting db reference", async () => {
-      try {
-         const response = await request(mycrt.getServer()).get('/api/environments/42');
-      } catch (err) {
-         expect(err).to.have.status(http.NOT_FOUND);
-      }
+      const response = await mycrt.get(http.NOT_FOUND, '/api/environments/42');
    });
 };

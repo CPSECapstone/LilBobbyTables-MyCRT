@@ -33,7 +33,7 @@ export class EnvironmentDao extends Dao {
       return await this.getEnvironment(row.insertId);
    }
 
-   public async deleteEnvironment(id: number): Promise<data.IEnvironment> {
+   public async deleteEnvironment(id: number): Promise<data.IEnvironment | null> {
       const environment = await this.getEnvironment(id);
 
       if (environment !== null) {
@@ -43,9 +43,10 @@ export class EnvironmentDao extends Dao {
          await this.deleteS3Reference(environment.s3Id);
          // Delete captures associated with the environment
          await this.query<any[]>('DELETE FROM Capture WHERE envId = ?', [id]);
+         return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
+      } else {
+         return null;
       }
-
-      return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
    }
 
    /**
