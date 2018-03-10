@@ -72,3 +72,42 @@ export const badDBBody = {
    user: "nfl2015user",
    pass: "nfl2015pass",
 };
+
+export const replayBody = {
+   name: "myReplay",
+   start: "2017-11-02 12:00:00",
+   end: null,
+   captureId: 1,
+   dbName: "nfltest2015",
+   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
+   user: "nfltest2015user",
+   pass: "nfltest2015pass",
+   instance: "nfltest2015",
+   parameterGroup: "testsupergroup",
+};
+
+export const badReplayBody = {
+   name: "BadReplay",
+   start: "2017-11-02 12:00:00",
+   end: null,
+   captureId: 1,
+   dbName: "bad db name",
+   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
+   user: "nfltest2015user",
+   pass: "nfltest2015pass",
+   instance: "nfltest2015",
+   parameterGroup: "testsupergroup",
+};
+
+export const anotherBadReplayBody = {
+   name: "BadReplay",
+   start: "2017-11-02 12:00:00",
+   end: null,
+   captureId: null,
+   dbName: "nfltest2015",
+   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
+   user: "nfltest2015user",
+   pass: "nfltest2015pass",
+   instance: "nfltest2015",
+   parameterGroup: "testsupergroup",
+};
