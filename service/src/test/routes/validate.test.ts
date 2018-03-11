@@ -2,32 +2,20 @@ import { expect, request } from 'chai';
 import * as http from 'http-status-codes';
 import 'mocha';
 
-import MyCrtService from '../../main';
 import { badCredBody, badDBBody } from './data';
+import { MyCrtServiceTestClient } from './mycrt';
 
-export const validateTests = (mycrt: MyCrtService) => () => {
+export const validateTests = (mycrt: MyCrtServiceTestClient) => function() {
 
-   it("should reject incomplete credentials body for rds", async () => {
-      try {
-         const response = await request(mycrt.getServer()).post('/api/validate/credentials').send(badCredBody);
-      } catch (err) {
-         expect(err).to.have.status(http.BAD_REQUEST);
-      }
+   it("should reject incomplete credentials body for rds", async function() {
+      const response = await mycrt.post(http.BAD_REQUEST, '/api/validate/credentials', badCredBody);
    });
 
-   it("should reject incomplete credentials body for s3", async () => {
-      try {
-         const response = await request(mycrt.getServer()).post('/api/validate/bucket');
-      } catch (err) {
-         expect(err).to.have.status(http.BAD_REQUEST);
-      }
+   it("should reject incomplete credentials body for s3", async function() {
+      const response = await mycrt.post(http.BAD_REQUEST, '/api/validate/bucket');
    });
 
-   it("should reject incomplete database body", async () => {
-      try {
-         const response = await request(mycrt.getServer()).post('/api/validate/database');
-      } catch (err) {
-         expect(err).to.have.status(http.BAD_REQUEST);
-      }
+   it("should reject incomplete database body", async function() {
+      const response = await mycrt.post(http.BAD_REQUEST, '/api/validate/database');
    });
 };

@@ -40,11 +40,16 @@ export class CaptureDao extends Dao {
          status: capture.status,
          envId: capture.envId,
          scheduledStart: capture.scheduledStart,
+         scheduledEnd: capture.scheduledEnd,
       });
       return await this.getCapture(result.insertId);
    }
 
-   public async deleteCapture(id: number): Promise<data.ICapture> {
+   public async deleteCapture(id: number): Promise<data.ICapture | null> {
+      const capture = await this.getCapture(id);
+      if (capture === null) {
+         return null;
+      }
       return this.query<any>('DELETE FROM Capture WHERE id = ?', [id]);
    }
 
