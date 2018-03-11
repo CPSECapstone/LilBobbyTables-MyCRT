@@ -5,6 +5,8 @@ import '../../static/css/environments.css';
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { BrowserLogger as logger } from './../logging';
+
 import { EnvironmentPanel } from './components/env_panel_comp';
 import { EnvModal } from './components/environment_modal_comp';
 import { mycrt } from './utils/mycrt-client';
@@ -29,12 +31,13 @@ class EnvironmentsApp extends React.Component<any, any> {
   public render() {
     const environments: JSX.Element[] = [];
     if (this.state.envs) {
-      for (const env of this.state.envs) {
-        let name = `${env.name}`;
-        if (!name) {
-          name = `Environment ${env.id}`;
-        }
-        environments.push((<EnvironmentPanel title={name} env={env} />));
+      for (let id = this.state.envs.length - 1; id >= 0; id--) {
+         const env = this.state.envs[id];
+         let name = `${env.name}`;
+         if (!name) {
+           name = `Environment ${env.id}`;
+         }
+         environments.push((<EnvironmentPanel title={name} env={env} key={name} />));
       }
     }
     return (
@@ -60,7 +63,10 @@ class EnvironmentsApp extends React.Component<any, any> {
           <div className="row">
             <div className="col-sm-12 mb-r">
               <EnvModal id="envModal" update={this.componentWillMount}/>
-              {environments}
+              <div className="myCRT-overflow-col">
+                {environments.length ? environments : <p className="myCRT-empty-col">
+                            No environments currently exist.</p>}
+              </div>
             </div>
           </div>
         </div>

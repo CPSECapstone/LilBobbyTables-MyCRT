@@ -19,7 +19,7 @@ export class ChartTypeCheck extends React.Component<any, any>  {
     public render() {
         return (
             <label className="checkbox-inline" style={{paddingBottom: "20px", margin: "20px",
-                verticalAlign: "middle", fontSize: "0.8rem"}}>
+                verticalAlign: "middle", fontSize: "0.9rem"}}>
                 <input type="checkbox" onChange={(e) => this.fillChart(e)}/>
                     &nbsp;&nbsp;&nbsp;Show Area Chart
             </label>

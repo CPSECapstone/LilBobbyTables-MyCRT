@@ -19,6 +19,7 @@ export interface IChildProgram {
    name?: string;
    start?: Date;
    end?: Date;
+   scheduledStart?: Date;
    status?: ChildProgramStatus;
 }
 
@@ -134,3 +135,5 @@ export interface IMetricsList {
    complete?: boolean;
    dataPoints: IMetric[];
 }
+
+export const ByteToMegabyte = 0.00000095367432;

@@ -7,6 +7,7 @@ import './common';
 
 import '../../static/css/index.css';
 
+import { ICapture } from '../../../common/dist/main';
 import { BrowserLogger as logger } from '../logging';
 import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
@@ -21,6 +22,7 @@ class DashboardApp extends React.Component<any, any> {
         super(props);
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
+        this.updateCaptures = this.updateCaptures.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
         if (match) {
@@ -30,21 +32,41 @@ class DashboardApp extends React.Component<any, any> {
     }
 
    public async setCaptures() {
-       const capturesResponse = await mycrt.getCaptures();
+       const capturesResponse = await mycrt.getCapturesForEnvironment(this.state.envId);
        if (capturesResponse !== null) {
            this.setState({
-                captures: capturesResponse,
+                captures: this.makeObject(capturesResponse, "id"),
             });
+            this.setReplays();
         }
     }
 
-    public async setReplays() {
-        const replaysResponse = await mycrt.getReplays();
-        if (replaysResponse !== null) {
-            this.setState({
-                replays: replaysResponse,
-            });
+    public makeObject(list: any[], field: string): any {
+        const obj = {} as any;
+        if (list) {
+              list.forEach((item: any) => {
+                    obj[item[field]] = item;
+              });
         }
+        return obj;
+  }
+
+    public async setReplays() {
+       let allReplays = this.state.replays;
+        for (const id in this.state.captures) {
+           const capture = this.state.captures[id];
+           const replays = await mycrt.getReplaysForCapture(capture.id);
+           if (replays) {
+               allReplays = allReplays.concat(replays);
+           }
+        }
+        this.setState({replays: allReplays});
+    }
+
+    public updateCaptures(id: string, status: ChildProgramStatus) {
+        const captures = this.state.captures;
+        captures[id].status = status;
+        this.setState({captures});
     }
 
     public async componentWillMount() {
@@ -54,7 +76,6 @@ class DashboardApp extends React.Component<any, any> {
             });
         }
         this.setCaptures();
-        this.setReplays();
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
@@ -65,38 +86,40 @@ class DashboardApp extends React.Component<any, any> {
     public render() {
         if (!this.state.env) { return (<div></div>); }
         const liveCaptures: JSX.Element[] = [];
+        const scheduledCaptures: JSX.Element[] = [];
         const pastCaptures: JSX.Element[] = [];
         if (this.state.captures) {
-            for (const capture of this.state.captures) {
-                let name = `${capture.name}`;
-                if (!name) {
-                    name = `capture ${capture.id}`;
-                }
-                if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE) {
-                    pastCaptures.push((<CapturePanel title={name} capture={capture} envId = {this.state.envId} />));
+            const captureList = Object.keys(this.state.captures);
+            for (let i = captureList.length - 1; i >= 0; i--) {
+                const capture = this.state.captures[captureList[i]];
+                const name = capture.name || `capture ${capture.id}`;
+                const captureComp = (<CapturePanel title={name} capture={capture} key={name}
+                  envId={this.state.envId} update={this.updateCaptures}/>);
+                if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE ||
+                     capture.status === ChildProgramStatus.FAILED) {
+                    pastCaptures.push(captureComp);
+                } else if (capture.status === ChildProgramStatus.SCHEDULED) {
+                    scheduledCaptures.push(captureComp);
                 } else {
-                    liveCaptures.push((<CapturePanel title={name} capture={capture} envId = {this.state.envId}/>));
+                    liveCaptures.push(captureComp);
                 }
             }
         }
       const liveReplays: JSX.Element[] = [];
+      const scheduledReplays: JSX.Element[] = [];
       const pastReplays: JSX.Element[] = [];
       if (this.state.replays) {
-         for (const replay of this.state.replays) {
-            let name = `${replay.name}`;
-            if (!name) {
-                name = `replay ${replay.id}`;
-            }
-            let captureObj = null;
-            if (this.state.captures) {
-                captureObj = this.state.captures.find((item: IChildProgram) => item.id === replay.captureId);
-            }
+         for (let id = this.state.replays.length - 1; id >= 0; id--) {
+            const replay = this.state.replays[id];
+            const name = replay.name || `replay ${replay.id}`;
+            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true} key={name}
+               capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>);
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
-                pastReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
-                    capture={captureObj} envId = {this.state.envId}/>));
+                pastReplays.push(replayComp);
+            } else if (replay.status === ChildProgramStatus.SCHEDULED) {
+                scheduledReplays.push(replayComp);
             } else {
-                liveReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
-                    capture={captureObj} envId = {this.state.envId}/>));
+                liveReplays.push(replayComp);
             }
          }
       }
@@ -105,26 +128,46 @@ class DashboardApp extends React.Component<any, any> {
             <nav>
                <ol className="breadcrumb">
                   <li className="breadcrumb-item"><a href="./environments">Environments</a></li>
-                  <li className="breadcrumb-item active">{this.state.env.name}</li>
+                  <li className="breadcrumb-item active">{this.state.env.envName}</li>
                </ol>
             </nav>
 
             <div className="container">
                <div className="row">
                   <div className="col-xs-12">
-                     <h1 style={{display: "inline"}}>{this.state.env.name}</h1>
+                     <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
                      <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
                            data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
+                     <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
+                        paddingLeft: "20px", width: "1050px"}}>
+                        <div className="row">
+                           <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
+                              <h5>Source Database:</h5>
+                              <label><b>&nbsp;&nbsp;&nbsp;Name: </b>{this.state.env.dbName}</label><br/>
+                              <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.state.env.host}</label><br/>
+                              <label>
+                                 <b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>
+                                 {this.state.env.parameterGroup}</label><br/>
+                              <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}
+                              </label>
+                              <br/><br/>
+                           </div>
+                           <div className="col-xs-6" style={{padding: "20px 40px 0px"}}>
+                              <h5>S3 File Storage:</h5>
+                              <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label>
+                           </div>
+                        </div>
+                     </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
-                               name={this.state.env.name} delete={this.deleteEnv} type="Environment"/>
+                               name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
                   </div>
                </div>
                <br></br>
                <div className="row">
                   <div className="col-xs-12 col-md-5 mb-r">
-                     <div>
+                     <div><br/>
                         <h2 style={{display: "inline"}}>Captures</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
@@ -133,33 +176,56 @@ class DashboardApp extends React.Component<any, any> {
                         <CaptureModal id="captureModal" envId={this.state.envId} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     {liveCaptures.length === 0 ? null : <h4>Live</h4>}
-                     {liveCaptures}
+                     <h4>Live</h4>
+                     <div className="myCRT-overflow-col">
+                     {liveCaptures.length ? liveCaptures : <p className="myCRT-empty-col">
+                            No currently active captures</p>}
+                    </div>
                      <br></br>
-                     {pastCaptures.length === 0 ? null : <h4>Past</h4>}
-                     {pastCaptures}
+                     <h4>Scheduled</h4>
+                     <div className="myCRT-overflow-col">
+                     {scheduledCaptures.length ? scheduledCaptures : <p className="myCRT-empty-col">
+                            No currently scheduled captures</p>}
+                    </div>
+                     <br></br>
+                     <h4>Past</h4>
+                     <div className="myCRT-overflow-col">
+                        {pastCaptures.length ? pastCaptures : <p className="myCRT-empty-col">
+                            No past captures exist.</p>}
+                    </div>
                      <br></br>
                   </div>
                   <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
-                     <div>
+                     <div><br/>
                         <h2 style={{display: "inline"}}>Replays</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
                             data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
                         <ReplayModal id="replayModal" captures={this.state.captures}
-                            envId = {this.state.envId} update={this.componentWillMount}/>
+                            env = {this.state.env} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     {liveReplays.length === 0 ? null : <h4>Live</h4>}
-                     {liveReplays}
+                     <h4>Live</h4>
+                     <div className="myCRT-overflow-col">
+                        {liveReplays.length ? liveReplays : <p className="myCRT-empty-col">
+                            No currently active replays</p>}
+                    </div>
                      <br></br>
-                     {pastReplays.length === 0 ? null : <h4>Past</h4>}
-                     {pastReplays}
+                     <h4>Scheduled</h4>
+                     <div className="myCRT-overflow-col">
+                        {scheduledReplays.length ? scheduledReplays : <p className="myCRT-empty-col">
+                            No currently scheduled replays</p>}
+                    </div>
+                     <br></br>
+                     <h4>Past</h4>
+                     <div className="myCRT-overflow-col">
+                     {pastReplays.length ? pastReplays : <p className="myCRT-empty-col">
+                            No past replays exist.</p>}
+                    </div>
                      <br></br>
                   </div>
                </div>
-
             </div>
          </div>
       );

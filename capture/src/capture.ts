@@ -4,7 +4,7 @@ import { setTimeout } from 'timers';
 import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-mycrt/common';
 import { CPUMetric, MemoryMetric, Metric, MetricsBackend, ReadMetric, WriteMetric } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
-import { ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
+import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
    IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
@@ -75,7 +75,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
          this.startTime = new Date();
          logger.info(`Setting Capture ${this.id} startTime = ${this.startTime!.toJSON()}`);
-         await captureDao.updateCaptureStartTime(this.id);
+         await captureDao.updateCaptureStartTime(this.id, this.startTime);
 
          logger.info(`Setup for Capture ${this.id} complete!`);
       } catch (error) {
@@ -150,11 +150,20 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
    private async sendMetricsToS3(start: Date, end: Date) {
       this.tryTwice(async () => {
+
+         const memoryMetrics = await this.metrics.getMetricsForType(MemoryMetric, start, end);
+         const datapoints = memoryMetrics.dataPoints;
+
+         datapoints.forEach((metric) => {
+            metric.Unit = "Megabytes";
+            metric.Maximum *= ByteToMegabyte;
+         });
+
          const data = [
             await this.metrics.getMetricsForType(CPUMetric, start, end),
             await this.metrics.getMetricsForType(ReadMetric, start, end),
             await this.metrics.getMetricsForType(WriteMetric, start, end),
-            await this.metrics.getMetricsForType(MemoryMetric, start, end),
+            memoryMetrics,
          ];
 
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);

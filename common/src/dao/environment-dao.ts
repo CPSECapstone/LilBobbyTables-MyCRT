@@ -25,11 +25,7 @@ export class EnvironmentDao extends Dao {
          'WHERE e.id = ?';
 
       const rows = await this.query<any[]>(queryStr, [id]);
-      if (rows[0]) {
-         return this.rowToIEnvironmentFull(rows[0]);
-      } else {
-         return null;
-      }
+      return rows.length ? this.rowToIEnvironmentFull(rows[0]) : null;
    }
 
    public async makeEnvironment(environment: data.IEnvironment): Promise<data.IEnvironment | null> {
@@ -37,7 +33,7 @@ export class EnvironmentDao extends Dao {
       return await this.getEnvironment(row.insertId);
    }
 
-   public async deleteEnvironment(id: number): Promise<data.IEnvironment> {
+   public async deleteEnvironment(id: number): Promise<data.IEnvironment | null> {
       const environment = await this.getEnvironment(id);
 
       if (environment !== null) {
@@ -47,9 +43,10 @@ export class EnvironmentDao extends Dao {
          await this.deleteS3Reference(environment.s3Id);
          // Delete captures associated with the environment
          await this.query<any[]>('DELETE FROM Capture WHERE envId = ?', [id]);
+         return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
+      } else {
+         return null;
       }
-
-      return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
    }
 
    /**
@@ -94,12 +91,12 @@ export class EnvironmentDao extends Dao {
       return (id ? this.query<any>('DELETE FROM S3Reference WHERE id = ?', [id]) : null);
    }
 
-   public async getDbReference(id: number): Promise<data.IDbReference> {
+   public async getDbReference(id: number): Promise<data.IDbReference | null> {
       const rows = await this.query<any[]>('SELECT * FROM DBReference WHERE id = ?', [id]);
-      return this.rowToIDbReference(rows[0]);
+      return rows.length ? this.rowToIDbReference(rows[0]) : null;
    }
 
-   public async makeDbReference(dbRef: data.IDbReference): Promise<data.IDbReference> {
+   public async makeDbReference(dbRef: data.IDbReference): Promise<data.IDbReference | null> {
       const row = await this.query<any>('INSERT INTO DBReference SET ?', dbRef);
       return await this.getDbReference(row.insertId);
    }

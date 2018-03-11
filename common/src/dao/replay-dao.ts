@@ -32,7 +32,11 @@ export class ReplayDao extends Dao {
       return await this.getReplay(result.insertId);
    }
 
-   public async deleteReplay(id: number): Promise<data.IReplay> {
+   public async deleteReplay(id: number): Promise<data.IReplay | null> {
+      const replay = await this.getReplay(id);
+      if (replay === null) {
+         return null;
+      }
       return this.query<any>('DELETE FROM Replay WHERE id = ?' , [id]);
    }
 

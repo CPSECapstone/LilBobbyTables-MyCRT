@@ -2,6 +2,7 @@ import React = require('react');
 import ReactDom = require('react-dom');
 
 import * as $ from 'jquery';
+import * as moment from 'moment';
 
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
@@ -13,10 +14,16 @@ import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/dat
 
 export class CaptureModal extends React.Component<any, any>  {
 
+    private baseState = {} as any;
+
     constructor(props: any) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
-        this.state = { captureName: "" };
+        this.cancelModal = this.cancelModal.bind(this);
+        this.state = { captureName: "", scheduledStart: "", captureType: "immediately" };
+        this.handleTimeChange = this.handleTimeChange.bind(this);
+        this.handleCaptureTypeChange = this.handleCaptureTypeChange.bind(this);
+        this.baseState = this.state;
     }
 
     public allFieldsFilled() {
@@ -29,7 +36,12 @@ export class CaptureModal extends React.Component<any, any>  {
             $('#captureWarning').show();
             return;
         }
-        const captureObj = await mycrt.startCapture({name: this.state.captureName, envId: this.props.envId});
+        const capture = {name: this.state.captureName, envId: this.props.envId} as any;
+        if (this.state.captureType === "specific") {
+           capture.status = ChildProgramStatus.SCHEDULED;
+           capture.scheduledStart = this.state.scheduledStart;
+        }
+        const captureObj = await mycrt.startCapture(capture);
         if (!captureObj) {
             logger.error("Could not start capture");
         } else {
@@ -42,8 +54,22 @@ export class CaptureModal extends React.Component<any, any>  {
         }
     }
 
+    public handleTimeChange(date: string) {
+       const newDate = new Date(date);
+       this.setState({scheduledStart: newDate});
+    }
+
+    public handleCaptureTypeChange(type: string) {
+       this.setState({captureType: type});
+    }
+
     public handleNameChange(event: any) {
         this.setState({captureName: event.target.value});
+    }
+
+    public cancelModal(event: any) {
+        this.setState(this.baseState);
+        this.render();
     }
 
     public render() {
@@ -54,7 +80,8 @@ export class CaptureModal extends React.Component<any, any>  {
                     <div className="modal-content myCRT-modal">
                         <div className="modal-header myCRT-modal-header">
                             <h4 className="modal-title">New Capture</h4>
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close"
+                                onClick={this.cancelModal}>
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
@@ -71,7 +98,8 @@ export class CaptureModal extends React.Component<any, any>  {
                                                 aria-describedby="captureName" placeholder="Enter name"></input>
                                         <small id="captureName" className="form-text text-muted"></small>
                                         <br/>
-                                        <StartDateTime />
+                                        <StartDateTime updateTime={this.handleTimeChange}
+                                          updateType={this.handleCaptureTypeChange}/>
                                         <br/>
                                         <label><b>Duration</b></label>
                                         <div className="container">
@@ -87,7 +115,7 @@ export class CaptureModal extends React.Component<any, any>  {
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" id="cancelBtn"
-                                data-dismiss="modal">Cancel</button>
+                                data-dismiss="modal" onClick={this.cancelModal}>Cancel</button>
                             <button type="button" className="btn btn-info"
                                     onClick = { (e) => this.handleClick(e) }>Save Capture</button>
                         </div>

@@ -19,10 +19,6 @@ export default class ValidateRouter extends SelfAwareRouter {
 
    protected mountRoutes(): void {
 
-      this.router.get('/', this.handleHttpErrors(async (request, response) => {
-         response.sendStatus(http.OK);
-      }));
-
       this.router.post('/credentials', check.validBody(schema.credentialsBody),
          this.handleHttpErrors(async (request, response) => {
 
@@ -63,7 +59,7 @@ export default class ValidateRouter extends SelfAwareRouter {
 
          try {
             const conn = await this.getDBConnection(connection);
-            response.sendStatus(http.OK);
+            response.json({status: http.OK});
          } catch (e) {
             throw new HttpError(http.BAD_REQUEST, "Can't connect to the database");
          }

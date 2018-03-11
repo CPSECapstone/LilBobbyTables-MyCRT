@@ -29,7 +29,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
-         const environment = await environmentDao.getEnvironment(id);
+         const environment = await environmentDao.getEnvironmentFull(id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
          }
@@ -59,7 +59,10 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          iamReference = await environmentDao.makeIamReference(iamReference);
          s3Reference = await environmentDao.makeS3Reference(s3Reference);
-         dbReference = await environmentDao.makeDbReference(dbReference);
+         const dbRef = await environmentDao.makeDbReference(dbReference);
+         if (dbRef) {
+            dbReference = dbRef;
+         }
 
          const environment: data.IEnvironment = {
             name: request.body.envName,
@@ -70,7 +73,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          const envId = await environmentDao.makeEnvironment(environment);
          response.json(envId);
-
       }));
 
       // TODO: Figure out exactly what is allowed to be edited.
@@ -78,14 +80,12 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
-
          let environment: data.IEnvironment | null = {
             name: request.body.envName,
          };
 
          environment = await environmentDao.editEnvironment(id, environment);
          response.json(environment!);
-
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
@@ -94,6 +94,11 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const deleteLogs: boolean | undefined = request.query.deleteLogs;
+
+         const environment = await environmentDao.deleteEnvironment(id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND);
+         }
 
          if (deleteLogs === true) {
             const env = await environmentDao.getEnvironmentFull(id);
@@ -109,10 +114,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             }
          }
 
-         const environment = await environmentDao.deleteEnvironment(id);
-         if (!environment) {
-            throw new HttpError(http.NOT_FOUND);
-         }
          response.json(environment);
 
       }));

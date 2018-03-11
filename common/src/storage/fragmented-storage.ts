@@ -70,8 +70,9 @@ export abstract class FragmentedStorage<T> {
       for (const key of depotKeys) {
          const time = this.schema.getTimeFromKey(key);
          if (time > lastTime) {
+            logger.info(`   found at ${key} with time ${time}:`);
             const sample = await this.backend.readJson<T>(key);
-            logger.info(`   found at ${key} with time ${time}: ${this.objectToString(sample)}`);
+            logger.info(`      - ${this.objectToString(sample)}`);
             result = this.mergeObjects(result, sample);
             newTime = time;
          }
