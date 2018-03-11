@@ -1,7 +1,7 @@
 {
    "name": "MyCRT Server",
    "captures": {
-      "mock": true,
+      "mock": false,
       "interval": 120000,
       "intervalOverlap": 1000
    },
