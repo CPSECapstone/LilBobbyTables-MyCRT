@@ -5,9 +5,8 @@ import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging } from '@lbt-mycrt/c
 import { mycrtDbConfig, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
 import { CPUMetric, MemoryMetric, MetricsBackend, ReadMetric, WriteMetric } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
-import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram,
-   IDbReference } from '@lbt-mycrt/common/dist/data';
-import { ICommand, IWorkload } from '@lbt-mycrt/common/dist/data';
+import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
+import { ICommand, IDbReference, IWorkload } from '@lbt-mycrt/common/dist/data';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { path as schema } from '@lbt-mycrt/common/dist/storage/backend-schema';
@@ -22,10 +21,11 @@ const logger = Logging.defaultLogger(__dirname);
 export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    private ipcNode: IpcNode;
-   private capture?: ICapture | null;
+   private capture: ICapture | null = null;
    private expectedEndTime?: Date;
    private firstLoop: boolean = true;
-   private targetDb: IDbReference;
+   private dbRef: IDbReference;
+   private targetDb?: any;
    private workload?: IWorkload;
    private workloadStart?: Moment;
    private workloadEnd?: Moment;
@@ -33,12 +33,12 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    private replayEndTime?: Moment;
    private workloadPath?: string;
    private workloadIndex: number = 0;
-   private error: boolean = false;
+   private hasError: boolean = false;
 
    constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend, db: IDbReference) {
       super(storage, metrics);
       this.ipcNode = new ReplayIpcNode(this.id, logger, this);
-      this.targetDb = db;
+      this.dbRef = db;
    }
 
    get id(): number {
@@ -50,18 +50,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    }
 
    get interval(): number {
-
-      if (this.replayEndTime === undefined) {
-        return this.config.interval;
-      }
-
-      // uncomment when capture workloads have correct 'end' datetime
-      // const timeToEnd = this.replayEndTime.diff(moment());
-      // if (timeToEnd < this.config.interval ) {
-      //    return timeToEnd;
-      // } else {
-      //   return this.config.interval;
-      // }
       return this.config.interval;
    }
 
@@ -85,7 +73,12 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
          this.capture = await captureDao.getCapture(this.config.captureId);
 
-         await this.getWorkload();
+         this.targetDb = this.config.mock ? mycrtDbConfig : { database: this.dbRef.name,
+                                                              host: this.dbRef.host,
+                                                              password: this.dbRef.pass,
+                                                              user: this.dbRef.user };
+
+         this.workload = await this.getWorkload();
 
       } catch (error) {
          this.selfDestruct(error);
@@ -96,19 +89,26 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       logger.info('-----------==[ LOOP ]==-----------');
       if (this.firstLoop === true) {
-        this.firstLoopInit();
+        await this.firstLoopInit();
       }
 
       let finished = true;
 
-      while (this.workloadIndex < this.workload!.commands.length && this.queryInInterval(this.workloadIndex)) {
+      while (this.indexInInterval(this.workloadIndex)) {
 
-         const delay = this.getDelayForIndex(this.workloadIndex);
          const currentIndex = this.workloadIndex;
+         const delay = this.getDelayForIndex(currentIndex);
          const currentQuery = this.workload!.commands[currentIndex];
 
          setTimeout(() => {
-          this.processQuery(currentQuery); }, delay);
+            try {
+               this.processQuery(currentQuery);
+            } catch (error) {
+               logger.info(`Error while processing query with index ${currentIndex}
+               ${error}`);
+
+            }
+         }, delay);
          logger.info(`Scheduled query: ${this.workloadIndex}`);
 
          // don't let the subprocess end because we still need to run these queries.
@@ -116,8 +116,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          this.workloadIndex += 1;
       }
 
-      if (this.workloadIndex < this.workload!.commands.length || this.replayEndTime!.diff(moment()) > 0) {
-        // don't let the subprocess end because we still have queries to que.
+      if (this.shouldWeContinue()) {
         finished = false;
       }
 
@@ -131,7 +130,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    protected async teardown(): Promise<void> {
       logger.info(`Replay ${this.id}: teardown`);
 
-      if (this.error === false) {
+      if (!this.hasError) {
          await replayDao.updateReplayStatus(this.id, ChildProgramStatus.DONE);
       }
 
@@ -147,7 +146,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
      try {
         this.firstLoop = false;
         this.startTime = new Date();
-        this.replayStartTime = moment();
+        this.replayStartTime = moment(this.startTime);
         await replayDao.updateReplayStartTime(this.id);
 
         this.replayEndTime = this.replayStartTime.clone().add(this.workloadEnd!.diff(this.workloadStart));
@@ -161,44 +160,55 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
      }
    }
 
-   private getCaptureWorkloadPath(id: number): string {
-      return `capture${id}/workload.json`;
-  }
-
-   private async getWorkload() {
+   private async getWorkload(): Promise<IWorkload> {
 
       logger.info(`Getting workload from storage`);
-      this.workloadPath = this.getCaptureWorkloadPath(this.config.captureId);
-      this.workload = await this.storage.readJson(this.workloadPath) as IWorkload;
+      this.workloadPath = schema.workload.getDoneKey({
+         id: this.capture!.id,
+         type: ChildProgramType.CAPTURE,
+      });
 
-      if (this.workload) {
+      const temp: IWorkload = await this.storage.readJson<IWorkload>(this.workloadPath);
+
+      if (temp) {
         logger.info(`Workload Retrieved`);
-        this.workloadStart = moment(new Date(this.workload.start));
-        this.workloadEnd = moment(new Date(this.workload.end));
+        this.workloadStart = moment(new Date(temp.start));
+        this.workloadEnd = moment(new Date(temp.end));
 
         logger.info(`workloadStart: ${this.workloadStart.format()}`);
         logger.info(`workloadEnd:   ${this.workloadEnd.format()}`);
       }
+      return temp;
    }
 
-   // queryInInterval takes the index of the query in the workload and the time
-   //                 that next loop will begin in milliseconds and returns true
-   //                 if the query should be scheduled for the current loop otherwise false.
+   private indexInInterval(currentIndex: number): boolean {
+
+      return currentIndex < this.workload!.commands.length && this.queryInInterval(currentIndex);
+   }
+
+   private shouldWeContinue(): boolean {
+      return this.workloadIndex < this.workload!.commands.length || this.replayEndTime!.diff(moment()) > 0;
+   }
+
    private queryInInterval(index: number): boolean {
 
       const delay = this.getDelayForIndex(index);
       logger.info(`Delay for index: ${index} is ${delay}`);
-      return (delay >= 0 && delay < this.interval) ? true : false  ;
+      return (delay >= 0 && delay < this.interval);
    }
 
-   // getDelayForIndex takes in an index and the current interval's start time and returns the
-   //                  number of milliseconds to delay from the interval's start time.
    private getDelayForIndex(index: number): number {
-      if (this.workload == null) {
-         return 0;
-      } else if (index >= 0 && index < this.workload!.commands.length) {
 
-         const queryStart: Moment = moment(this.workload!.commands[index].event_time).subtract(8, 'hours');
+      if (index >= 0 && index < this.workload!.commands.length) {
+
+         let queryStart: Moment;
+
+         if (this.config.mock) {
+            queryStart = moment(this.workload!.commands[index].event_time);
+         } else {
+            queryStart = moment(this.workload!.commands[index].event_time).subtract(8, 'hours');
+         }
+
          const delay = (queryStart.diff(this.workloadStart)) - (moment().diff(this.replayStartTime));
 
          return delay;
@@ -218,44 +228,31 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
     return valid;
    }
 
-   private validQuery(query: ICommand) {
-    return (query.command_type === "Query");
-   }
-
    private processQuery(query: ICommand) {
 
-      const db = this.config.mock ? mycrtDbConfig : { database: this.targetDb.name,
-                                                      host: this.targetDb.host,
-                                                      password: this.targetDb.pass,
-                                                      user: this.targetDb.user };
-
-      if (this.config.mock && this.validMockQuery(query) === false) {
+      if (this.config.mock && !this.validMockQuery(query)) {
         return null;
       }
 
-      if (this.validQuery(query)) {
+      const conn = mysql.createConnection(this.targetDb);
 
-        const conn = mysql.createConnection(db);
-
-        return new Promise<any>((resolve, reject) => {
-          conn.connect((connErr) => {
-              if (connErr) {
-                reject(connErr);
-              } else {
-                const updateStr = mysql.format(query.argument, []);
-                conn.query(updateStr, (updateErr, rows) => {
-                    conn.end();
-                    if (updateErr) {
-                      reject(updateErr);
-                    } else {
-                      resolve(rows);
-                    }
-                });
-              }
-          });
-        });
-
-      } else { return null; }
+      return new Promise<any>((resolve, reject) => {
+         conn.connect((connErr) => {
+            if (connErr) {
+               reject(connErr);
+            } else {
+               const updateStr = mysql.format(query.argument, []);
+               conn.query(updateStr, (updateErr, rows) => {
+                  conn.end();
+                  if (updateErr) {
+                     reject(updateErr);
+                  } else {
+                     resolve(rows);
+                  }
+               });
+            }
+         });
+      });
    }
 
    private logMetrics() {
@@ -271,12 +268,14 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    }
 
-   private async sendMetricsToS3(start: Date, end: Date, firstTry: boolean = true) {
-      try {
+   private async sendMetricsToS3(start: Date, end: Date) {
+
+      this.tryTwice(async () => {
 
          const memoryMetrics = await this.metrics.getMetricsForType(MemoryMetric, start, end);
+         const datapoints = memoryMetrics.dataPoints;
 
-         memoryMetrics.dataPoints.forEach((metric) => {
+         datapoints.forEach((metric) => {
             metric.Unit = "Megabytes";
             metric.Maximum *= ByteToMegabyte;
          });
@@ -292,18 +291,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          logger.info(`Saving metrics to ${key}`);
          await this.storage.writeJson(key, data);
 
-      } catch (error) {
-         if (firstTry) {
-            logger.warn(`Failed to get metrics: ${error}`);
-            logger.warn("Trying again...");
-            this.sendMetricsToS3(start, end, false);
+      }, "Send Metrics to S3");
 
-         } else {
-            logger.error(`Failed to get metrics the second time: ${error}`);
-            // TODO: mark capture as broken?
-
-         }
-      }
    }
 
 }
