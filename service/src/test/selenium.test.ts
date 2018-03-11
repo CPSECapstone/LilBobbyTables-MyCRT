@@ -22,7 +22,7 @@ const until = webdriver.until;
 const expect = chai.expect;
 
 const driver = new webdriver.Builder()
-    .forBrowser('firefox')
+    .forBrowser('chrome')
     .build();
 
 const sleep = (ms: number): Promise<void> => {
