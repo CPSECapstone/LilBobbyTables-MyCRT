@@ -103,7 +103,9 @@ export class CapturePanel extends React.Component<any, any>  {
                   {this.state.scheduled ?
                      <p><b>Scheduled Start:</b><i> {this.formatTimeStamp(this.state.capture.scheduledStart)}</i></p> :
                      <p><b>Start:</b><i> {this.formatTimeStamp(this.state.capture.start)}</i></p>}
-                     <p><b>End:</b><i> {this.formatTimeStamp(this.state.capture.end)}</i></p>
+                  {this.state.capture.scheduledEnd ?
+                     <p><b>Scheduled Stop:</b><i> {this.formatTimeStamp(this.state.capture.scheduledEnd)}</i></p> :
+                     <p><b>Stop:</b><i> {this.formatTimeStamp(this.state.capture.end)}</i></p>}
                 </div>
             </div>
         );

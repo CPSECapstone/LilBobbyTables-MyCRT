@@ -87,6 +87,7 @@ export class CaptureDao extends Dao {
          name: captureData.name,
          start: captureData.start,
          scheduledStart: captureData.scheduledStart,
+         scheduledEnd: captureData.scheduledEnd,
          end: captureData.end,
          status: captureData.status,
          envId: captureData.envId,

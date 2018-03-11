@@ -21,8 +21,9 @@ export class CaptureModal extends React.Component<any, any>  {
       this.handleClick = this.handleClick.bind(this);
       this.cancelModal = this.cancelModal.bind(this);
       this.state = { captureName: "", scheduledStart: "", captureType: "immediately",
-         durationEnd: false, endDuration: {days: 1, hours: 1, minutes: 1}};
+         automaticStop: false, endDuration: {days: 1, hours: 1, minutes: 1}};
       this.handleTimeChange = this.handleTimeChange.bind(this);
+      this.handleEndTypeChange = this.handleEndTypeChange.bind(this);
       this.handleCaptureTypeChange = this.handleCaptureTypeChange.bind(this);
       this.handleDayChange = this.handleDayChange.bind(this);
       this.handleHourChange = this.handleHourChange.bind(this);
@@ -35,9 +36,10 @@ export class CaptureModal extends React.Component<any, any>  {
    }
 
    public calculateDuration() {
-      const daysInSecs = this.state.days * 86400;
-      const hoursInSecs = this.state.hours * 3600;
-      const minutesInSecs = this.state.minutes * 60;
+      const daysInSecs = this.state.endDuration.days * 86400;
+      const hoursInSecs = this.state.endDuration.hours * 3600;
+      const minutesInSecs = this.state.endDuration.minutes * 60;
+      logger.info(String(daysInSecs + hoursInSecs + minutesInSecs));
       return daysInSecs + hoursInSecs + minutesInSecs;
    }
 
@@ -52,7 +54,7 @@ export class CaptureModal extends React.Component<any, any>  {
          capture.status = ChildProgramStatus.SCHEDULED;
          capture.scheduledStart = this.state.scheduledStart;
       }
-      if (this.state.durationEnd) {
+      if (this.state.automaticStop) {
          capture.duration = this.calculateDuration();
       }
       const captureObj = await mycrt.startCapture(capture);
@@ -77,21 +79,21 @@ export class CaptureModal extends React.Component<any, any>  {
       this.setState({captureType: type});
    }
 
-   public handleDayChange(days: string) {
+   public handleDayChange(days: number) {
       this.setState((prevState: any) => ({
-         duration: { ...prevState.duration, days},
+         endDuration: { ...prevState.endDuration, days},
       }));
    }
 
-    public handleHourChange(hours: string) {
+    public handleHourChange(hours: number) {
       this.setState((prevState: any) => ({
-         duration: { ...prevState.duration, hours},
+         endDuration: { ...prevState.endDuration, hours},
       }));
     }
 
-    public handleMinuteChange(minutes: string) {
+    public handleMinuteChange(minutes: number) {
       this.setState((prevState: any) => ({
-         duration: { ...prevState.duration, minutes},
+         endDuration: { ...prevState.endDuration, minutes},
       }));
     }
 
@@ -101,7 +103,7 @@ export class CaptureModal extends React.Component<any, any>  {
 
     public handleEndTypeChange(event: any) {
       this.setState({
-         durationEnd: event.currentTarget.value === "specific",
+         automaticStop: event.currentTarget.value === "specific",
      });
     }
 
@@ -139,30 +141,30 @@ export class CaptureModal extends React.Component<any, any>  {
                                         <StartDateTime updateTime={this.handleTimeChange}
                                           updateType={this.handleCaptureTypeChange}/>
                                        <br/>
-                                       <label><b>Start Options</b></label>
+                                       <label><b>Stop Options</b></label>
                                        <div className="form-check">
                                           <label className="form-check-label" style={{padding: "5px"}}>
                                              <input type="radio" className="form-check-input" name="end options"
                                                 onChange={this.handleEndTypeChange}
-                                                defaultValue="immediate" defaultChecked/>
-                                                Manually
+                                                defaultValue="manual" defaultChecked/>
+                                                Manual
                                           </label>
                                        </div>
                                        <div className="form-check">
                                           <label className="form-check-label" style={{padding: "5px"}}>
                                              <input type="radio" className="form-check-input" name="end options"
                                                 onChange={this.handleEndTypeChange} defaultValue="specific"/>
-                                                Specific Date/Time
+                                                Automatic
                                           </label>
-                                          {this.state.durationEnd ?
-                                             <div><label><b>Duration</b></label>
+                                          <div className={this.state.automaticStop ? '' : 'hidden'}>
                                              <div className="container">
                                                 <div className="row" >
                                                    <Duration type="days" update={this.handleDayChange}/>
                                                    <Duration type="hours" update={this.handleHourChange}/>
-                                                   <Duration type="minutes" update={this.handleDayChange}/>
-                                                </div></div>
-                                             </div> : null}
+                                                   <Duration type="minutes" update={this.handleMinuteChange}/>
+                                                </div>
+                                             </div>
+                                          </div>
                                        </div>
                                     </div>
                                 </div>

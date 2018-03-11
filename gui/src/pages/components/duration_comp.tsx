@@ -9,7 +9,8 @@ export class Duration extends React.Component<any, any>  {
    }
 
    public handleTimeChange(event: any) {
-      this.props.update(event.currentTarget.value);
+      const duration = event.currentTarget.value;
+      this.props.update(parseInt(duration));
    }
 
    public render() {
