@@ -11,7 +11,19 @@ export abstract class Dao {
       // constructor is empty because dao classes will share a single ConnectionPool object
    }
 
-   protected query<T>(queryStr: string, args?: any): Promise<T> {
-      return this.pool.query<T>(format(queryStr, args || []));
+   protected async query<T>(queryStr: string, args?: any): Promise<T> {
+      const result = await this.pool.query<T>(format(queryStr, args || []));
+      if (process.env.NODE_ENV === 'test') {
+         this.sleep(200);
+      }
+      return result;
+   }
+
+   private sleep(ms: number): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+         setTimeout(() => {
+            resolve();
+         }, ms);
+      });
    }
 }
