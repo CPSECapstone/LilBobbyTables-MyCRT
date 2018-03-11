@@ -110,12 +110,26 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
          // validation
          const initialStatus: string | undefined = request.body.status;
-         const inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+         let endTime: Date | undefined;
+
+         // for immediate captures
+         if (!inputTime) {
+            inputTime = new Date();
+         }
 
          // retrieve seconds
          const duration = request.body.duration;
-         const endTime = this.createEndDate(inputTime, duration);
-         logger.debug(`endtime is: ` + endTime.toString());
+
+         // send bad request for durations less than a minute long
+         if (duration && duration < 60) {
+            throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
+         }
+
+         // if duration is populated, create the endtime
+         if (duration) {
+            endTime = this.createEndDate(inputTime, duration);
+         }
 
          // checks for existing environment
          const env = await environmentDao.getEnvironment(request.body.envId);
@@ -161,10 +175,8 @@ export default class CaptureRouter extends SelfAwareRouter {
          logger.info(`Successfully created capture!`);
 
          // prepare for stopping the capture at scheduled end time
-         if (initialStatus === ChildProgramStatus.RUNNING && !request.body.scheduledEnd) {
-            logger.debug(`i made it inside the if`);
-            schedule.scheduleJob(endTime, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
-            response.json({status: http.OK});   // send response to finish stopped capture
+         if (duration) {
+            schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
          }
       }));
 
@@ -220,13 +232,16 @@ export default class CaptureRouter extends SelfAwareRouter {
    }
 
    private createEndDate(startTime: Date, seconds: number): Date {
-      const endTime = startTime;
+      const endTime = new Date(startTime.getTime());
       endTime.setSeconds(startTime.getSeconds() + seconds);
       return endTime;
    }
 
    private async stopScheduledCapture(capture: ICapture): Promise<void> {
       const logger = Logging.defaultLogger(__dirname);
+
+      // TODO: Query database to check if capture is running,
+      //       if yes, send "await this.ipcNode.stopCapture(capture.id!);"
       await this.ipcNode.stopCapture(capture.id!);
       logger.info(`Capture ${capture.id!} stopped`);
    }

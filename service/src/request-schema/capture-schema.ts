@@ -14,7 +14,7 @@ export const captureBody: joi.ObjectSchema = joi.object().keys({
    status: captureValue.status.optional(),
    start: captureValue.timestamp.optional(),
    scheduledStart: captureValue.timestamp.optional(),
-   scheduledEnd: captureValue.timestamp.optional(),
+   // scheduledEnd: captureValue.timestamp.optional(),
    duration: captureValue.duration.optional(),
 });
 
