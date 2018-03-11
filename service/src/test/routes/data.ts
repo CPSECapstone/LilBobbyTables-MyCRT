@@ -55,7 +55,21 @@ export const liveCaptureBody = {
    end: null,
 };
 
-export const badCaptureBody = {
+export const badScheduledCapture = {
+   name: "ScheduledCapture",
+   envId: 1,
+   status: "SCHEDULED",
+   scheduledStart: null,
+};
+
+export const captureBadEnv = {
+   name: 'BadCapture',
+   envId: 56,
+   status: "STARTING",
+   start: "2018-03-04 20:53:00",
+};
+
+export const captureBadStatus = {
    name: 'BadCapture',
    envId: 1,
    status: "I'M BAD YO",
@@ -71,4 +85,43 @@ export const badDBBody = {
    host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
    user: "nfl2015user",
    pass: "nfl2015pass",
+};
+
+export const replayBody = {
+   name: "myReplay",
+   start: "2017-11-02 12:00:00",
+   end: null,
+   captureId: 1,
+   dbName: "nfltest2015",
+   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
+   user: "nfltest2015user",
+   pass: "nfltest2015pass",
+   instance: "nfltest2015",
+   parameterGroup: "testsupergroup",
+};
+
+export const badReplayBody = {
+   name: "BadReplay",
+   start: "2017-11-02 12:00:00",
+   end: null,
+   captureId: 1,
+   dbName: "bad db name",
+   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
+   user: "nfltest2015user",
+   pass: "nfltest2015pass",
+   instance: "nfltest2015",
+   parameterGroup: "testsupergroup",
+};
+
+export const anotherBadReplayBody = {
+   name: "BadReplay",
+   start: "2017-11-02 12:00:00",
+   end: null,
+   captureId: null,
+   dbName: "nfltest2015",
+   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
+   user: "nfltest2015user",
+   pass: "nfltest2015pass",
+   instance: "nfltest2015",
+   parameterGroup: "testsupergroup",
 };

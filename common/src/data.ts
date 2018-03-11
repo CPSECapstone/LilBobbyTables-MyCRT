@@ -136,3 +136,5 @@ export interface IMetricsList {
    complete?: boolean;
    dataPoints: IMetric[];
 }
+
+export const ByteToMegabyte = 0.00000095367432;

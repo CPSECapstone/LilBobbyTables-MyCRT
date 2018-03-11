@@ -4,12 +4,16 @@ import { Server } from 'http';
 import * as http from 'http-status-codes';
 import 'mocha';
 
+import { utils } from '@lbt-mycrt/common';
+
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
 
 import { captureTests } from './routes/captures.test';
 import { dbReferenceTests } from './routes/db-reference.test';
 import { environmentTests } from './routes/environment.test';
+import { MyCrtServiceTestClient } from './routes/mycrt';
+import { replayTests } from './routes/replay.test';
 import { validateTests } from './routes/validate.test';
 
 const expect = chai.expect;
@@ -17,7 +21,7 @@ chai.use(chaiHttp);
 
 export const mycrt: MyCrtService = new MyCrtService();
 
-export const launchMyCrtService = async () => {
+export const launchMyCrtService = async function() {
    expect(await mycrt.launch().catch((reason) => {
       chai.assert.fail(`mycrt launch failed: ${reason}`);
    })).to.be.true;
@@ -25,7 +29,7 @@ export const launchMyCrtService = async () => {
    expect(mycrt.isLaunched()).to.be.true;
 };
 
-export const closeMyCrtService = async () => {
+export const closeMyCrtService = async function() {
    expect(await mycrt.close().catch((reason) => {
       chai.assert.fail(`mycrt close failed: ${reason}`);
    })).to.be.true;
@@ -33,27 +37,31 @@ export const closeMyCrtService = async () => {
    expect(mycrt.isLaunched()).to.be.false;
 };
 
-describe("MyCrtService", () => {
+describe("MyCrtService", function() {
 
    before(launchMyCrtService);
    after(closeMyCrtService);
 
    // TODO: change the service tests to work on a different DB
    // currently, this wipes a developer's database, which is anoying.
-   beforeEach(async () => {
+   beforeEach(async function() {
+      this.timeout(10000);
       await replayDao.nuke();
       await captureDao.nuke();
       await environmentDao.nuke();
+      await utils.sleep(250);
    });
 
-   it("should return 200 on '/'", async () => {
+   it("should return 200 on '/'", async function() {
       const response = await chai.request(mycrt.getServer()).get('/');
       expect(response).to.have.status(http.OK);
    });
 
-   describe("environment router", environmentTests(mycrt));
-   describe("capture router", captureTests(mycrt));
-   describe("validate router", validateTests(mycrt));
-   describe("dbReference router", dbReferenceTests(mycrt));
+   const client = new MyCrtServiceTestClient(mycrt);
+   describe("environment router", environmentTests(client));
+   describe("capture router", captureTests(client));
+   describe("replay router", replayTests(client));
+   describe("validate router", validateTests(client));
+   describe("dbReference router", dbReferenceTests(client));
 
 });

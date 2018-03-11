@@ -21,7 +21,6 @@ class EnvironmentsApp extends React.Component<any, any> {
 
   public async componentWillMount() {
     const envResponse = await mycrt.getEnvironments();
-    logger.info(JSON.stringify(envResponse));
     if (envResponse !== null) {
         this.setState({
             envs: envResponse,
@@ -32,15 +31,13 @@ class EnvironmentsApp extends React.Component<any, any> {
   public render() {
     const environments: JSX.Element[] = [];
     if (this.state.envs) {
-      logger.info("hi");
-      logger.info(JSON.stringify(this.state.envs));
-      for (const env of this.state.envs) {
-        logger.info("WHAT?");
-        let name = `${env.name}`;
-        if (!name) {
-          name = `Environment ${env.id}`;
-        }
-        environments.push((<EnvironmentPanel title={name} env={env} />));
+      for (let id = this.state.envs.length - 1; id >= 0; id--) {
+         const env = this.state.envs[id];
+         let name = `${env.name}`;
+         if (!name) {
+           name = `Environment ${env.id}`;
+         }
+         environments.push((<EnvironmentPanel title={name} env={env} key={name} />));
       }
     }
     return (

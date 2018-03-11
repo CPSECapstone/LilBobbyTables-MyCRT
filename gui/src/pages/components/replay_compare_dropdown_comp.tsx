@@ -11,7 +11,7 @@ export class ReplaySelectDrop extends React.Component<any, any>  {
 
     public selectReplays(event: any) {
         const target = event.currentTarget;
-        this.props.update(target.checked, target.value);
+        this.props.update(target.checked, target.value, false);
      }
 
     public render() {
@@ -29,7 +29,7 @@ export class ReplaySelectDrop extends React.Component<any, any>  {
         }
         return (
             <div className="button-group" style ={{display: "inline"}}>
-                <button type="button" className="btn btn-default btn-sm dropdown-toggle"
+                <button type="button" className="btn btn-default btn-md dropdown-toggle"
                     data-toggle="dropdown" style={{marginBottom: "20px",
                         marginLeft: "20px", border: "1px solid"}}>
                     {this.props.prompt}

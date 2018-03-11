@@ -2,6 +2,8 @@ import React = require('react');
 import { FormEvent } from 'react';
 import ReactDom = require('react-dom');
 
+import * as moment from "moment";
+
 import { BrowserLogger as logger } from '../../logging';
 
 export class StartDateTime extends React.Component<any, any>  {
@@ -10,12 +12,18 @@ export class StartDateTime extends React.Component<any, any>  {
         super(props);
         this.state = {showDateTime: false};
         this.handleOptionChange = this.handleOptionChange.bind(this);
+        this.handleTimeSelection = this.handleTimeSelection.bind(this);
     }
 
     public handleOptionChange(event: FormEvent<HTMLInputElement>): void {
         this.setState({
             showDateTime: event.currentTarget.value === "specific",
         });
+        this.props.updateType(event.currentTarget.value);
+    }
+
+    public handleTimeSelection(event: any) {
+         this.props.updateTime(event.currentTarget.value);
     }
 
     public render() {
@@ -37,7 +45,8 @@ export class StartDateTime extends React.Component<any, any>  {
                     </label>
                     <input className={this.state.showDateTime ? 'form-control' : 'form-control hidden'}
                            style={{width: "70%", marginLeft: "10px"}}
-                           type="datetime-local" defaultValue="2011-08-19T13:45:00" id="start_date" />
+                           type="datetime-local" defaultValue={moment().format("YYYY-MM-DDTHH:mm")} id="start_date"
+                           onChange={this.handleTimeSelection}/>
                 </div>
             </div>
         );

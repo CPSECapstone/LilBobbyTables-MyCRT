@@ -57,7 +57,7 @@ export class MyCrtClient {
 
    /** Retrieve all of the captures for an environment */
    public async getCapturesForEnvironment(envId: number): Promise<ICapture[] | null> {
-    return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures', {environmentId: envId});
+    return this.makeRequest<ICapture[]>(HttpMethod.GET, '/captures', {envId});
    }
 
    /** Delete a specific capture. Optional: Delete the S3 logs associated with it */
@@ -139,6 +139,11 @@ export class MyCrtClient {
    public async validateDatabase(dbRef: IDbReference): Promise<any | null> {
      return this.makeRequest<any>(HttpMethod.POST, '/validate/database', null, dbRef);
    }
+
+   /** Get database credentials for a replay */
+   public async getReplayDB(id: number): Promise<IDbReference | null> {
+      return this.makeRequest<IDbReference>(HttpMethod.GET, `/dbReferences/${id}`);
+    }
 
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
 
