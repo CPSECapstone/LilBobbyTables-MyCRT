@@ -54,7 +54,7 @@ export class MyCrtServiceTestClient {
          const server = this.mycrt.getServer();
          switch (method) {
             case 'GET':
-               response = await request(server).get(url);
+               response = await request(server).get(url).query(params);
                break;
             case 'POST':
                response = await request(server).post(url).send(body);

@@ -4,6 +4,8 @@ import { Server } from 'http';
 import * as http from 'http-status-codes';
 import 'mocha';
 
+import { utils } from '@lbt-mycrt/common';
+
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
 
@@ -46,6 +48,7 @@ describe("MyCrtService", function() {
       await replayDao.nuke();
       await captureDao.nuke();
       await environmentDao.nuke();
+      await utils.sleep(250);
    });
 
    it("should return 200 on '/'", async function() {
