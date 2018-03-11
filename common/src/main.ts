@@ -1,6 +1,7 @@
 
 /* Utilities */
 export { default as appRootDir } from './app-root-dir';
+export import utils = require('./utils');
 
 /* Logging */
 export import Logging = require('./logging');
