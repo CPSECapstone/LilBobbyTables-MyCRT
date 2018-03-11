@@ -45,6 +45,7 @@ describe("MyCrtService", function() {
    // TODO: change the service tests to work on a different DB
    // currently, this wipes a developer's database, which is anoying.
    beforeEach(async function() {
+      this.timeout(10000);
       await replayDao.nuke();
       await captureDao.nuke();
       await environmentDao.nuke();
