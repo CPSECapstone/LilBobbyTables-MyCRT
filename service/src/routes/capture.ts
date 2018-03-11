@@ -90,7 +90,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                return;
 
             case ChildProgramStatus.SCHEDULED:
-               // TODO: unschedule the capture
+               // TODO: unschedule the capture)
                throw new HttpError(http.NOT_IMPLEMENTED,
                   "No support for stopping scheduled captures that haven't started");
 
@@ -110,7 +110,26 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
          // validation
          const initialStatus: string | undefined = request.body.status;
-         const inputTime: Date = request.body.scheduledStart;
+         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+         let endTime: Date | undefined;
+
+         // for immediate captures
+         if (!inputTime) {
+            inputTime = new Date();
+         }
+
+         // retrieve seconds
+         const duration = request.body.duration;
+
+         // send bad request for durations less than a minute long
+         if (duration && duration < 60) {
+            throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
+         }
+
+         // if duration is populated, create the endtime
+         if (duration) {
+            endTime = this.createEndDate(inputTime, duration);
+         }
 
          // checks for existing environment
          const env = await environmentDao.getEnvironment(request.body.envId);
@@ -119,7 +138,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          // checks status and checks populated scheduled start time
-         if (request.body.status === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
             throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
          }
 
@@ -131,6 +150,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             name: request.body.name,
             scheduledStart: inputTime,
+            scheduledEnd: endTime,
          };
 
          // assign capture, insert into db
@@ -153,6 +173,11 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          logger.info(`Successfully created capture!`);
+
+         // prepare for stopping the capture at scheduled end time
+         if (duration) {
+            schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
+         }
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
@@ -205,5 +230,20 @@ export default class CaptureRouter extends SelfAwareRouter {
       config.interval = settings.captures.interval;
       config.intervalOverlap = settings.captures.intervalOverlap;
       launch(config);
+   }
+
+   private createEndDate(startTime: Date, seconds: number): Date {
+      const endTime = new Date(startTime.getTime());
+      endTime.setSeconds(startTime.getSeconds() + seconds);
+      return endTime;
+   }
+
+   private async stopScheduledCapture(capture: ICapture): Promise<void> {
+      const logger = Logging.defaultLogger(__dirname);
+
+      // TODO: Query database to check if capture is running,
+      //       if yes, send "await this.ipcNode.stopCapture(capture.id!);"
+      await this.ipcNode.stopCapture(capture.id!);
+      logger.info(`Capture ${capture.id!} stopped`);
    }
 }
