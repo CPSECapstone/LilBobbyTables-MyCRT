@@ -1,5 +1,10 @@
 @import 'theme';
 
+$secondary-danger: #ed7669;
+$secondary-info: #5faee3;
+$secondary-warning: #f5b043;
+$secondary-success: #24e3be;
+
 .myCRT-env-navbar {
     display: flex;
     justify-content: center;
@@ -49,9 +54,79 @@
     color: white;
 }
 
+.myCRT-panel-scheduled {
+   background-image: none;
+   background-color: #F39C12;
+   color: white;
+}
+
+.myCRT-panel-failed {
+   background-image: none;
+   background-color: #E74C3C;
+   color: white;
+}
+
+%myCRT-status {
+   padding: 0;
+   text-align: center;
+   color: #ecf0f1;
+}
+
+.myCRT-status-running {
+   @extend %myCRT-status;
+   background-color: $secondary-success;
+}
+
+p {
+   margin-bottom: 0.7em;
+}
+
+.graphName {
+   padding-left: 20px;
+   display: inline;
+}
+
+.graph {
+   padding-top: 20px;
+}
+
+.deleteBtn {
+   margin-bottom: 20px,;
+   margin-left: 12px;
+}
+
+.downloadBtn {
+   margin-bottom: 10px;
+   margin-left: 10px;
+}
+
+.align {
+   display: inline;
+}
+
+.hover-text:hover {
+   color: #2C3E50;
+   cursor: pointer;
+}
+
+.myCRT-status-failed {
+   @extend %myCRT-status;
+   background-color: $secondary-danger;
+}
+
+.myCRT-status-scheduled {
+   @extend %myCRT-status;
+   background-color: $secondary-warning;
+}
+
+.myCRT-status-past {
+   @extend %myCRT-status;
+   background-color: $secondary-info;
+}
+
 .myCRT-multi-select {
     border: 2px solid #ccc;
-    width: 250px; 
+    width: 250px;
     height: 150px;
     overflow-y: scroll;
     margin-left: 20px;

@@ -37,8 +37,8 @@ export class EnvironmentPanel extends React.Component<any, any>  {
             <div className="myCRT-panel">
                 <div className="card mt-3 w-100 myCRT-card">
                     <div className="card-header myCRT-env-card">
-                        <h5 role="button" onClick={ (e) => this.handleClick(e)}
-                            style={{cursor: "pointer"}}>{this.props.title}</h5>
+                        <h5 className="hover-text" role="button" onClick={ (e) => this.handleClick(e)}>
+                           {this.props.title}</h5>
                     </div>
                     <div className="card-body">
                         <p>Current Captures: <b>{this.state.captureNum}</b></p>

@@ -87,7 +87,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          };
 
          const dbRef = await environmentDao.makeDbReference(dbRefArgs);
-         if (!dbRef.id) {
+         if (dbRef && !dbRef.id) {
             throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
          }
 
@@ -105,7 +105,10 @@ export default class ReplayRouter extends SelfAwareRouter {
             parameterGroup: request.body.parameterGroup,
          };
 
-         dbReference = await environmentDao.makeDbReference(dbReference);
+         const db = await environmentDao.makeDbReference(dbReference);
+         if (db) {
+            dbReference = db;
+         }
 
          const replayTemplate: IReplay = {
             name: request.body.name,

@@ -32,11 +32,12 @@ class DashboardApp extends React.Component<any, any> {
     }
 
    public async setCaptures() {
-       const capturesResponse = await mycrt.getCaptures();
+       const capturesResponse = await mycrt.getCapturesForEnvironment(this.state.envId);
        if (capturesResponse !== null) {
            this.setState({
                 captures: this.makeObject(capturesResponse, "id"),
             });
+            this.setReplays();
         }
     }
 
@@ -51,17 +52,20 @@ class DashboardApp extends React.Component<any, any> {
   }
 
     public async setReplays() {
-        const replaysResponse = await mycrt.getReplays();
-        if (replaysResponse !== null) {
-            this.setState({
-                replays: replaysResponse,
-            });
+       let allReplays = this.state.replays;
+        for (const id in this.state.captures) {
+           const capture = this.state.captures[id];
+           const replays = await mycrt.getReplaysForCapture(capture.id);
+           if (replays) {
+               allReplays = allReplays.concat(replays);
+           }
         }
+        this.setState({replays: allReplays});
     }
 
-    public updateCaptures(id: string) {
+    public updateCaptures(id: string, status: ChildProgramStatus) {
         const captures = this.state.captures;
-        captures[id].status = ChildProgramStatus.DONE;
+        captures[id].status = status;
         this.setState({captures});
     }
 
@@ -72,7 +76,6 @@ class DashboardApp extends React.Component<any, any> {
             });
         }
         this.setCaptures();
-        this.setReplays();
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
@@ -89,19 +92,16 @@ class DashboardApp extends React.Component<any, any> {
             const captureList = Object.keys(this.state.captures);
             for (let i = captureList.length - 1; i >= 0; i--) {
                 const capture = this.state.captures[captureList[i]];
-                let name = `${capture.name}`;
-                if (!name) {
-                    name = `capture ${capture.id}`;
-                }
-                if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE) {
-                    pastCaptures.push((<CapturePanel title={name} capture={capture} envId={this.state.envId}
-                        update={this.updateCaptures}/>));
+                const name = capture.name || `capture ${capture.id}`;
+                const captureComp = (<CapturePanel title={name} capture={capture} key={name}
+                  envId={this.state.envId} update={this.updateCaptures}/>);
+                if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE ||
+                     capture.status === ChildProgramStatus.FAILED) {
+                    pastCaptures.push(captureComp);
                 } else if (capture.status === ChildProgramStatus.SCHEDULED) {
-                    scheduledCaptures.push((<CapturePanel title={name} capture={capture} envId={this.state.envId}
-                        update={this.updateCaptures}/>));
+                    scheduledCaptures.push(captureComp);
                 } else {
-                    liveCaptures.push((<CapturePanel title={name} capture={capture} envId = {this.state.envId}
-                        update={this.updateCaptures}/>));
+                    liveCaptures.push(captureComp);
                 }
             }
         }
@@ -109,20 +109,17 @@ class DashboardApp extends React.Component<any, any> {
       const scheduledReplays: JSX.Element[] = [];
       const pastReplays: JSX.Element[] = [];
       if (this.state.replays) {
-         for (const replay of this.state.replays) {
-            let name = `${replay.name}`;
-            if (!name) {
-                name = `replay ${replay.id}`;
-            }
+         for (let id = this.state.replays.length - 1; id >= 0; id--) {
+            const replay = this.state.replays[id];
+            const name = replay.name || `replay ${replay.id}`;
+            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true} key={name}
+               capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>);
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
-                pastReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
-                    capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>));
+                pastReplays.push(replayComp);
             } else if (replay.status === ChildProgramStatus.SCHEDULED) {
-                scheduledReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
-                    capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>));
+                scheduledReplays.push(replayComp);
             } else {
-                liveReplays.push((<ReplayPanel title={name} replay={replay} compare={true}
-                    capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>));
+                liveReplays.push(replayComp);
             }
          }
       }
@@ -143,6 +140,26 @@ class DashboardApp extends React.Component<any, any> {
                            data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
+                     <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
+                        paddingLeft: "20px", width: "1050px"}}>
+                        <div className="row">
+                           <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
+                              <h5>Source Database:</h5>
+                              <label><b>&nbsp;&nbsp;&nbsp;Name: </b>{this.state.env.dbName}</label><br/>
+                              <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.state.env.host}</label><br/>
+                              <label>
+                                 <b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>
+                                 {this.state.env.parameterGroup}</label><br/>
+                              <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}
+                              </label>
+                              <br/><br/>
+                           </div>
+                           <div className="col-xs-6" style={{padding: "20px 40px 0px"}}>
+                              <h5>S3 File Storage:</h5>
+                              <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label>
+                           </div>
+                        </div>
+                     </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
                                name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
                   </div>
@@ -150,7 +167,7 @@ class DashboardApp extends React.Component<any, any> {
                <br></br>
                <div className="row">
                   <div className="col-xs-12 col-md-5 mb-r">
-                     <div>
+                     <div><br/>
                         <h2 style={{display: "inline"}}>Captures</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
@@ -179,7 +196,7 @@ class DashboardApp extends React.Component<any, any> {
                      <br></br>
                   </div>
                   <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
-                     <div>
+                     <div><br/>
                         <h2 style={{display: "inline"}}>Replays</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
                             data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
@@ -209,7 +226,6 @@ class DashboardApp extends React.Component<any, any> {
                      <br></br>
                   </div>
                </div>
-
             </div>
          </div>
       );
