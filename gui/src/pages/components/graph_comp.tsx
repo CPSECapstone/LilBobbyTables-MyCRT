@@ -32,7 +32,7 @@ export class Graph extends React.Component<any, any>  {
       const ChartType = this.props.filled ? AreaChart : LineChart;
       return (
          <div className="graph">
-            <h3 className="graphName">{this.props.data.displayName}</h3>
+            <h3 className="graphName" id={this.props.data.displayName}>{this.props.data.displayName}</h3>
             <a role="button" href={downloadLink} className="btn btn-primary downloadBtn"
                download={downloadFileName}>
                <i className="fa fa-download" aria-hidden="true"></i> Download
