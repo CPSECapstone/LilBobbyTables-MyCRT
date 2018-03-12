@@ -52,9 +52,9 @@ export abstract class FragmentedStorage<T> {
       return result;
    }
 
-   protected abstract objectToString(obj: T): string;
-   protected abstract getDefaultObject(): T;
-   protected abstract mergeObjects(a: T, b: T): T;
+   public abstract objectToString(obj: T): string;
+   public abstract getDefaultObject(): T;
+   public abstract mergeObjects(a: T, b: T): T;
 
    private async getUpdatedObject(childProgram: IChildProgram): Promise<[T, Date]> {
 

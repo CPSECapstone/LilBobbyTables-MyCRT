@@ -65,16 +65,8 @@ export class CaptureDao extends Dao {
       return this.query('UPDATE Capture SET status = ? WHERE id = ?', [status, id]);
    }
 
-   public updateCaptureStartTime(id: number, time: Date | null): Promise<void> {
-      // TODO: output time with logger to see what value is being output
-
-      // logger.info(`time is ` + time);
-      if (time !== null) {
-         return this.query('UPDATE Capture SET start = ? WHERE id = ?',
-            [time.toISOString().slice(0, 19), id]);
-      } else {
-         return this.query('UPDATE Capture SET start = NOW() WHERE id = ?', [id]);
-      }
+   public updateCaptureStartTime(id: number): Promise<void> {
+      return this.query('UPDATE Capture SET start = NOW() WHERE id = ?', [id]);
    }
 
    public updateCaptureEndTime(id: number): Promise<void> {
