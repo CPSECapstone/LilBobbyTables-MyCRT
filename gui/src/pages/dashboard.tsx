@@ -23,7 +23,6 @@ class DashboardApp extends React.Component<any, any> {
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
-        this.updateReplays = this.updateReplays.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
         if (match) {
@@ -53,15 +52,15 @@ class DashboardApp extends React.Component<any, any> {
   }
 
     public async setReplays() {
-       let allReplays = this.state.replays;
-        for (const id in this.state.captures) {
-           const capture = this.state.captures[id];
-           const replays = await mycrt.getReplaysForCapture(capture.id);
-           if (replays) {
-               allReplays = allReplays.concat(replays);
-           }
-        }
-        this.setState({replays: this.makeObject(allReplays, "id")});
+      let allReplays = this.state.replays;
+      for (const id in this.state.captures) {
+         const capture = this.state.captures[id];
+         const replays = await mycrt.getReplaysForCapture(capture.id);
+         if (replays) {
+            allReplays = allReplays.concat(replays);
+         }
+      }
+      this.setState({replays: allReplays});
     }
 
     public updateCaptures(id: string, status: ChildProgramStatus) {
@@ -70,20 +69,13 @@ class DashboardApp extends React.Component<any, any> {
         this.setState({captures});
     }
 
-    public async updateReplays(id: string, status: ChildProgramStatus) {
-      const replays = this.state.replays;
-      replays[id].status = status;
-      logger.info(JSON.stringify(replays));
-      this.setState({replays});
-   }
-
     public async componentWillMount() {
-        if (this.state.envId) {
-            this.setState({
-                  env: await mycrt.getEnvironment(this.state.envId),
-            });
-        }
-        this.setCaptures();
+      if (this.state.envId) {
+         this.setState({
+            env: await mycrt.getEnvironment(this.state.envId),
+         });
+      }
+      this.setCaptures();
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
@@ -116,15 +108,12 @@ class DashboardApp extends React.Component<any, any> {
       const scheduledReplays: JSX.Element[] = [];
       const pastReplays: JSX.Element[] = [];
       if (this.state.replays) {
-         const replayList = Object.keys(this.state.replays);
-         for (let i = replayList.length - 1; i >= 0; i--) {
-            const replay = this.state.replays[replayList[i]];
+         for (let id = this.state.replays.length - 1; id >= 0; id--) {
+            const replay = this.state.replays[id];
             const name = replay.name || `replay ${replay.id}`;
             const replayComp = (<ReplayPanel title={name} replay={replay} compare={true} key={replay.id}
-               capture={this.state.captures[replay.captureId]} envId = {this.state.envId}
-               update={this.updateReplays}/>);
-            if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE ||
-                replay.status === ChildProgramStatus.FAILED) {
+               capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>);
+            if (replay.status === ChildProgramStatus.DONE || replay.status === ChildProgramStatus.FAILED) {
                pastReplays.push(replayComp);
             } else if (replay.status === ChildProgramStatus.SCHEDULED) {
                scheduledReplays.push(replayComp);

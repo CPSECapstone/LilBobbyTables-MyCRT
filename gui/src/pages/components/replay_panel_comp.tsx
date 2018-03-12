@@ -20,6 +20,7 @@ export class ReplayPanel extends React.Component<any, any>  {
                      this.props.replay.status === ChildProgramStatus.STARTED,
                      live: this.props.replay.status === ChildProgramStatus.RUNNING,
                      replay: this.props.replay, capture: this.props.capture,
+                     done: this.props.replay.status === ChildProgramStatus.DONE,
                      scheduled: this.props.replay.status === ChildProgramStatus.SCHEDULED,
                      failed: this.props.replay.status === ChildProgramStatus.FAILED};
     }
@@ -60,7 +61,9 @@ export class ReplayPanel extends React.Component<any, any>  {
       if (currentDuration <= this.state.totalDuration) {
          this.setState({currentDuration});
       } else {
-         this.props.update(this.state.replay.id, ChildProgramStatus.STOPPING);
+         const replay = this.state.replay;
+         replay.status = ChildProgramStatus.STOPPING;
+         this.setState({replay, live: false, active: false});
          clearInterval(this.state.intervalId);
       }
    }
@@ -113,7 +116,7 @@ export class ReplayPanel extends React.Component<any, any>  {
                      <p className="hover-text" style={{margin: 0}}
                         onClick={ (e) => this.handleCaptureClick(e)}><i>({this.state.capture.name})</i></p>
                     </div>
-                    {!this.state.active ? <button type="button" className="btn btn-success"
+                    {this.state.done ? <button type="button" className="btn btn-success"
                                             onClick={ (e) => this.handleMetricClick(e)}
                                             style={{zIndex: 10, float: "right"}}>
                                             <i className="fa fa-line-chart"></i>  Compare</button> : null}
@@ -125,7 +128,7 @@ export class ReplayPanel extends React.Component<any, any>  {
                         style={{width: percent}} aria-valuemax={this.state.totalDuration}>
                         {percent}</div>
                   </div> :
-                  <div className={`card-footer ${statusStyle}`}>{this.props.replay.status}</div>}
+                  <div className={`card-footer ${statusStyle}`}>{this.state.replay.status}</div>}
                 <div className="card-body">
                     <p><b>DB:</b><i> {this.state.db}</i></p>
                     <p><b>Start:</b><i> {this.formatTimeStamp(this.state.replay.start)}</i></p>

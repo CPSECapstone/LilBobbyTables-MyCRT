@@ -46,6 +46,23 @@ export const optionIntervalOverlap: OptionDefinition = {
    description: "The amount of overlap time between metric retrievals.",
 };
 
+export const optionMetricsDelay: OptionDefinition = {
+   name: 'metricsDelay',
+   alias: 'd',
+   type: Number,
+   defaultValue: 200 * 1000,
+   description: "The amount of time to wait before gathering metrics. "
+      + "This is to ensure that Cloudwatch will have a complete set of data",
+};
+
+export const optionFilePrepDelay: OptionDefinition = {
+   name: 'filePrepDelay',
+   alias: 'f',
+   type: Number,
+   defaultValue: 15 * 1000,
+   description: "The amount of time to wait before consolidating the workload and metrics files during teardown.",
+};
+
 export const optionSupervised: OptionDefinition = {
    name: 'supervised',
    alias: 's',
@@ -55,7 +72,7 @@ export const optionSupervised: OptionDefinition = {
 };
 
 export const captureOptions: OptionDefinition[] = [optionId, optionEnvId, optionMock, optionInterval,
-   optionIntervalOverlap, optionSupervised];
+   optionIntervalOverlap, optionMetricsDelay, optionFilePrepDelay, optionSupervised];
 
 export class CaptureConfig extends Config {
 
@@ -74,6 +91,8 @@ export class CaptureConfig extends Config {
       config.mock = options.mock;
       config.interval = options.interval;
       config.intervalOverlap = options.intervalOverlap;
+      config.metricsDelay = options.metricsDelay;
+      config.filePrepDelay = options.filePrepDelay;
       config.supervised = options.supervised;
 
       return config;
@@ -84,6 +103,8 @@ export class CaptureConfig extends Config {
    public mock: boolean = optionMock.defaultValue;
    public interval: number = optionInterval.defaultValue;
    public intervalOverlap: number = optionIntervalOverlap.defaultValue;
+   public metricsDelay: number = optionMetricsDelay.defaultValue;
+   public filePrepDelay: number = optionFilePrepDelay.defaultValue;
    public supervised: boolean = optionSupervised.defaultValue;
 
    constructor(id: number, envId: number) {
@@ -99,6 +120,8 @@ export class CaptureConfig extends Config {
          [optionMock, this.mock],
          [optionInterval, this.interval],
          [optionIntervalOverlap, this.intervalOverlap],
+         [optionMetricsDelay, this.metricsDelay],
+         [optionFilePrepDelay, this.filePrepDelay],
          [optionSupervised, this.supervised],
       ];
    }

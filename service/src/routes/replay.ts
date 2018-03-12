@@ -125,6 +125,8 @@ export default class ReplayRouter extends SelfAwareRouter {
          config.mock = settings.replays.mock;
          config.interval = settings.replays.interval;
          config.intervalOverlap = settings.replays.intervalOverlap;
+         config.metricsDelay = settings.replays.metricsDelay;
+         config.filePrepDelay = settings.replays.filePrepDelay;
 
          launch(config);
          response.json(replay);

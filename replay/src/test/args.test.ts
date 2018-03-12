@@ -13,6 +13,8 @@ describe("ReplayConfig", () => {
          `--${args.optionDbId.name}`, '1',
          `--${args.optionInterval.name}`, `${args.optionInterval.defaultValue}`,
          `--${args.optionIntervalOverlap.name}`, `${args.optionIntervalOverlap.defaultValue}`,
+         `--${args.optionMetricsDelay.name}`, `${args.optionMetricsDelay.defaultValue}`,
+         `--${args.optionFilePrepDelay.name}`, `${args.optionFilePrepDelay.defaultValue}`,
          `--${args.optionSupervised.name}`,
       ];
       const actual = config.toArgList();

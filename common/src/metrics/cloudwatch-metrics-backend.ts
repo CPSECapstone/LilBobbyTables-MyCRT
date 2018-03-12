@@ -1,8 +1,12 @@
 import { CloudWatch } from 'aws-sdk';
 
+import { defaultLogger } from '../logging';
+
 import { IMetricsList } from '../data';
 import { Metric } from './metrics';
 import { MetricsBackend, toIMetricsList } from './metrics-backend';
+
+const logger = defaultLogger(__dirname);
 
 export class CloudWatchMetricsBackend extends MetricsBackend {
 
@@ -23,8 +27,8 @@ export class CloudWatchMetricsBackend extends MetricsBackend {
 
    protected getMetrics(metric: Metric, startTime: Date, endTime: Date): Promise<IMetricsList> {
       return new Promise<IMetricsList>((resolve, reject) => {
-         this.cloudwatch.getMetricStatistics(this.buildMetricRequest(metric, startTime, endTime),
-               (err, data) => {
+         const request = this.buildMetricRequest(metric, startTime, endTime);
+         this.cloudwatch.getMetricStatistics(request, (err, data) => {
             if (err) {
                reject(err.stack);
             } else {

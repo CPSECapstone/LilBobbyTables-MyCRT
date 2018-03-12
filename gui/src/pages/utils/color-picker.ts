@@ -1,5 +1,5 @@
-export const colors = ["#18BC9C", "#ff4298", "#250081", "#007a4d", "#ed58ff",
-                       "#4dd7ff", "#ea222d", "#ff8a01", "#002395", "#00ffb8",
+export const colors = ["#18BC9C", "#ff4298", "#250081", "#4dd7ff", "#ea222d",
+                       "#ed58ff", "#007a4d", "#ff8a01", "#002395", "#00ffb8",
                        "#8d58ff", "#d25a97", "#39e1c3", "#256053", "#b3b8ff",
                        "#fd4eb8", "#33e72d", "#b3c7ff", "#ff80a0", "#7b5eff"];
 

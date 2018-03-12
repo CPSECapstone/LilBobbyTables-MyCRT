@@ -70,7 +70,9 @@ export class CapturePanel extends React.Component<any, any>  {
       if (currentDuration < this.state.duration) {
          this.setState({ currentDuration });
       } else {
-         this.props.update(this.state.capture.id, ChildProgramStatus.STOPPING);
+         const capture = this.state.capture;
+         capture.status = ChildProgramStatus.STOPPING;
+         this.setState({capture, live: false, active: false});
          clearInterval(this.state.endIntervalId);
       }
    }
@@ -84,12 +86,13 @@ export class CapturePanel extends React.Component<any, any>  {
    }
 
     public async stopCapture(event: any) {
-        this.setState({ active: false, live: false });
-        let result = await mycrt.stopCapture(this.state.capture.id);
-        if (!result) {
-            result = `Capture ${this.state.capture.id}: Failed to get capture result.`;
-        }
-        this.props.update(this.state.capture.id, ChildProgramStatus.DONE);
+      const capture = this.state.capture;
+      capture.status = ChildProgramStatus.STOPPING;
+      this.setState({ capture, active: false, live: false });
+      let result = await mycrt.stopCapture(this.state.capture.id);
+      if (!result) {
+         result = `Capture ${this.state.capture.id}: Failed to get capture result.`;
+      }
     }
 
     public formatTimeStamp(date: string) {
@@ -120,13 +123,14 @@ export class CapturePanel extends React.Component<any, any>  {
                 <div className={`card-header ${className}`}>
                     <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle", cursor: "pointer"}}
                         onClick={ (e) => this.handleInfoClick(e)}>{this.props.title}</h5>
-                    {this.state.live ? <button type="button" className="btn btn-danger"
-                                               style={{zIndex: 10, float: "right"}}
-                                               onClick={(e) => this.stopCapture(e)}>Stop</button> : null}
-                    {this.state.active || this.state.scheduled || this.state.failed ? null : <button type="button"
+                    {this.state.live && !this.state.capture.scheduledEnd ?
+                        <button type="button" className="btn btn-danger"
+                           style={{zIndex: 10, float: "right"}}
+                           onClick={(e) => this.stopCapture(e)}>Stop</button> : null}
+                    {this.state.done ? <button type="button"
                         className="btn btn-success" style={{zIndex: 10, float: "right"}}
                            onClick={ (e) => this.handleMetricClick(e)}>
-                        <i className="fa fa-line-chart"></i>  View</button>}
+                        <i className="fa fa-line-chart"></i>  View</button> : null}
                 </div>
                 {this.state.capture.scheduledEnd && this.state.live ?
                   <div className="progress" style={{height: "20px", borderRadius: 0}}>
@@ -135,7 +139,7 @@ export class CapturePanel extends React.Component<any, any>  {
                         style={{width: percent}} aria-valuemax={this.state.duration}>
                         {percent}</div>
                   </div> :
-                  <div className={`card-footer ${statusStyle}`}>{this.props.capture.status}</div>}
+                  <div className={`card-footer ${statusStyle}`}>{this.state.capture.status}</div>}
                 <div className="card-body">
                   {this.state.scheduled ?
                      <p><b>Scheduled Start:</b><i> {this.formatTimeStamp(this.state.capture.scheduledStart)}</i></p> :
