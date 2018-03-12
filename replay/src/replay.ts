@@ -121,11 +121,15 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
         finished = false;
       }
 
-      logger.info(`-< Logging Metrics >-------------`);
-      this.logMetrics();
+      const metricsDelay = this.config.mock ? 0 : 200000;
+      logger.info(`-< waiting ${metricsDelay}ms before gathering metrics >-----`);
+      setTimeout(async () => {
+         logger.info(`-< Logging Metrics >-------------`);
+         this.logMetrics();
+      }, metricsDelay);
 
       if (finished) {
-        logger.info(`-< Stopping >-=======------------`);
+        logger.info(`-< Stopping >------------------`);
         this.stop(false); // just once for now
       }
 

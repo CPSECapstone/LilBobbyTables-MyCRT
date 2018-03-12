@@ -1,8 +1,8 @@
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
-import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging } from '@lbt-mycrt/common';
-import { CPUMetric, MemoryMetric, Metric, MetricsBackend, ReadMetric, WriteMetric } from '@lbt-mycrt/common';
+import { CaptureIpcNode, CPUMetric, ICaptureIpcNodeDelegate, IpcNode, Logging, MemoryMetric, Metric,
+   MetricsBackend, ReadMetric, utils, WriteMetric } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
    IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
@@ -47,6 +47,9 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
    public async onStop(): Promise<any> {
       logger.info(`Capture ${this.id} received stop signal!`);
       this.stop(true);
+
+      logger.info("set status to 'stopping'");
+      await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STOPPING);
    }
 
    public asIChildProgram(): IChildProgram {
@@ -93,16 +96,28 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          start.setTime(this.startTime!.getTime());
       }
 
+      logger.info(`startTime = ${start}`);
+      logger.info(`endTime   = ${end}`);
+
       logger.info('-< Process Workload >-------------');
       await this.sendWorkloadToS3(start, end);
 
-      logger.info('-< Process Metrics >--------------');
-      await this.sendMetricsToS3(start, end);
-
       if (this.config.mock) {
-         logger.info('   generate fake traffic for the mock workload');
+         logger.info('-< generate fake traffic for the mock workload >-------');
          await fakeRequest();
       }
+
+      // We want to wait a bit to gather metrics for this interval.
+      // It takes some time for Cloudwatch to be able to provide
+      // the metrics we need.
+      logger.info('-< Process Metrics >--------------');
+      const metricsDelay = this.config.metricsDelay;
+      logger.info(`   * waiting ${metricsDelay}ms before gathering metrics`);
+      await utils.syncTimeout(async () => {
+         await this.sendMetricsToS3(start, end);
+      }, metricsDelay);
+      logger.info(`   * metrics sent`);
+
    }
 
    protected async teardown(): Promise<void> {
@@ -112,17 +127,19 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info("record end time");
          await captureDao.updateCaptureEndTime(this.id);
 
-         logger.info("set status to 'stopping'");
-         await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STOPPING);
-
          logger.info("turning off RDS logging");
          await this.workloadLogger.setLogging(false);
 
+         logger.info(`Waiting for files to be prepared`);
          const workloadDelay = this.config.mock ? 5000 : 15000;
          setTimeout(async () => {
             logger.info("building final workload file");
             const workloadStorage = new WorkloadStorage(this.storage);
             await workloadStorage.buildFinalWorkloadFile(this.asIChildProgram());
+
+            logger.info("building final metrics file");
+            const metricsStorage = new MetricsStorage(this.storage);
+            await metricsStorage.read(this.asIChildProgram(), false);
 
             logger.info('Stopping ipc node');
             await this.ipcNode.stop();
@@ -143,7 +160,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
    }
 
    private async sendWorkloadToS3(start: Date, end: Date) {
-      this.tryTwice(async () => {
+      await this.tryTwice(async () => {
 
          // download the fragment
          const fragment = await this.workloadLogger.getWorkloadFragment(start, end);
@@ -163,26 +180,36 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
    }
 
    private async sendMetricsToS3(start: Date, end: Date) {
-      this.tryTwice(async () => {
 
+      await this.tryTwice(async () => {
+
+         logger.info(`   * memory...`);
          const memoryMetrics = await this.metrics.getMetricsForType(MemoryMetric, start, end);
          const datapoints = memoryMetrics.dataPoints;
-
          datapoints.forEach((metric) => {
             metric.Unit = "Megabytes";
             metric.Maximum *= ByteToMegabyte;
          });
+         logger.info(`      * ${datapoints.length} datapoints`);
 
-         const data = [
-            await this.metrics.getMetricsForType(CPUMetric, start, end),
-            await this.metrics.getMetricsForType(ReadMetric, start, end),
-            await this.metrics.getMetricsForType(WriteMetric, start, end),
-            memoryMetrics,
-         ];
+         logger.info(`   * cpu...`);
+         const cpu = await this.metrics.getMetricsForType(CPUMetric, start, end);
+         logger.info(`      * ${cpu.dataPoints.length} datapoints`);
+
+         logger.info(`   * read...`);
+         const read = await this.metrics.getMetricsForType(ReadMetric, start, end);
+         logger.info(`      * ${read.dataPoints.length} datapoints`);
+
+         logger.info(`   * write...`);
+         const write = await this.metrics.getMetricsForType(WriteMetric, start, end);
+         logger.info(`      * ${write.dataPoints.length} datapoints`);
+
+         const data = [cpu, read, write, memoryMetrics];
 
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
-         logger.info(`Saving metrics to ${key}`);
+         logger.info(`   * saving metrics to ${key}`);
          await this.storage.writeJson(key, data);
+         logger.info(`   * done!`);
       }, "send metrics to S3");
    }
 

@@ -12,3 +12,12 @@ export const sleep = (ms: number): Promise<void> => {
       }, ms);
    });
 };
+
+export const syncTimeout = (func: () => Promise<any>, ms: number) => {
+   return new Promise<void>((resolve, reject) => {
+      setTimeout(async () => {
+         await func();
+         resolve();
+      }, ms);
+   });
+};

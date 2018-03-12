@@ -17,14 +17,14 @@ const convertTime = (command: ICommand): ICommand => {
 };
 
 export const prepareWorkload = (workload: IWorkload, mock: boolean) => {
-   logger.info(`--< Preparing Workload >----------------------------`);
+   logger.info(`   * Preparing Workload`);
 
    let pre;
    let post;
 
    // filter commands
    if (mock) {
-      logger.info(`   * Only Dummy Queries in mock mode!`);
+      logger.info(`      * Only Dummy Queries in mock mode!`);
       pre = workload.commands.length;
       workload.commands = workload.commands.filter(mockFilter);
       post = workload.commands.length;
@@ -32,9 +32,9 @@ export const prepareWorkload = (workload: IWorkload, mock: boolean) => {
    }
 
    // transform commands
-   logger.info(`   * Convert time`);
+   logger.info(`      * Convert time`);
    pre = workload.commands.length;
    workload.commands = workload.commands.map(convertTime);
    post = workload.commands.length;
-   logger.info(`      ${pre} -> ${post}`);
+   logger.info(`         ${pre} -> ${post}`);
 };
