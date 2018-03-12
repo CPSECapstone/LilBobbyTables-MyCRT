@@ -206,7 +206,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          if (this.config.mock) {
             queryStart = moment(this.workload!.commands[index].event_time);
          } else {
-            queryStart = moment(this.workload!.commands[index].event_time).subtract(8, 'hours');
+            queryStart = moment(this.workload!.commands[index].event_time);
          }
 
          const delay = (queryStart.diff(this.workloadStart)) - (moment().diff(this.replayStartTime));

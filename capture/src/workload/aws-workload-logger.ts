@@ -52,12 +52,13 @@ export class AwsWorkloadLogger extends WorkloadLogger {
    }
 
    private doGeneralLogQuery(conn: mysql.Connection, start: Date, end: Date): Promise<ICommand[]> {
-      const startDate = moment(start).add(8, 'hours').toDate();
-      const endDate = moment(end).add(8, 'hours').toDate();
+      const startDate = moment(start).add(7, 'hours').toDate();
+      const endDate = moment(end).add(7, 'hours').toDate();
       const query = mysql.format("SELECT * FROM mysql.general_log " +
          "WHERE user_host NOT LIKE 'rdsadmin%' AND user_host NOT LIKE '[rdsadmin]%' AND command_type = 'Query' " +
          "AND event_time BETWEEN ? and ?", [startDate, endDate]);
 
+      logger.info(`GENERAL_LOG QUERY: "${query}"`);
       return new Promise<ICommand[]>((resolve, reject) => {
          conn.query(query, (queryErr, rows) => {
             conn.end();

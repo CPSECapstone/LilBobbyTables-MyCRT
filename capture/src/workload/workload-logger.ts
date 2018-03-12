@@ -1,3 +1,5 @@
+import moment = require('moment');
+
 import { ChildProgramType, ICapture, ICommand, IWorkload } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
@@ -23,7 +25,11 @@ export abstract class WorkloadLogger {
       }
 
       const commands = await this.queryGeneralLog(start, end);
-      return {start: start.toString(), end: end.toString(), commands};
+      return {
+         start: moment(start).add(7, 'hours').toDate().toString(),
+         end: moment(end).add(7, 'hours').toDate().toString(),
+         commands,
+      };
    }
 
    public async setLogging(on: boolean): Promise<void> {

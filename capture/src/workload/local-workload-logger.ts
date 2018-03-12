@@ -20,7 +20,7 @@ export class LocalWorkloadLogger extends WorkloadLogger {
 
    private static readonly GENERAL_LOG_QUERY_TEMPLATE: string =
       'SELECT event_time, user_host, thread_id, server_id, command_type, convert(argument using utf8) as argument '
-      + 'FROM mysql.general_log WHERE event_time BETWEEN ? AND ?';
+      + 'FROM mysql.general_log WHERE event_time BETWEEN ? AND ? AND command_type = \'Query\'';
 
    constructor(type: ChildProgramType, id: number, storage: StorageBackend, protected env: IEnvironmentFull) {
       super(type, id, storage);
