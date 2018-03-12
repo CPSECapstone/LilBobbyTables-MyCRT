@@ -121,14 +121,19 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
         finished = false;
       }
 
+      if (finished) {
+         // in this case, the last logMetrics call happens after the replay finished
+         // so, we want to set its status to stopping
+         logger.info(`Setting status to 'stopping'`);
+         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.STOPPING);
+      }
+
       logger.info(`-< Logging Metrics >-------------`);
       await this.logMetrics();
 
       if (finished) {
          this.onStop();
       }
-
-      logger.info(`--==[ LOOP DONE ]==---------------`);
    }
 
    protected async teardown(): Promise<void> {
