@@ -230,6 +230,7 @@ export default class CaptureRouter extends SelfAwareRouter {
       config.interval = settings.captures.interval;
       config.intervalOverlap = settings.captures.intervalOverlap;
       config.metricsDelay = settings.captures.metricsDelay;
+      config.filePrepDelay = settings.captures.filePrepDelay;
       launch(config);
    }
 

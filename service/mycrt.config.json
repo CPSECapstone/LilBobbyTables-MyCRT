@@ -4,12 +4,14 @@
       "mock": false,
       "interval": 300000,
       "intervalOverlap": 10000,
-      "metricsDelay": 200000
+      "metricsDelay": 200000,
+      "filePrepDelay": 15000
    },
    "replays": {
       "mock": false,
       "interval": 300000,
       "intervalOverlap": 10000,
-      "metricsDelay": 200000
+      "metricsDelay": 200000,
+      "filePrepDelay": 15000
    }
 }

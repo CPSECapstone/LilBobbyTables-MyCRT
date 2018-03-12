@@ -131,7 +131,6 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          await this.workloadLogger.setLogging(false);
 
          logger.info(`Waiting for files to be prepared`);
-         const workloadDelay = this.config.mock ? 5000 : 15000;
          setTimeout(async () => {
             logger.info("building final workload file");
             const workloadStorage = new WorkloadStorage(this.storage);
@@ -148,7 +147,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
             await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.DONE);
 
             logger.info(`Teardown for Capture ${this.id} complete!`);
-         }, workloadDelay);
+         }, this.config.filePrepDelay);
 
       } catch (error) {
          this.selfDestruct(`teardown failed: ${error}`);

@@ -1,9 +1,8 @@
 import moment = require('moment-timezone');
 import mysql = require('mysql');
 
-import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging } from '@lbt-mycrt/common';
-import { mycrtDbConfig, ReplayDao, ReplayIpcNode } from '@lbt-mycrt/common';
-import { CPUMetric, MemoryMetric, MetricsBackend, ReadMetric, WriteMetric } from '@lbt-mycrt/common';
+import { CPUMetric, ICapture, IpcNode, IReplayIpcNodeDelegate, Logging, MemoryMetric,
+   MetricsBackend, mycrtDbConfig, ReadMetric, ReplayDao, ReplayIpcNode, utils, WriteMetric } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
 import { ICommand, IDbReference, IWorkload } from '@lbt-mycrt/common/dist/data';
@@ -33,7 +32,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    private replayEndTime?: Moment;
    private workloadPath?: string;
    private workloadIndex: number = 0;
-   private hasError: boolean = false;
 
    constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend, db: IDbReference) {
       super(storage, metrics);
@@ -80,6 +78,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
          this.workload = await this.getWorkload();
 
+         this.loop();
+
       } catch (error) {
          this.selfDestruct(error);
       }
@@ -121,16 +121,11 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
         finished = false;
       }
 
-      const metricsDelay = this.config.mock ? 0 : 200000;
-      logger.info(`-< waiting ${metricsDelay}ms before gathering metrics >-----`);
-      setTimeout(async () => {
-         logger.info(`-< Logging Metrics >-------------`);
-         this.logMetrics();
-      }, metricsDelay);
+      logger.info(`-< Logging Metrics >-------------`);
+      await this.logMetrics();
 
       if (finished) {
-        logger.info(`-< Stopping >------------------`);
-        this.stop(false); // just once for now
+         this.onStop();
       }
 
       logger.info(`--==[ LOOP DONE ]==---------------`);
@@ -139,12 +134,29 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    protected async teardown(): Promise<void> {
       logger.info(`Replay ${this.id}: teardown`);
 
-      if (!this.hasError) {
-         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.DONE);
-      }
+      logger.info(`Waiting for files to be prepared`);
+      setTimeout(async () => {
 
-      await replayDao.updateReplayEndTime(this.id);
-      this.ipcNode.stop();
+         logger.info(`Building final metrics file`);
+         const metricsStorage = new MetricsStorage(this.storage);
+         await metricsStorage.read(this.asIChildProgram(), false);
+
+         logger.info(`Setting status to done`);
+         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.DONE);
+
+         logger.info(`Setting replay end time`);
+         await replayDao.updateReplayEndTime(this.id);
+
+         logger.info(`Stopping IPC node`);
+         await this.ipcNode.stop();
+
+      }, this.config.filePrepDelay);
+   }
+
+   protected async onStop(): Promise<any> {
+      logger.info(`-< Stopping >------------------`);
+
+      this.stop(false); // just once for now
    }
 
    protected async dontPanic(): Promise<void> {
@@ -265,7 +277,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       });
    }
 
-   private logMetrics() {
+   private async logMetrics() {
 
       const end = moment();
       let start = end.clone().subtract(this.interval + this.config.intervalOverlap);
@@ -275,8 +287,13 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       }
 
       if (end.toDate().getTime() - start.toDate().getTime() > this.config.intervalOverlap) {
-         logger.info(`   retrieving metrics from ${start.toDate()} to ${end.toDate()}`);
-         this.sendMetricsToS3(start.toDate(), end.toDate());
+
+         logger.info(`   waiting ${this.config.metricsDelay}ms before gathering metrics`);
+         await utils.syncTimeout(async () => {
+            logger.info(`   retrieving metrics from ${start.toDate()} to ${end.toDate()}`);
+            this.sendMetricsToS3(start.toDate(), end.toDate());
+         }, this.config.metricsDelay);
+
       } else {
          logger.info(`   skipping metrics, not enough time has passed`);
       }
@@ -290,18 +307,23 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          logger.info(`      * memory...`);
          const memoryMetrics = await this.metrics.getMetricsForType(MemoryMetric, start, end);
          const datapoints = memoryMetrics.dataPoints;
-
          datapoints.forEach((metric) => {
             metric.Unit = "Megabytes";
             metric.Maximum *= ByteToMegabyte;
          });
+         logger.info(`         * ${datapoints.length} datapoints`);
 
          logger.info(`      * cpu...`);
          const cpu = await this.metrics.getMetricsForType(CPUMetric, start, end);
+         logger.info(`         * ${cpu.dataPoints.length} datapoints`);
+
          logger.info(`      * read...`);
          const read = await this.metrics.getMetricsForType(ReadMetric, start, end);
+         logger.info(`         * ${read.dataPoints.length} datapoints`);
+
          logger.info(`      * write...`);
          const write = await this.metrics.getMetricsForType(WriteMetric, start, end);
+         logger.info(`         * ${write.dataPoints.length} datapoints`);
 
          const data = [cpu, read, write, memoryMetrics];
 
