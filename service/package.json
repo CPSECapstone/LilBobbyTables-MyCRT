@@ -10,7 +10,7 @@
     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
   },
   "scripts": {
-     "mycrt": "node ./dist/main.js"
+    "mycrt": "node ./dist/main.js"
   },
   "dependencies": {
     "@lbt-mycrt/capture": "file:../capture",

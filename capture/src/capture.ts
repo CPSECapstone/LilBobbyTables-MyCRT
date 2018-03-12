@@ -92,10 +92,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          start.setTime(this.startTime!.getTime());
       }
 
-      logger.info('   process workload...');
+      logger.info('-< Process Workload >-------------');
       await this.sendWorkloadToS3(start, end);
 
-      logger.info('   process metrics...');
+      logger.info('-< Process Metrics >--------------');
       await this.sendMetricsToS3(start, end);
 
       if (this.config.mock) {
