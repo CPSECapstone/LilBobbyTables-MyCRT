@@ -94,22 +94,23 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       let finished = true;
 
+      logger.info(`-< Scheduling Commands >---------`);
       while (this.indexInInterval(this.workloadIndex)) {
 
          const currentIndex = this.workloadIndex;
          const delay = this.getDelayForIndex(currentIndex);
          const currentQuery = this.workload!.commands[currentIndex];
 
-         setTimeout(() => {
+         logger.info(`   * Scheduling command ${currentIndex + 1} of ${this.workload!.commands.length}`);
+         logger.info(`      delay = ${delay}`);
+         setTimeout(async () => {
             try {
-               this.processQuery(currentQuery);
+               await this.processQuery(currentQuery);
             } catch (error) {
-               logger.info(`Error while processing query with index ${currentIndex}
-               ${error}`);
-
+               logger.info(`Error while processing query with index ${currentIndex}: ${error}`);
             }
          }, delay);
-         logger.info(`Scheduled query: ${this.workloadIndex}`);
+         logger.info(`      scheduled!`);
 
          // don't let the subprocess end because we still need to run these queries.
          finished = false;
@@ -120,11 +121,15 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
         finished = false;
       }
 
+      logger.info(`-< Logging Metrics >-------------`);
       this.logMetrics();
 
       if (finished) {
+        logger.info(`-< Stopping >-=======------------`);
         this.stop(false); // just once for now
       }
+
+      logger.info(`--==[ LOOP DONE ]==---------------`);
    }
 
    protected async teardown(): Promise<void> {
@@ -193,7 +198,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    private queryInInterval(index: number): boolean {
 
       const delay = this.getDelayForIndex(index);
-      logger.info(`Delay for index: ${index} is ${delay}`);
       return (delay >= 0 && delay < this.interval);
    }
 
@@ -236,6 +240,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       const conn = mysql.createConnection(this.targetDb);
 
+      logger.info(`--< Running Query >------------------------------------`);
+      logger.info(`   "${query.argument.replace('\n', ' ')}"`);
       return new Promise<any>((resolve, reject) => {
          conn.connect((connErr) => {
             if (connErr) {
@@ -260,11 +266,16 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       const end = moment();
       let start = end.clone().subtract(this.interval + this.config.intervalOverlap);
 
-      if (start.diff(this.workloadStart) < 0) {
-        start = this.workloadStart!;
+      if (start.diff(this.replayStartTime!) < 0) {
+        start = this.replayStartTime!;
       }
 
-      this.sendMetricsToS3(start.toDate(), end.toDate());
+      if (end.toDate().getTime() - start.toDate().getTime() > this.config.intervalOverlap) {
+         logger.info(`   retrieving metrics from ${start.toDate()} to ${end.toDate()}`);
+         this.sendMetricsToS3(start.toDate(), end.toDate());
+      } else {
+         logger.info(`   skipping metrics, not enough time has passed`);
+      }
 
    }
 
@@ -272,6 +283,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       this.tryTwice(async () => {
 
+         logger.info(`      * memory...`);
          const memoryMetrics = await this.metrics.getMetricsForType(MemoryMetric, start, end);
          const datapoints = memoryMetrics.dataPoints;
 
@@ -280,16 +292,19 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
             metric.Maximum *= ByteToMegabyte;
          });
 
-         const data = [
-            await this.metrics.getMetricsForType(CPUMetric, start, end),
-            await this.metrics.getMetricsForType(ReadMetric, start, end),
-            await this.metrics.getMetricsForType(WriteMetric, start, end),
-            memoryMetrics,
-         ];
+         logger.info(`      * cpu...`);
+         const cpu = await this.metrics.getMetricsForType(CPUMetric, start, end);
+         logger.info(`      * read...`);
+         const read = await this.metrics.getMetricsForType(ReadMetric, start, end);
+         logger.info(`      * write...`);
+         const write = await this.metrics.getMetricsForType(WriteMetric, start, end);
+
+         const data = [cpu, read, write, memoryMetrics];
 
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
-         logger.info(`Saving metrics to ${key}`);
+         logger.info(`      * saving metrics to ${key}`);
          await this.storage.writeJson(key, data);
+         logger.info(`      * done!`);
 
       }, "Send Metrics to S3");
 
