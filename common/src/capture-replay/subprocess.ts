@@ -47,9 +47,9 @@ export abstract class Subprocess {
    protected abstract async teardown(): Promise<void>;
    protected abstract async dontPanic(): Promise<void>;
 
-   protected async tryTwice(action: () => void, desc: string, firstTry: boolean = true) {
+   protected async tryTwice(action: () => Promise<void>, desc: string, firstTry: boolean = true) {
       try {
-         action();
+         await action();
       } catch (error) {
          if (firstTry) {
             logger.warn(`Failed to ${desc}: ${error}`);
