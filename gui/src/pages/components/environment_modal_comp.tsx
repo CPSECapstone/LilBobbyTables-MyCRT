@@ -40,13 +40,13 @@ export class EnvModal extends React.Component<any, any>  {
             this.setState({dbRefs});
             this.changeProgress(3);
         } else {
-            logger.info("THERE WAS AN ERROR");
+            logger.error("THERE WAS AN ERROR");
         }
         const bucketList = await mycrt.validateBuckets(iamRef);
         if (bucketList) {
             this.setState({bucketList});
         } else {
-            logger.info("THERE WAS AN ERROR");
+            logger.error("THERE WAS AN ERROR");
         }
 
     }
@@ -60,6 +60,7 @@ export class EnvModal extends React.Component<any, any>  {
             this.changeProgress(4);
         } else {
             this.setState({invalidDBPass: true});
+            logger.error("Could not validate db");
         }
     }
 
