@@ -23,6 +23,7 @@ class DashboardApp extends React.Component<any, any> {
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
+        this.updateReplays = this.updateReplays.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
         if (match) {
@@ -60,7 +61,7 @@ class DashboardApp extends React.Component<any, any> {
                allReplays = allReplays.concat(replays);
            }
         }
-        this.setState({replays: allReplays});
+        this.setState({replays: this.makeObject(allReplays, "id")});
     }
 
     public updateCaptures(id: string, status: ChildProgramStatus) {
@@ -68,6 +69,13 @@ class DashboardApp extends React.Component<any, any> {
         captures[id].status = status;
         this.setState({captures});
     }
+
+    public async updateReplays(id: string, status: ChildProgramStatus) {
+      const replays = this.state.replays;
+      replays[id].status = status;
+      logger.info(JSON.stringify(replays));
+      this.setState({replays});
+   }
 
     public async componentWillMount() {
         if (this.state.envId) {
@@ -93,7 +101,7 @@ class DashboardApp extends React.Component<any, any> {
             for (let i = captureList.length - 1; i >= 0; i--) {
                 const capture = this.state.captures[captureList[i]];
                 const name = capture.name || `capture ${capture.id}`;
-                const captureComp = (<CapturePanel title={name} capture={capture} key={name}
+                const captureComp = (<CapturePanel title={name} capture={capture} key={capture.id}
                   envId={this.state.envId} update={this.updateCaptures}/>);
                 if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE ||
                      capture.status === ChildProgramStatus.FAILED) {
@@ -109,17 +117,19 @@ class DashboardApp extends React.Component<any, any> {
       const scheduledReplays: JSX.Element[] = [];
       const pastReplays: JSX.Element[] = [];
       if (this.state.replays) {
-         for (let id = this.state.replays.length - 1; id >= 0; id--) {
-            const replay = this.state.replays[id];
+         const replayList = Object.keys(this.state.replays);
+         for (let i = replayList.length - 1; i >= 0; i--) {
+            const replay = this.state.replays[replayList[i]];
             const name = replay.name || `replay ${replay.id}`;
-            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true} key={name}
-               capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>);
+            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true} key={replay.id}
+               capture={this.state.captures[replay.captureId]} envId = {this.state.envId}
+               update={this.updateReplays}/>);
             if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
-                pastReplays.push(replayComp);
+               pastReplays.push(replayComp);
             } else if (replay.status === ChildProgramStatus.SCHEDULED) {
-                scheduledReplays.push(replayComp);
+               scheduledReplays.push(replayComp);
             } else {
-                liveReplays.push(replayComp);
+               liveReplays.push(replayComp);
             }
          }
       }
