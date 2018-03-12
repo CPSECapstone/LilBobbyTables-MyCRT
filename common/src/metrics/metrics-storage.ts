@@ -66,16 +66,16 @@ export class MetricsStorage extends FragmentedStorage<IMetricsList[]> {
 
    }
 
-   protected objectToString(obj: IMetricsList[]): string {
+   public objectToString(obj: IMetricsList[]): string {
       const types = obj.map((list) => list.type).join(' ');
       return `<IMetricsList[] size=${obj.length} ${types}>`;
    }
 
-   protected getDefaultObject(): IMetricsList[] {
+   public getDefaultObject(): IMetricsList[] {
       return [];
    }
 
-   protected mergeObjects(a: IMetricsList[], b: IMetricsList[]): IMetricsList[] {
+   public mergeObjects(a: IMetricsList[], b: IMetricsList[]): IMetricsList[] {
       return mergeIMetricsLists(a, b);
    }
 

@@ -24,13 +24,13 @@ export abstract class Subprocess {
       }, this.interval);
    }
 
-   public stop(extraLoop: boolean): void {
+   public async stop(extraLoop: boolean) {
       this.isDone = true;
       clearInterval(this.loopTimeoutId!);
       if (extraLoop) {
-         this.loop();
+         await this.loop();
       }
-      this.teardown();
+      await this.teardown();
    }
 
    public abstract asIChildProgram(): IChildProgram;

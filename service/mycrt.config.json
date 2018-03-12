@@ -1,13 +1,13 @@
 {
    "name": "MyCRT Server",
    "captures": {
-      "mock": false,
-      "interval": 300000,
+      "mock": true,
+      "interval": 120000,
       "intervalOverlap": 1000
    },
    "replays": {
-      "mock": false,
-      "interval": 120000,
+      "mock": true,
+      "interval": 60000,
       "intervalOverlap": 1000
    }
 }
