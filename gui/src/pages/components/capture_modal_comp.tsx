@@ -14,57 +14,97 @@ import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/dat
 
 export class CaptureModal extends React.Component<any, any>  {
 
-    private baseState = {} as any;
+   private baseState = {} as any;
 
-    constructor(props: any) {
-        super(props);
-        this.handleClick = this.handleClick.bind(this);
-        this.cancelModal = this.cancelModal.bind(this);
-        this.state = { captureName: "", scheduledStart: "", captureType: "immediately" };
-        this.handleTimeChange = this.handleTimeChange.bind(this);
-        this.handleCaptureTypeChange = this.handleCaptureTypeChange.bind(this);
-        this.baseState = this.state;
+   constructor(props: any) {
+      super(props);
+      this.handleClick = this.handleClick.bind(this);
+      this.cancelModal = this.cancelModal.bind(this);
+      this.state = { captureName: "", scheduledStart: "", captureType: "immediately",
+         automaticStop: false, endDuration: {days: 1, hours: 1, minutes: 1}};
+      this.handleTimeChange = this.handleTimeChange.bind(this);
+      this.handleEndTypeChange = this.handleEndTypeChange.bind(this);
+      this.handleCaptureTypeChange = this.handleCaptureTypeChange.bind(this);
+      this.handleDayChange = this.handleDayChange.bind(this);
+      this.handleHourChange = this.handleHourChange.bind(this);
+      this.handleMinuteChange = this.handleMinuteChange.bind(this);
+      this.baseState = this.state;
+   }
+
+   public allFieldsFilled() {
+      return this.state.captureName !== ""; // will be extended later
+   }
+
+   public calculateDuration() {
+      const daysInSecs = this.state.endDuration.days * 86400;
+      const hoursInSecs = this.state.endDuration.hours * 3600;
+      const minutesInSecs = this.state.endDuration.minutes * 60;
+      logger.info(String(daysInSecs + hoursInSecs + minutesInSecs));
+      return daysInSecs + hoursInSecs + minutesInSecs;
+   }
+
+   public async handleClick(event: any) {
+      if (!this.allFieldsFilled()) {
+         logger.error("Please fill in all fields");
+         $('#captureWarning').show();
+         return;
+      }
+      const capture = {name: this.state.captureName, envId: this.props.envId} as any;
+      if (this.state.captureType === "specific") {
+         capture.status = ChildProgramStatus.SCHEDULED;
+         capture.scheduledStart = this.state.scheduledStart;
+      }
+      if (this.state.automaticStop) {
+         capture.duration = this.calculateDuration();
+      }
+      const captureObj = await mycrt.startCapture(capture);
+      if (!captureObj) {
+         logger.error("Could not start capture");
+      } else {
+         logger.info(`${captureObj.name} was made with id ${captureObj.id}`);
+         const cancelBtn = document.getElementById("cancelBtn");
+         this.props.update();
+         if (cancelBtn) {
+               cancelBtn.click();
+         }
+      }
     }
 
-    public allFieldsFilled() {
-        return this.state.captureName !== ""; // will be extended later
+   public handleTimeChange(date: string) {
+      const newDate = new Date(date);
+      this.setState({scheduledStart: newDate});
+   }
+
+   public handleCaptureTypeChange(type: string) {
+      this.setState({captureType: type});
+   }
+
+   public handleDayChange(days: number) {
+      this.setState((prevState: any) => ({
+         endDuration: { ...prevState.endDuration, days},
+      }));
+   }
+
+    public handleHourChange(hours: number) {
+      this.setState((prevState: any) => ({
+         endDuration: { ...prevState.endDuration, hours},
+      }));
     }
 
-    public async handleClick(event: any) {
-        if (!this.allFieldsFilled()) {
-            logger.error("Please fill in all fields");
-            $('#captureWarning').show();
-            return;
-        }
-        const capture = {name: this.state.captureName, envId: this.props.envId} as any;
-        if (this.state.captureType === "specific") {
-           capture.status = ChildProgramStatus.SCHEDULED;
-           capture.scheduledStart = this.state.scheduledStart;
-        }
-        const captureObj = await mycrt.startCapture(capture);
-        if (!captureObj) {
-            logger.error("Could not start capture");
-        } else {
-            logger.info(`${captureObj.name} was made with id ${captureObj.id}`);
-            const cancelBtn = document.getElementById("cancelBtn");
-            this.props.update();
-            if (cancelBtn) {
-                cancelBtn.click();
-            }
-        }
-    }
-
-    public handleTimeChange(date: string) {
-       const newDate = new Date(date);
-       this.setState({scheduledStart: newDate});
-    }
-
-    public handleCaptureTypeChange(type: string) {
-       this.setState({captureType: type});
+    public handleMinuteChange(minutes: number) {
+      this.setState((prevState: any) => ({
+         endDuration: { ...prevState.endDuration, minutes},
+      }));
     }
 
     public handleNameChange(event: any) {
         this.setState({captureName: event.target.value});
+    }
+
+    public handleEndTypeChange(event: any) {
+      this.setState({
+         automaticStop: event.currentTarget.value === "specific",
+     });
     }
 
     public cancelModal(event: any) {
@@ -100,15 +140,32 @@ export class CaptureModal extends React.Component<any, any>  {
                                         <br/>
                                         <StartDateTime updateTime={this.handleTimeChange}
                                           updateType={this.handleCaptureTypeChange}/>
-                                        <br/>
-                                        <label><b>Duration</b></label>
-                                        <div className="container">
-                                            <div className="row">
-                                                <Duration type="days" />
-                                                <Duration type="hours" />
-                                                <Duration type="minutes" />
-                                            </div>
-                                        </div>
+                                       <br/>
+                                       <label><b>Stop Options</b></label>
+                                       <div className="form-check">
+                                          <label className="form-check-label" style={{padding: "5px"}}>
+                                             <input type="radio" className="form-check-input" name="end options"
+                                                onChange={this.handleEndTypeChange}
+                                                defaultValue="manual" defaultChecked/>
+                                                Manual
+                                          </label>
+                                       </div>
+                                       <div className="form-check">
+                                          <label className="form-check-label" style={{padding: "5px"}}>
+                                             <input type="radio" className="form-check-input" name="end options"
+                                                onChange={this.handleEndTypeChange} defaultValue="specific"/>
+                                                Automatic
+                                          </label>
+                                          <div className={this.state.automaticStop ? '' : 'hidden'}>
+                                             <div className="container">
+                                                <div className="row" >
+                                                   <Duration type="days" update={this.handleDayChange}/>
+                                                   <Duration type="hours" update={this.handleHourChange}/>
+                                                   <Duration type="minutes" update={this.handleMinuteChange}/>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
                                     </div>
                                 </div>
                             </form>

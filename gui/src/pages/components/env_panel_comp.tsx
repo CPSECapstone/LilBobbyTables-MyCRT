@@ -41,8 +41,8 @@ export class EnvironmentPanel extends React.Component<any, any>  {
                            {this.props.title}</h5>
                     </div>
                     <div className="card-body">
-                        <p>Current Captures: <b>{this.state.captureNum}</b></p>
-                        <p>Current Replays: <b>{this.state.replayNum}</b></p>
+                        <p>Captures: <b>{this.state.captureNum}</b></p>
+                        <p>Replays: <b>{this.state.replayNum}</b></p>
                     </div>
                 </div>
             </div>

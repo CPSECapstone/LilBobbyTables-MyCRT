@@ -16,11 +16,14 @@ export class CapturePanel extends React.Component<any, any>  {
         this.handleMetricClick = this.handleMetricClick.bind(this);
         this.stopCapture = this.stopCapture.bind(this);
         this.timer = this.timer.bind(this);
+        this.endTimer = this.endTimer.bind(this);
+        this.getCurrDuration = this.getCurrDuration.bind(this);
         this.state = {active: this.props.capture.status === ChildProgramStatus.RUNNING ||
             this.props.capture.status === ChildProgramStatus.STARTING ||
             this.props.capture.status === ChildProgramStatus.STARTED,
             live: this.props.capture.status === ChildProgramStatus.RUNNING, capture: this.props.capture,
             scheduled: this.props.capture.status === ChildProgramStatus.SCHEDULED,
+            done: this.props.capture.status === ChildProgramStatus.DONE,
             failed: this.props.capture.status === ChildProgramStatus.FAILED};
     }
 
@@ -31,7 +34,7 @@ export class CapturePanel extends React.Component<any, any>  {
     }
 
     public handleMetricClick(event: any): void {
-         window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=metrics`);
+      window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=metrics`);
     }
 
     public componentDidMount() {
@@ -39,28 +42,57 @@ export class CapturePanel extends React.Component<any, any>  {
          const intervalId = setInterval(this.timer, 1000);
          this.setState({intervalId});
       }
+      if (this.props.capture.scheduledEnd && this.state.live) {
+         const startTime = new Date(this.props.capture.start);
+         const endTime = new Date(this.props.capture.scheduledEnd);
+         const duration = endTime.getTime() - startTime.getTime();
+         this.setState({duration});
+         this.setState({currentDuration: this.getCurrDuration()});
+         const endIntervalId = setInterval(this.endTimer, 1000);
+         this.setState({endIntervalId});
+      }
    }
 
    public componentWillUnmount() {
       // use intervalId from the state to clear the interval
       clearInterval(this.state.intervalId);
+      clearInterval(this.state.endIntervalId);
+   }
+
+   public getCurrDuration() {
+      const startTime = new Date(this.state.capture.start);
+      const currTime = new Date();
+      return currTime.getTime() - startTime.getTime();
+   }
+
+   public endTimer() {
+      const currentDuration = this.getCurrDuration();
+      if (currentDuration < this.state.duration) {
+         this.setState({ currentDuration });
+      } else {
+         const capture = this.state.capture;
+         capture.status = ChildProgramStatus.STOPPING;
+         this.setState({capture, live: false, active: false});
+         clearInterval(this.state.endIntervalId);
+      }
    }
 
    public timer() {
       const scheduledStart = new Date(this.state.capture.scheduledStart);
       if (new Date() >= scheduledStart) {
-         this.props.update(this.state.capture.id, ChildProgramStatus.RUNNING);
+         this.props.update(this.state.capture.id, ChildProgramStatus.STARTING);
          clearInterval(this.state.intervalId);
       }
    }
 
     public async stopCapture(event: any) {
-        this.setState({ active: false, live: false });
-        let result = await mycrt.stopCapture(this.state.capture.id);
-        if (!result) {
-            result = `Capture ${this.state.capture.id}: Failed to get capture result.`;
-        }
-        this.props.update(this.state.capture.id, ChildProgramStatus.DONE);
+      const capture = this.state.capture;
+      capture.status = ChildProgramStatus.STOPPING;
+      this.setState({ capture, active: false, live: false });
+      let result = await mycrt.stopCapture(this.state.capture.id);
+      if (!result) {
+         result = `Capture ${this.state.capture.id}: Failed to get capture result.`;
+      }
     }
 
     public formatTimeStamp(date: string) {
@@ -85,25 +117,36 @@ export class CapturePanel extends React.Component<any, any>  {
           statusStyle = "myCRT-status-failed";
        }
        if (!this.props.capture) { return (<div></div>); }
+       const percent = `${((this.state.currentDuration / this.state.duration) * 100).toFixed(0)}%`;
         return (
             <div className="card myCRT-panel mt-4 myCRT-card">
                 <div className={`card-header ${className}`}>
                     <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle", cursor: "pointer"}}
                         onClick={ (e) => this.handleInfoClick(e)}>{this.props.title}</h5>
-                    {this.state.live ? <button type="button" className="btn btn-danger"
-                                               style={{zIndex: 10, float: "right"}}
-                                               onClick={(e) => this.stopCapture(e)}>Stop</button> : null}
-                    {this.state.active || this.state.scheduled || this.state.failed ? null : <button type="button"
+                    {this.state.live && !this.state.capture.scheduledEnd ?
+                        <button type="button" className="btn btn-danger"
+                           style={{zIndex: 10, float: "right"}}
+                           onClick={(e) => this.stopCapture(e)}>Stop</button> : null}
+                    {this.state.done ? <button type="button"
                         className="btn btn-success" style={{zIndex: 10, float: "right"}}
                            onClick={ (e) => this.handleMetricClick(e)}>
-                        <i className="fa fa-line-chart"></i>  View</button>}
+                        <i className="fa fa-line-chart"></i>  View</button> : null}
                 </div>
-                <div className={`card-footer ${statusStyle}`}>{this.props.capture.status}</div>
+                {this.state.capture.scheduledEnd && this.state.live ?
+                  <div className="progress" style={{height: "20px", borderRadius: 0}}>
+                     <div className="progress-bar progress-bar-striped progress-bar-animated myCRT-progress-bar"
+                        role="progressbar" aria-valuenow={this.state.currentDuration} aria-valuemin={0}
+                        style={{width: percent}} aria-valuemax={this.state.duration}>
+                        {percent}</div>
+                  </div> :
+                  <div className={`card-footer ${statusStyle}`}>{this.state.capture.status}</div>}
                 <div className="card-body">
                   {this.state.scheduled ?
                      <p><b>Scheduled Start:</b><i> {this.formatTimeStamp(this.state.capture.scheduledStart)}</i></p> :
                      <p><b>Start:</b><i> {this.formatTimeStamp(this.state.capture.start)}</i></p>}
-                     <p><b>End:</b><i> {this.formatTimeStamp(this.state.capture.end)}</i></p>
+                  {this.state.capture.scheduledEnd && !this.state.done ?
+                     <p><b>Scheduled Stop:</b><i> {this.formatTimeStamp(this.state.capture.scheduledEnd)}</i></p> :
+                     <p><b>Stop:</b><i> {this.formatTimeStamp(this.state.capture.end)}</i></p>}
                 </div>
             </div>
         );

@@ -11,9 +11,9 @@ export class Graph extends React.Component<any, any>  {
 
    public render() {
       if (!this.props.data) { return (<div></div>); }
-      const downloadLink = `/api/captures/${this.props.id}/metrics?type=${this.props.type}`;
-      const downloadFileName = `${this.props.type}metrics.json`;
-      const lineNum = Object.keys(this.props.data).length;
+      const encodedStrData = encodeURIComponent(JSON.stringify(this.props.data.dataPoints));
+      const downloadStr = "data:text/json;charset=utf-8," + encodedStrData;
+      const downloadName = `capture${this.props.id}${this.props.data.displayName}.json`;
 
       const metrics: JSX.Element[] = [];
       if (this.props.data.dataPoints.length > 0) {
@@ -32,9 +32,9 @@ export class Graph extends React.Component<any, any>  {
       const ChartType = this.props.filled ? AreaChart : LineChart;
       return (
          <div className="graph">
-            <h3 className="graphName">{this.props.data.displayName}</h3>
-            <a role="button" href={downloadLink} className="btn btn-primary downloadBtn"
-               download={downloadFileName}>
+            <h3 className="graphName" id={this.props.data.displayName}>{this.props.data.displayName}</h3>
+            <a role="button" href={downloadStr} className="btn btn-primary downloadBtn"
+               download={downloadName}>
                <i className="fa fa-download" aria-hidden="true"></i> Download
             </a>
             <ChartType width={1000} height={400} data={this.props.data.dataPoints}

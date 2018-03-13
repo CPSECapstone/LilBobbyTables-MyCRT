@@ -52,15 +52,15 @@ class DashboardApp extends React.Component<any, any> {
   }
 
     public async setReplays() {
-       let allReplays = this.state.replays;
-        for (const id in this.state.captures) {
-           const capture = this.state.captures[id];
-           const replays = await mycrt.getReplaysForCapture(capture.id);
-           if (replays) {
-               allReplays = allReplays.concat(replays);
-           }
-        }
-        this.setState({replays: allReplays});
+      let allReplays = this.state.replays;
+      for (const id in this.state.captures) {
+         const capture = this.state.captures[id];
+         const replays = await mycrt.getReplaysForCapture(capture.id);
+         if (replays) {
+            allReplays = allReplays.concat(replays);
+         }
+      }
+      this.setState({replays: allReplays});
     }
 
     public updateCaptures(id: string, status: ChildProgramStatus) {
@@ -70,12 +70,12 @@ class DashboardApp extends React.Component<any, any> {
     }
 
     public async componentWillMount() {
-        if (this.state.envId) {
-            this.setState({
-                  env: await mycrt.getEnvironment(this.state.envId),
-            });
-        }
-        this.setCaptures();
+      if (this.state.envId) {
+         this.setState({
+            env: await mycrt.getEnvironment(this.state.envId),
+         });
+      }
+      this.setCaptures();
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
@@ -93,10 +93,9 @@ class DashboardApp extends React.Component<any, any> {
             for (let i = captureList.length - 1; i >= 0; i--) {
                 const capture = this.state.captures[captureList[i]];
                 const name = capture.name || `capture ${capture.id}`;
-                const captureComp = (<CapturePanel title={name} capture={capture} key={name}
+                const captureComp = (<CapturePanel title={name} capture={capture} key={capture.id}
                   envId={this.state.envId} update={this.updateCaptures}/>);
-                if (capture.status === ChildProgramStatus.STOPPING || capture.status === ChildProgramStatus.DONE ||
-                     capture.status === ChildProgramStatus.FAILED) {
+                if (capture.status === ChildProgramStatus.DONE || capture.status === ChildProgramStatus.FAILED) {
                     pastCaptures.push(captureComp);
                 } else if (capture.status === ChildProgramStatus.SCHEDULED) {
                     scheduledCaptures.push(captureComp);
@@ -112,14 +111,14 @@ class DashboardApp extends React.Component<any, any> {
          for (let id = this.state.replays.length - 1; id >= 0; id--) {
             const replay = this.state.replays[id];
             const name = replay.name || `replay ${replay.id}`;
-            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true} key={name}
+            const replayComp = (<ReplayPanel title={name} replay={replay} compare={true} key={replay.id}
                capture={this.state.captures[replay.captureId]} envId = {this.state.envId}/>);
-            if (replay.status === "queued" || replay.status === ChildProgramStatus.DONE) {
-                pastReplays.push(replayComp);
+            if (replay.status === ChildProgramStatus.DONE || replay.status === ChildProgramStatus.FAILED) {
+               pastReplays.push(replayComp);
             } else if (replay.status === ChildProgramStatus.SCHEDULED) {
-                scheduledReplays.push(replayComp);
+               scheduledReplays.push(replayComp);
             } else {
-                liveReplays.push(replayComp);
+               liveReplays.push(replayComp);
             }
          }
       }
@@ -176,7 +175,7 @@ class DashboardApp extends React.Component<any, any> {
                         <CaptureModal id="captureModal" envId={this.state.envId} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     <h4>Live</h4>
+                     <h4>Active</h4>
                      <div className="myCRT-overflow-col">
                      {liveCaptures.length ? liveCaptures : <p className="myCRT-empty-col">
                             No currently active captures</p>}
@@ -206,7 +205,7 @@ class DashboardApp extends React.Component<any, any> {
                             env = {this.state.env} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     <h4>Live</h4>
+                     <h4>Active</h4>
                      <div className="myCRT-overflow-col">
                         {liveReplays.length ? liveReplays : <p className="myCRT-empty-col">
                             No currently active replays</p>}

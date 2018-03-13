@@ -34,14 +34,14 @@ export class StartDateTime extends React.Component<any, any>  {
                     <label className="form-check-label" style={{padding: "5px"}}>
                         <input type="radio" className="form-check-input" name="start options"
                                onChange={this.handleOptionChange} defaultValue="immediate" defaultChecked/>
-                        Immediately
+                        Immediate
                     </label>
                 </div>
                 <div className="form-check">
                     <label className="form-check-label" style={{padding: "5px"}}>
                         <input type="radio" className="form-check-input" name="start options"
                                onChange={this.handleOptionChange} defaultValue="specific"/>
-                        Specific Date/Time
+                        Scheduled
                     </label>
                     <input className={this.state.showDateTime ? 'form-control' : 'form-control hidden'}
                            style={{width: "70%", marginLeft: "10px"}}
