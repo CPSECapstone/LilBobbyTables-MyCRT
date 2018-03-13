@@ -1,9 +1,21 @@
 language: node_js
 node_js:
   - '8'
+addons: # get google-chrome-stable
+  chrome: stable
+install: # Install ChromeDriver (64bits; replace 64 with 32 for 32bits).
+  - wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip -P ~/
+  - unzip ~/chromedriver_linux64.zip -d ~/
+  - rm ~/chromedriver_linux64.zip
+  - sudo mv -f ~/chromedriver /usr/local/share/
+  - sudo chmod +x /usr/local/share/chromedriver
+  - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
 services:
   - mysql
-script: sh scripts/ci_script.sh
+script:
+  - sh scripts/ci_script.sh
+  - whereis google-chrome-stable
+  - whereis chromedriver
 before_install: gem install sass
 env:
   - MYCRT_ENV=travis

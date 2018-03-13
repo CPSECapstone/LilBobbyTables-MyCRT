@@ -55,6 +55,11 @@ export const liveCaptureBody = {
    end: null,
 };
 
+export const guiCaptureBody = {
+   name: "LiveCapture",
+   envId: 1,
+};
+
 export const badScheduledCapture = {
    name: "ScheduledCapture",
    envId: 1,

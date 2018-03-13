@@ -7,10 +7,15 @@ import 'mocha-steps';
 
 import selenium = require('selenium-webdriver');
 
-import { ChildProgramStatus } from '../../../common/dist/main';
+import { ReadMetric, WriteMetric } from '@lbt-mycrt/common/dist/metrics/metrics';
+import { MockMetricsBackend } from '@lbt-mycrt/common/dist/metrics/mock-metrics-backend';
+import { path } from '@lbt-mycrt/common/dist/storage/backend-schema';
+import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
+import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
+import { ChildProgramStatus, CPUMetric, IChildProgram } from '../../../common/dist/main';
 import { captureDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
-import { liveCaptureBody, newEnvBody } from './routes/data';
+import { guiCaptureBody, newEnvBody } from './routes/data';
 import { MyCrtServiceTestClient } from './routes/mycrt';
 
 export const mycrt: MyCrtService = new MyCrtService();
@@ -21,8 +26,12 @@ const By = webdriver.By;
 const until = webdriver.until;
 const expect = chai.expect;
 
+const chromeCapabilities = webdriver.Capabilities.chrome();
+chromeCapabilities.set('chromeOptions', {args: ['--headless']});
+
 const driver = new webdriver.Builder()
     .forBrowser('chrome')
+    .withCapabilities(chromeCapabilities)
     .build();
 
 const sleep = (ms: number): Promise<void> => {
@@ -32,6 +41,16 @@ const sleep = (ms: number): Promise<void> => {
          resolve();
       }, ms);
    });
+};
+
+const buildMockMetrics = async (capture: IChildProgram): Promise<void> => {
+   const mockMetrics = new MockMetricsBackend(60);
+   const writeMetrics = await mockMetrics.getMetricsForType(WriteMetric,
+      new Date(new Date().getTime() - 60000), new Date());
+   const cpuMetrics = await mockMetrics.getMetricsForType(CPUMetric,
+      new Date(new Date().getTime() - 60000), new Date());
+   const metricsBackend = new LocalBackend(getSandboxPath());
+   await metricsBackend.writeJson(path.metrics.getDoneKey(capture), [writeMetrics, cpuMetrics]);
 };
 
 // launch mycrt service and chromedriver
@@ -46,15 +65,19 @@ export const launchMyCrtService = async () => {
    await mycrtTest.post(http.OK, '/api/environments/', newEnvBody);
 
    // start a capture with id 1
-   const startResponse = await mycrtTest.post(http.OK, '/api/captures/', liveCaptureBody);
+   const startResponse = await mycrtTest.post(http.OK, '/api/captures/', guiCaptureBody);
    expect(startResponse.body.id).to.equal(1);
+
+   // build mock metrics
+   await buildMockMetrics(startResponse.body as IChildProgram);
+   await sleep(1000);
 
    // stop capture manually
    await captureDao.updateCaptureStatus(1, ChildProgramStatus.DONE);
 
    // ask the browser to open a page
    driver.navigate().to('http://localhost:3000/capture?id=1&envId=1&view=metrics');
-   await sleep(5000);
+   await sleep(4000);
 };
 
 // close mycrt servcie and chromedriver
