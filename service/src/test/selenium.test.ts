@@ -80,7 +80,7 @@ export const launchMyCrtService = async () => {
    await sleep(4000);
 };
 
-// close mycrt servcie and chromedriver
+// close mycrt service and chromedriver
 export const closeMyCrtService = async () => {
    driver.quit();
    expect(await mycrt.close().catch((reason: any) => {
