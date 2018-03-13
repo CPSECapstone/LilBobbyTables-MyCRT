@@ -15,7 +15,6 @@ export class CapturePanel extends React.Component<any, any>  {
         this.handleInfoClick = this.handleInfoClick.bind(this);
         this.handleMetricClick = this.handleMetricClick.bind(this);
         this.stopCapture = this.stopCapture.bind(this);
-        this.timer = this.timer.bind(this);
         this.endTimer = this.endTimer.bind(this);
         this.getCurrDuration = this.getCurrDuration.bind(this);
         this.state = {active: this.props.capture.status === ChildProgramStatus.RUNNING ||
@@ -38,10 +37,6 @@ export class CapturePanel extends React.Component<any, any>  {
     }
 
     public componentDidMount() {
-      if (this.state.scheduled) {
-         const intervalId = setInterval(this.timer, 1000);
-         this.setState({intervalId});
-      }
       if (this.props.capture.scheduledEnd && this.state.live) {
          const startTime = new Date(this.props.capture.start);
          const endTime = new Date(this.props.capture.scheduledEnd);
@@ -54,8 +49,6 @@ export class CapturePanel extends React.Component<any, any>  {
    }
 
    public componentWillUnmount() {
-      // use intervalId from the state to clear the interval
-      clearInterval(this.state.intervalId);
       clearInterval(this.state.endIntervalId);
    }
 
@@ -74,14 +67,6 @@ export class CapturePanel extends React.Component<any, any>  {
          capture.status = ChildProgramStatus.STOPPING;
          this.setState({capture, live: false, active: false});
          clearInterval(this.state.endIntervalId);
-      }
-   }
-
-   public timer() {
-      const scheduledStart = new Date(this.state.capture.scheduledStart);
-      if (new Date() >= scheduledStart) {
-         this.props.update(this.state.capture.id, ChildProgramStatus.STARTING);
-         clearInterval(this.state.intervalId);
       }
    }
 
