@@ -24,7 +24,7 @@ export class Graph extends React.Component<any, any>  {
                const LineType = this.props.filled ? Area : Line;
                metrics.push(<LineType name={key} type="monotone" dataKey={key} stroke={colors[index]}
                   fillOpacity={0.5} fill={colors[index]} isAnimationActive={true}
-                  activeDot={{ r: 8 }} unit={unit} strokeWidth={1.5}/>);
+                  dot={ false } unit={unit} strokeWidth={1.5}/>);
                index++;
             }
          }

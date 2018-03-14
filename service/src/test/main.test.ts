@@ -49,7 +49,7 @@ describe("MyCrtService", function() {
       await replayDao.nuke();
       await captureDao.nuke();
       await environmentDao.nuke();
-      await utils.sleep(250);
+      await utils.sleep(1500);
    });
 
    it("should return 200 on '/'", async function() {
