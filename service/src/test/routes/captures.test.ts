@@ -4,8 +4,11 @@ import 'mocha';
 
 import { Logging } from '@lbt-mycrt/common/dist/main';
 
-import { badScheduledCapture, captureBadEnv, captureBadStatus, liveCaptureBody, newEnvBody,
-   scheduledCaptureBody } from './data';
+import { utils } from '@lbt-mycrt/common';
+import { badDurationCaptureBody, badScheduledCapture, captureBadEnv, captureBadStatus, env2CaptureBody,
+   liveCaptureBody,
+   newEnvBody,
+   scheduledCaptureBody} from './data';
 import { MyCrtServiceTestClient } from './mycrt';
 
 export const captureTests = (mycrt: MyCrtServiceTestClient) => function() {
@@ -78,4 +81,36 @@ export const captureTests = (mycrt: MyCrtServiceTestClient) => function() {
    it("should fail to delete a capture that does not exist", async function() {
       const response = await mycrt.delete(http.NOT_FOUND, '/api/captures/100');
    });
+
+   it("should fail to stop a capture that is starting", async function() {
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const capture = await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
+      const id = capture.body.id;
+      await mycrt.post(http.CONFLICT, '/api/captures/' + id + '/stop');
+
+   });
+
+   it("should fail to stop a capture that is scheduled", async function() {
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const capture = await mycrt.post(http.OK, '/api/captures/', scheduledCaptureBody);
+      const id = capture.body.id;
+      const response = await mycrt.post(http.NOT_IMPLEMENTED, '/api/captures/' + id + '/stop');
+   });
+
+   it("should fail to start a scheduled capture with a duration less than 60sec.", async function() {
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const capture = await mycrt.post(http.BAD_REQUEST, '/api/captures/', badDurationCaptureBody);
+
+   });
+
+   it('should get all captures in an environment', async function() {
+      const env = await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const cap1 = await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
+      const cap2 = await mycrt.post(http.OK, '/api/captures/', scheduledCaptureBody);
+      const env2 = await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      const cap3 = await mycrt.post(http.OK, '/api/captures/', env2CaptureBody);
+      const response = await mycrt.get(http.OK, '/api/captures', {envId: 1});
+      expect(response.body.length).to.equal(2);
+   });
+
 };
