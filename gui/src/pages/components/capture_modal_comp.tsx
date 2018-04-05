@@ -21,7 +21,7 @@ export class CaptureModal extends React.Component<any, any>  {
       this.handleClick = this.handleClick.bind(this);
       this.cancelModal = this.cancelModal.bind(this);
       this.state = { captureName: "", scheduledStart: "", captureType: "immediately",
-         automaticStop: false, endDuration: {days: 1, hours: 1, minutes: 1}};
+         automaticStop: false, endDuration: {days: 0, hours: 0, minutes: 5}};
       this.handleTimeChange = this.handleTimeChange.bind(this);
       this.handleEndTypeChange = this.handleEndTypeChange.bind(this);
       this.handleCaptureTypeChange = this.handleCaptureTypeChange.bind(this);
@@ -80,12 +80,20 @@ export class CaptureModal extends React.Component<any, any>  {
    }
 
    public handleDayChange(days: number) {
+      const hours = this.state.endDuration.hours;
+      if (days === 0 && hours === 0) {
+         this.handleMinuteChange(5);
+      }
       this.setState((prevState: any) => ({
          endDuration: { ...prevState.endDuration, days},
       }));
    }
 
     public handleHourChange(hours: number) {
+      const days = this.state.endDuration.days;
+      if (days === 0 && hours === 0) {
+         this.handleMinuteChange(5);
+      }
       this.setState((prevState: any) => ({
          endDuration: { ...prevState.endDuration, hours},
       }));
@@ -159,9 +167,16 @@ export class CaptureModal extends React.Component<any, any>  {
                                           <div className={this.state.automaticStop ? '' : 'hidden'}>
                                              <div className="container">
                                                 <div className="row" >
-                                                   <Duration type="days" update={this.handleDayChange}/>
-                                                   <Duration type="hours" update={this.handleHourChange}/>
-                                                   <Duration type="minutes" update={this.handleMinuteChange}/>
+                                                   <Duration type="days" constraint={false}
+                                                      value={this.state.endDuration.days}
+                                                      update={this.handleDayChange}/>
+                                                   <Duration type="hours" constraint={false}
+                                                      value={this.state.endDuration.hours}
+                                                      update={this.handleHourChange}/>
+                                                   <Duration type="minutes" update={this.handleMinuteChange}
+                                                      value={this.state.endDuration.minutes}
+                                                      constraint={!this.state.endDuration.days &&
+                                                         !this.state.endDuration.hours}/>
                                                 </div>
                                              </div>
                                           </div>
