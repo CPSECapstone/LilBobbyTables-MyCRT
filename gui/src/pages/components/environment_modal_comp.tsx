@@ -17,20 +17,30 @@ export class EnvModal extends React.Component<any, any>  {
         super(props);
         this.createEnvironment = this.createEnvironment.bind(this);
         this.validateCredentials = this.validateCredentials.bind(this);
+        this.handleNameChange = this.handleNameChange.bind(this);
         this.validateDB = this.validateDB.bind(this);
-        this.goToNextStep = this.goToNextStep.bind(this);
+        this.handleEvent = this.handleEvent.bind(this);
         this.cancelModal = this.cancelModal.bind(this);
         this.changeProgress = this.changeProgress.bind(this);
-        this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [],
-                      dbName: "", pass: "", bucket: "", dbRefs: [], invalidDBPass: false};
+        this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
+                      dbName: "", pass: "", bucket: "", dbRefs: [], invalidDBPass: false, modalPage: '1',
+                      disabled: true, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid'};
         this.baseState = this.state;
     }
 
     public changeProgress(step: number) {
-        const percent = (step / 4) * 100;
-        $('.progress-bar').css({width: percent + '%'});
-        $('.progress-bar').text("Step " + step + " of 4");
-        $('#envWizard a[href="#step' + step + '"]').tab('show');
+      let buttonText = 'Continue';
+      if (step === 2 || step === 3) {
+         buttonText = 'Validate & Continue';
+      }
+      if (step === 4) {
+         buttonText = 'Save';
+      }
+      this.setState({modalPage: String(step), disabled: true, buttonText});
+      const percent = (step / 4) * 100;
+      $('.progress-bar').css({width: percent + '%'});
+      $('.progress-bar').text("Step " + step + " of 4");
+      $('#envWizard a[href="#step' + step + '"]').tab('show');
     }
 
     public async validateCredentials(event: any) {
@@ -40,6 +50,7 @@ export class EnvModal extends React.Component<any, any>  {
             this.setState({dbRefs});
             this.changeProgress(3);
         } else {
+            this.setState({credentialsValid: 'invalid'});
             logger.error("THERE WAS AN ERROR");
         }
         const bucketList = await mycrt.validateBuckets(iamRef);
@@ -48,7 +59,6 @@ export class EnvModal extends React.Component<any, any>  {
         } else {
             logger.error("THERE WAS AN ERROR");
         }
-
     }
 
     public async validateDB(event: any) {
@@ -56,21 +66,12 @@ export class EnvModal extends React.Component<any, any>  {
             user: this.state.user, pass: this.state.pass};
         const validate = await mycrt.validateDatabase(dbRef);
         if (validate) {
-            this.setState({invalidDBPass: false});
+            this.setState({dbCredentialsValid: 'valid'});
             this.changeProgress(4);
         } else {
-            this.setState({invalidDBPass: true});
+            this.setState({dbCredentialsValid: 'invalid'});
             logger.error("Could not validate db");
         }
-    }
-
-    public goToNextStep(event: any) {
-        const target = event.currentTarget;
-        const nextStep = parseInt(target.id) + 1;
-        const percent = (nextStep / 4) * 100;
-        $('.progress-bar').css({width: percent + '%'});
-        $('.progress-bar').text("Step " + nextStep + " of 4");
-        $('#envWizard a[href="#step' + nextStep + '"]').tab('show');
     }
 
     public handleDBName(event: any) {
@@ -82,12 +83,26 @@ export class EnvModal extends React.Component<any, any>  {
 
     public handleS3Ref(event: any) {
         const bucket = event.currentTarget.value;
-        this.setState({bucket});
+        this.setState({bucket, disabled: false});
     }
 
     public handleInputChange(event: any) {
-        this.setState({[event.target.id]: event.target.value});
+      this.setState({[event.target.id]: event.target.value, credentialsValid: 'valid'});
+      this.setState({disabled: false});
     }
+
+    public handlePasswordChange(event: any) {
+       this.setState({[event.target.id]: event.target.value, dbCredentialsValid: 'valid', disabled: false});
+    }
+
+    public handleNameChange(event: any) {
+      if (/^[a-zA-Z0-9][a-zA-Z0-9 :_\-]{3,}$/.test(event.target.value)) {
+         this.setState({envNameValid: 'valid', disabled: false});
+      } else {
+         this.setState({envNameValid: 'invalid', disabled: true});
+      }
+      this.setState({[event.target.id]: event.target.value});
+  }
 
     public async createEnvironment() {
         if (!this.state.bucket) {
@@ -106,6 +121,19 @@ export class EnvModal extends React.Component<any, any>  {
                 cancelBtn.click();
             }
         }
+    }
+
+    public async handleEvent(event: any) {
+      const step = this.state.modalPage;
+      if (step === '1' && this.state.envNameValid === 'valid') {
+         this.changeProgress(2);
+      } else if (step === '2') {
+         this.validateCredentials(event.target.value);
+      } else if (step === '3') {
+         this.validateDB(event.target.value);
+      } else if (step === '4') {
+         this.createEnvironment();
+      }
     }
 
     public cancelModal(event: any) {
@@ -166,13 +194,16 @@ export class EnvModal extends React.Component<any, any>  {
                                 <div className="tab-pane myCRT-tab-pane fade show active" id="step1">
                                     <div className="card card-body bg-light">
                                         <label>Environment Name</label>
-                                        <input className="form-control input-lg" placeholder="Enter Name"
-                                            value={this.state.envName} id="envName"
-                                            onChange={this.handleInputChange.bind(this)}/>
+                                        <input className={`form-control input-lg is-${this.state.envNameValid}`}
+                                          placeholder="Enter Name"
+                                          value={this.state.envName} id="envName"
+                                          onInput={this.handleNameChange.bind(this)}/>
+                                       <div className={`${this.state.envNameValid}-feedback`}>
+                                          {this.state.envNameValid === 'valid' ? "Looks good!" :
+                                             `Please provide a name that is at least four characters
+                                                containing only letters or numbers.`}</div>
+                                        <br/>
                                     </div>
-                                    <br></br>
-                                    <a className="btn btn-success next" id="1" href="#"
-                                        onClick={this.goToNextStep}>Continue ></a>
                                     <br></br>
                                 </div>
                                 <div className="tab-pane myCRT-tab-pane fade" id="step2">
@@ -180,18 +211,18 @@ export class EnvModal extends React.Component<any, any>  {
                                         <label>IAM Credentials</label>
                                         <input className="form-control input-lg" placeholder="Enter Access Key"
                                             value={this.state.accessKey} id="accessKey"
-                                            onChange={this.handleInputChange.bind(this)}/> <br/>
+                                            onInput={this.handleInputChange.bind(this)}/> <br/>
                                         <input className="form-control input-lg" placeholder="Enter Secret Key"
                                             value={this.state.secretKey} id="secretKey"
-                                            onChange={this.handleInputChange.bind(this)}/> <br/>
+                                            onInput={this.handleInputChange.bind(this)}/> <br/>
                                         <input className="form-control input-lg" placeholder="Enter Region"
                                             value={this.state.region} id="region"
-                                            onChange={this.handleInputChange.bind(this)}/>
+                                            onInput={this.handleInputChange.bind(this)}/>
+                                       <br></br>
+                                       <div className="text-danger">
+                                          {this.state.credentialsValid === 'valid' ? "" :
+                                             `Credentials were invalid. Please check them and try again.`}</div>
                                     </div>
-                                    <br></br>
-                                    <a className="btn btn-success next" id ="2" href="#"
-                                        onClick={this.validateCredentials}>Continue ></a>
-                                    <br></br>
                                 </div>
                                 <div className="tab-pane myCRT-tab-pane fade" id="step3">
                                     <div className="card card-body bg-light">
@@ -219,18 +250,15 @@ export class EnvModal extends React.Component<any, any>  {
                                             </dl>
                                             <br/>
                                             <label><b>Password</b></label>
-                                            <input className={this.state.invalidDBPass ? "form-control is-invalid" :
-                                                "form-control"} id="pass" value={this.state.pass}
+                                            <input className="form-control" id="pass" value={this.state.pass}
                                                 placeholder="Enter Password" type="password"
-                                                onChange={this.handleInputChange.bind(this)}/>
-                                            {this.state.invalidDBPass ? <div className="invalid-feedback">
-                                                The password given was invalid.</div> : <div className="valid-feedback">
-                                                Database has been validated</div>}
+                                                onInput={this.handlePasswordChange.bind(this)}/>
                                         </div>
+                                        <br></br>
+                                        <div className="text-danger">
+                                          {this.state.dbCredentialsValid === 'valid' ? "" :
+                                             `Password was invalid. Please try again.`}</div>
                                     </div>
-                                    <br/>
-                                    <a className="btn btn-success next" id ="3" href="#"
-                                        onClick={this.validateDB}>Continue ></a>
                                     <br/>
                                 </div>
                                 <div className="tab-pane myCRT-tab-pane fade" id="step4">
@@ -245,8 +273,9 @@ export class EnvModal extends React.Component<any, any>  {
                                 <div className="modal-footer">
                                     <button className="btn btn-secondary" data-dismiss="modal" id="cancelBtn"
                                         aria-hidden="true" onClick={this.cancelModal}>Close</button>
-                                    <button className="btn btn-info" onClick={this.createEnvironment}>
-                                        Save changes</button>
+                                    <button className="btn btn-info" onClick={this.handleEvent.bind(this)}
+                                       disabled={this.state.disabled}>
+                                       {this.state.buttonText}</button>
                                 </div>
                             </div>
                         </div>

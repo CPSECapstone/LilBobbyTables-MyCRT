@@ -44,6 +44,7 @@ export class StartDateTime extends React.Component<any, any>  {
                         Scheduled
                     </label>
                     <input className={this.state.showDateTime ? 'form-control' : 'form-control hidden'}
+                           min={moment().format("YYYY-MM-DDTHH:mm")}
                            style={{width: "70%", marginLeft: "10px"}}
                            type="datetime-local" defaultValue={moment().format("YYYY-MM-DDTHH:mm")} id="start_date"
                            onChange={this.handleTimeSelection}/>

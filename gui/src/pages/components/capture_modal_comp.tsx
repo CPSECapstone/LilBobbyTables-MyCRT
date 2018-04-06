@@ -20,7 +20,7 @@ export class CaptureModal extends React.Component<any, any>  {
       super(props);
       this.handleClick = this.handleClick.bind(this);
       this.cancelModal = this.cancelModal.bind(this);
-      this.state = { captureName: "", scheduledStart: "", captureType: "immediately",
+      this.state = { captureName: "", scheduledStart: "", captureType: "immediately",  captureNameValid: 'invalid',
          automaticStop: false, endDuration: {days: 0, hours: 0, minutes: 5}};
       this.handleTimeChange = this.handleTimeChange.bind(this);
       this.handleEndTypeChange = this.handleEndTypeChange.bind(this);
@@ -106,7 +106,12 @@ export class CaptureModal extends React.Component<any, any>  {
     }
 
     public handleNameChange(event: any) {
-        this.setState({captureName: event.target.value});
+      if (/^[a-zA-Z0-9 :_\-]{4,}$/.test(event.target.value)) {
+         this.setState({captureNameValid: 'valid'});
+      } else {
+         this.setState({captureNameValid: 'invalid'});
+      }
+      this.setState({captureName: event.target.value});
     }
 
     public handleEndTypeChange(event: any) {
@@ -140,11 +145,16 @@ export class CaptureModal extends React.Component<any, any>  {
                                 <div className="form-group">
                                     <div className="card card-body bg-light">
                                         <label><b>Capture Name</b></label>
-                                        <input type="name" className="form-control" id="captureName"
+                                        <input type="name" className={`form-control is-${this.state.captureNameValid}`}
+                                                id="captureName"
                                                 value={this.state.captureName}
                                                 onChange={this.handleNameChange.bind(this)}
                                                 aria-describedby="captureName" placeholder="Enter name"></input>
                                         <small id="captureName" className="form-text text-muted"></small>
+                                        <div className={`${this.state.captureNameValid}-feedback`}>
+                                          {this.state.captureNameValid === 'valid' ? "Looks good!" :
+                                             `Please provide a name that is at least four characters
+                                                containing only letters or numbers.`}</div>
                                         <br/>
                                         <StartDateTime updateTime={this.handleTimeChange}
                                           updateType={this.handleCaptureTypeChange}/>
@@ -175,8 +185,8 @@ export class CaptureModal extends React.Component<any, any>  {
                                                       update={this.handleHourChange}/>
                                                    <Duration type="minutes" update={this.handleMinuteChange}
                                                       value={this.state.endDuration.minutes}
-                                                      constraint={!this.state.endDuration.days &&
-                                                         !this.state.endDuration.hours}/>
+                                                      constraint={this.state.endDuration.days === 0 &&
+                                                         this.state.endDuration.hours === 0}/>
                                                 </div>
                                              </div>
                                           </div>
