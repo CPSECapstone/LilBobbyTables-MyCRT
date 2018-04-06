@@ -13,7 +13,7 @@ export class DeleteModal extends React.Component<any, any>  {
 
     constructor(props: any) {
         super(props);
-        this.state = { name: "", deleteLogs: true };
+        this.state = { name: "", deleteLogs: true, disabled: true, nameValid: 'invalid'};
     }
 
     public async handleClick(event: any) {
@@ -25,7 +25,11 @@ export class DeleteModal extends React.Component<any, any>  {
     }
 
     public handleNameChange(event: any) {
-        this.setState({name: event.target.value});
+      if (event.target.value === this.props.name) {
+         this.setState({name: event.target.value, nameValid: 'valid', disabled: false});
+      } else {
+         this.setState({name: event.target.value, nameValid: 'invalid', disabled: true});
+      }
     }
 
     public handleCheckChange(event: any) {
@@ -55,10 +59,14 @@ export class DeleteModal extends React.Component<any, any>  {
                                                 This action cannot be undone.</i></b></label>
                                         <br/>
                                         <label><b>Type the {this.props.type} Name</b></label>
-                                        <input type="name" className="form-control" id="deleteName"
+                                        <input type="name" id="deleteName"
+                                        className={`form-control is-${this.state.nameValid}`}
                                         value={this.state.name} onChange={this.handleNameChange.bind(this)}
                                         aria-describedby="deleteName" placeholder="Enter name"></input>
-                                            <small id="deleteName" className="form-text text-muted"></small>
+                                       <small id="deleteName" className="form-text text-muted"></small>
+                                       <div className={`${this.state.nameValid}-feedback`}>
+                                          {this.state.nameValid === 'valid' ? "Looks good!" :
+                                             `Please type the ${this.props.type} name exactly as written.`}</div>
                                         <br/>
                                         <div className="form-check">
                                             <label className="form-check-label">
@@ -76,6 +84,7 @@ export class DeleteModal extends React.Component<any, any>  {
                             <button type="button" className="btn btn-secondary" id="cancelButton"
                                     data-dismiss="modal">Cancel</button>
                             <button type="button" className="btn btn-danger"
+                                    disabled={this.state.disabled}
                                     onClick={this.handleClick.bind(this)}>Delete {this.props.type}</button>
                         </div>
                     </div>

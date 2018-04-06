@@ -17,8 +17,6 @@ export class Duration extends React.Component<any, any>  {
       return (
          <div className="col-3">
             <input className="form-control" type="number" value={this.props.value}
-               defaultValue={this.props.constraint ? '5' : '0'}
-               min={this.props.constraint ? '5' : '0'}
                onChange={this.handleTimeChange}/>
             <label style={{paddingLeft: "25px"}}>{this.props.type}</label>
          </div>

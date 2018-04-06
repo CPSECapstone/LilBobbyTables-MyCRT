@@ -79,7 +79,7 @@ class DashboardApp extends React.Component<any, any> {
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
-        await mycrt.deleteEnvironment(id, deleteLogs);
+        const result = await mycrt.deleteEnvironment(id, deleteLogs);
         window.location.assign('./environments');
     }
 
@@ -159,7 +159,7 @@ class DashboardApp extends React.Component<any, any> {
                            </div>
                         </div>
                      </div>
-                        <DeleteModal id="deleteEnvModal" deleteId={this.state.env.id}
+                        <DeleteModal id="deleteEnvModal" deleteId={this.state.envId}
                                name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
                   </div>
                </div>

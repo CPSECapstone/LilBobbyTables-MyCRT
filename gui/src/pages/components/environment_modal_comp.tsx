@@ -76,6 +76,10 @@ export class EnvModal extends React.Component<any, any>  {
 
     public handleDBName(event: any) {
         const target = event.currentTarget;
+        if (target.value === "default") {
+           this.setState({dbName: '', disabled: true});
+           return;
+        }
         const dbRef = JSON.parse(target.value);
         this.setState({dbName: dbRef.name, instance: dbRef.instance, parameterGroup: dbRef.parameterGroup,
         host: dbRef.host, user: dbRef.user, pass: "", invalidDBPass: false});
@@ -83,7 +87,11 @@ export class EnvModal extends React.Component<any, any>  {
 
     public handleS3Ref(event: any) {
         const bucket = event.currentTarget.value;
-        this.setState({bucket, disabled: false});
+        if (bucket === "default") {
+            this.setState({bucket: '', disabled: true});
+        } else {
+            this.setState({bucket, disabled: false});
+        }
     }
 
     public handleInputChange(event: any) {
@@ -96,7 +104,7 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public handleNameChange(event: any) {
-      if (/^[a-zA-Z0-9][a-zA-Z0-9 :_\-]{3,}$/.test(event.target.value)) {
+      if (/^[a-zA-Z0-9][a-zA-Z0-9 :_\-]{3,29}$/.test(event.target.value)) {
          this.setState({envNameValid: 'valid', disabled: false});
       } else {
          this.setState({envNameValid: 'invalid', disabled: true});
@@ -105,11 +113,6 @@ export class EnvModal extends React.Component<any, any>  {
   }
 
     public async createEnvironment() {
-        if (!this.state.bucket) {
-            logger.error("Please fill in all fields");
-            $('#envWarning').show();
-            return;
-        }
         const envObj = await mycrt.createEnvironment(this.state as IEnvironmentFull);
         if (!envObj) {
             logger.error("Could not create environment");
@@ -166,8 +169,6 @@ export class EnvModal extends React.Component<any, any>  {
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
-                        <WarningAlert id="envWarning" msg="Please fill in all the provided fields."
-                            style = {{display: "none"}}/>
                         <div className="modal-body" id="envWizard">
                             <div className="progress" style={{height: "20px", fontSize: "12px"}}>
                                 <div className="progress-bar bg-success" role="progressbar" aria-valuenow={1}
@@ -200,8 +201,8 @@ export class EnvModal extends React.Component<any, any>  {
                                           onInput={this.handleNameChange.bind(this)}/>
                                        <div className={`${this.state.envNameValid}-feedback`}>
                                           {this.state.envNameValid === 'valid' ? "Looks good!" :
-                                             `Please provide a name that is at least four characters
-                                                containing only letters or numbers.`}</div>
+                                             `Please provide a name that is 4-30 characters long
+                                                and contains only letters, numbers or spaces.`}</div>
                                         <br/>
                                     </div>
                                     <br></br>
@@ -228,10 +229,11 @@ export class EnvModal extends React.Component<any, any>  {
                                     <div className="card card-body bg-light">
                                         <label><b>DB Reference</b></label>
                                         {<select className="form-control input-lg"
-                                            onChange={this.handleDBName.bind(this)}><option>Select Database...</option>
+                                            onChange={this.handleDBName.bind(this)}>
+                                            <option value="default">Select Database...</option>
                                             {databases}
                                         </select>} <br/>
-                                        <div style={this.state.dbName ? {display: "block"} : {display: "none"}}>
+                                        <div style={this.state.dbName !== "" ? {display: "block"} : {display: "none"}}>
                                             <dl>
                                                 <dt><b>Instance:</b></dt>
                                                 <dd>&nbsp;&nbsp;&nbsp;{this.state.instance}</dd>
@@ -265,7 +267,8 @@ export class EnvModal extends React.Component<any, any>  {
                                     <div className="card card-body bg-light">
                                         <label>S3 Reference</label>
                                         {<select className="form-control input-lg"
-                                            onChange={this.handleS3Ref.bind(this)}><option>Select S3 Bucket...</option>
+                                            onChange={this.handleS3Ref.bind(this)}>
+                                            <option value="default">Select S3 Bucket...</option>
                                             {buckets}
                                         </select>} <br/>
                                     </div>
