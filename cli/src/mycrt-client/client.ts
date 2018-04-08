@@ -20,8 +20,8 @@ export class MyCrtClient {
     */
    private delegate: IMyCrtClientDelegate;
 
-   constructor(host: string, delegate: IMyCrtClientDelegate) {
-      this.host = `http://${host}`;
+   constructor(origin: string, delegate: IMyCrtClientDelegate) {
+      this.host = origin;
       this.delegate = delegate;
    }
 
