@@ -144,10 +144,11 @@ class MyCrtService {
 
    private mountStaticFileRoutes(): void {
 
-      // logger.info(`CSS being served from ${StaticFileDirs.css}`);
-      // this.express!.use('/css', express.static(StaticFileDirs.css));
+      const staticFilesDir = path.resolve(__dirname, '..', 'static');
+      logger.info(`Service static files being served from ${staticFilesDir}`);
+      this.express!.use('/static/', express.static(staticFilesDir));
 
-      logger.info(`Bundles being served from ${StaticFileDirs.js}`);
+      logger.info(`GUI static files and bundles being served from ${StaticFileDirs.js}`);
       this.express!.use('/', express.static(StaticFileDirs.js));
 
    }
