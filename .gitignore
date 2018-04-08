@@ -91,4 +91,5 @@ bundles/
 
 scripts/db/config/demo.cnf
 scripts/db/config/demo.config.json
+ssl/
 
