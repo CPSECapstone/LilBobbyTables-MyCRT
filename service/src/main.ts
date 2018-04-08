@@ -3,7 +3,9 @@
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as fs from 'fs';
+import * as helmet from 'helmet';
 import { Server } from 'http';
+import * as https from 'https';
 import * as mustache from 'mustache';
 import * as path from 'path';
 
@@ -13,6 +15,7 @@ import { Pages, StaticFileDirs, Template } from '@lbt-mycrt/gui';
 import ApiRouter from './routes/api';
 import SelfAwareRouter from './routes/self-aware-router';
 import settings = require('./settings');
+import { getSslOptions, sslSetupCheck } from './ssl';
 
 const logger = Logging.defaultLogger(__dirname);
 
@@ -79,10 +82,19 @@ class MyCrtService {
             logger.info("-----------------------------------------------------------");
             resolve(true);
          };
+
          if (this.host) {
             this.server = this.express.listen(this.port, this.host, lauchCallback);
          } else {
             this.server = this.express.listen(this.port, lauchCallback);
+         }
+
+         if (this.setting('ssl')) {
+            logger.info(`Enabling SSL`);
+            sslSetupCheck();
+            https.createServer(getSslOptions(), this.express).listen(443);
+         } else {
+            logger.info(`Not Enabling SSL`);
          }
 
       });
@@ -133,6 +145,8 @@ class MyCrtService {
          then();
       });
 
+      // prevent click jacking
+      this.express!.use(helmet());
    }
 
    private mountApiRoutes(): void {
