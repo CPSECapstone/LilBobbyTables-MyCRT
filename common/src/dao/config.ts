@@ -5,6 +5,8 @@ export const mycrtDbConfig = (() => {
    switch (mycrtEnv) {
       case MYCRT_ENV.TRAVIS:
          return require('../../../scripts/db/config/travis.config.json');
+      case MYCRT_ENV.DEMO:
+         return require('../../../scripts/db/config/demo.config.json');
       case MYCRT_ENV.DEV:
       default:
          return require('../../../scripts/db/config/dev.config.json');

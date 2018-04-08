@@ -58,8 +58,8 @@ class MyCrtService {
          this.mountEverything();
 
          // set the port and host
-         this.port = process.env.port ? parseInt(process.env.port as string, 10) : this.DEFAULT_PORT;
-         this.host = process.env.host ? process.env.host as string : this.DEFAULT_HOST;
+         this.port = process.env.MYCRT_PORT ? parseInt(process.env.MYCRT_PORT as string, 10) : this.DEFAULT_PORT;
+         this.host = process.env.MYCRT_HOST ? null : this.DEFAULT_HOST;
 
          // configure the application
          for (const key in settings) {
@@ -70,7 +70,7 @@ class MyCrtService {
          this.ipcNode.start();
 
          // listen for requests
-         this.server = this.express.listen(this.port, this.host, (error: any) => {
+         const lauchCallback = (error: any) => {
             if (error) {
                this.close();
                logger.error(error);
@@ -78,7 +78,12 @@ class MyCrtService {
             logger.info(`server is listening on ${this.port}`);
             logger.info("-----------------------------------------------------------");
             resolve(true);
-         });
+         };
+         if (this.host) {
+            this.server = this.express.listen(this.port, this.host, lauchCallback);
+         } else {
+            this.server = this.express.listen(this.port, lauchCallback);
+         }
 
       });
 

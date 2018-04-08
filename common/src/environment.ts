@@ -7,6 +7,9 @@ export enum MYCRT_ENV {
    // travis-ci
    TRAVIS = "travis",
 
+   // ec2 demo
+   DEMO = "demo",
+
 }
 
 // determine the current environment from the "MYCRT_ENV" environment variable.

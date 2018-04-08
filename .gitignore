@@ -88,3 +88,7 @@ bundles/
 
 # settings in vscode
 .vscode/
+
+scripts/db/config/demo.cnf
+scripts/db/config/demo.config.json
+
