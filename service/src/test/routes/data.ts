@@ -48,11 +48,22 @@ export const scheduledCaptureBody = {
    scheduledStart: "2020-03-04 20:53:00",
 };
 
+export const badDurationCaptureBody = {
+   name: "ScheduledCapture",
+   envId: 1,
+   status: "SCHEDULED",
+   scheduledStart: "2020-03-04 20:53:00",
+   duration: "50",
+};
+
 export const liveCaptureBody = {
    name: "LiveCapture",
    envId: 1,
-   start: "2018-03-04 20:53:00",
-   end: null,
+};
+
+export const env2CaptureBody = {
+   name: "LiveCapture",
+   envId: 2,
 };
 
 export const guiCaptureBody = {
