@@ -89,7 +89,7 @@ class MyCrtService {
             this.server = this.express.listen(this.port, lauchCallback);
          }
 
-         if (this.setting('ssl')) {
+         if (settings.settings.ssl) {
             logger.info(`Enabling SSL`);
             sslSetupCheck();
             https.createServer(getSslOptions(), this.express).listen(443);
