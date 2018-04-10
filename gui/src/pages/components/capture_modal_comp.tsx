@@ -66,8 +66,8 @@ export class CaptureModal extends React.Component<any, any>  {
       }
       if (this.state.automaticStop) {
          capture.duration = this.calculateDuration();
-         if (capture.duration <= 240) {
-            this.setState({errorMsg: 'Captures can only be run for a duration of 5 minutes or greater.'});
+         if (capture.duration <= 240 || capture.duration > 86400) {
+            this.setState({errorMsg: 'Captures can only be run for a duration of 5 minutes to 1 day.'});
             return;
          }
       }
