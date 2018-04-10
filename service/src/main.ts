@@ -53,7 +53,7 @@ class MyCrtService {
 
          // make sure it isn't already launched
          if (this.isLaunched()) {
-            throw new Error(`MyCRT Service has already launched on port ${this.port}`);
+            reject(`MyCRT Service has already launched on port ${this.port}`);
          }
 
          // make express
@@ -91,7 +91,10 @@ class MyCrtService {
 
          if (settings.settings.ssl) {
             logger.info(`Enabling SSL`);
-            sslSetupCheck();
+            const sslSetupOk: boolean = sslSetupCheck();
+            if (!sslSetupOk) {
+               reject("Could not setup with SSL");
+            }
             https.createServer(getSslOptions(), this.express).listen(443);
          } else {
             logger.info(`Not Enabling SSL`);

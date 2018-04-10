@@ -2,7 +2,7 @@
 
    "name": "MyCRT Server",
 
-   "ssl": true,
+   "ssl": false,
 
    "captures": {
       "mock": true,

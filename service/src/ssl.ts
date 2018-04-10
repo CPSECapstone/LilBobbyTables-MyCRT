@@ -9,21 +9,23 @@ const sslDir: string = path.normalize(path.join(__dirname, '..', 'ssl'));
 const fullchainPemPath: string = path.join(sslDir, 'fullchain.pem');
 const privkeyPemPath: string = path.join(sslDir, 'privkey.pem');
 
-export const sslSetupCheck = () => {
+export const sslSetupCheck = (): boolean => {
    if (!fs.existsSync(sslDir)) {
       logger.error(`sslDir ${sslDir} does not exist!`);
-      process.exit(1);
+      return false;
    }
 
    if (!fs.existsSync(fullchainPemPath)) {
       logger.error(`fullchain.pem does not exist at ${fullchainPemPath}`);
-      process.exit(1);
+      return false;
    }
 
    if (!fs.existsSync(privkeyPemPath)) {
       logger.error(`privkey.pem does not exist at ${privkeyPemPath}`);
-      process.exit(1);
+      return false;
    }
+
+   return true;
 };
 
 export const getSslOptions = () => {
