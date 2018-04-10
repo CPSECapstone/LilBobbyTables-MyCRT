@@ -52,7 +52,7 @@ class DashboardApp extends React.Component<any, any> {
   }
 
     public async setReplays() {
-      let allReplays = this.state.replays;
+      let allReplays = [] as any;
       for (const id in this.state.captures) {
          const capture = this.state.captures[id];
          const replays = await mycrt.getReplaysForCapture(capture.id);

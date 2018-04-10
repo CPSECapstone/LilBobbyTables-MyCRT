@@ -6,7 +6,7 @@ import ReactDom = require('react-dom');
 import * as $ from 'jquery';
 import '../../static/css/capture.css';
 
-import { IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, IChildProgram, IMetricsList, IReplay, MetricType } from '@lbt-mycrt/common/dist/data';
 import { BrowserLogger as logger } from './../logging';
 import { mycrt } from './utils/mycrt-client';
 
@@ -214,9 +214,13 @@ class CaptureApp extends React.Component<any, any> {
          }
       }
       const replays: JSX.Element[] = [];
+      const replaysToGraph = [];
       if (this.state.allReplays) {
          for (const id in this.state.allReplays) {
             const replay = this.state.allReplays[id];
+            if (replay.status === ChildProgramStatus.DONE) {
+               replaysToGraph.push(replay);
+            }
             const name = replay.name || `replay ${replay.id}`;
             replays.push((<ReplayPanel title={name} replay={replay} compare={false} key={name}
                capture={this.state.capture} envId = {this.state.envId}/>));
@@ -254,8 +258,8 @@ class CaptureApp extends React.Component<any, any> {
                            <h2 className="align">Metrics</h2>
                            <GraphSelectDrop prompt="Metric Types"
                               graphs={this.state.allGraphs} update={this.updateGraphs}/>
-                           {replays.length ?
-                              <ReplaySelectDrop prompt="Replays" replays={this.state.allReplays}
+                           {replaysToGraph.length > 0 ?
+                              <ReplaySelectDrop prompt="Replays" replays={replaysToGraph}
                                  update={this.updateReplays} default={this.state.defaultReplay}/> : null
                            }
                            <ChartTypeCheck prompt="Chart Type" update={this.updateChartType}/><br/>

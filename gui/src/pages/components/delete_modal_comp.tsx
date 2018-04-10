@@ -11,10 +11,14 @@ import { WarningAlert } from './alert_warning_comp';
 
 export class DeleteModal extends React.Component<any, any>  {
 
-    constructor(props: any) {
-        super(props);
-        this.state = { name: "", deleteLogs: true, disabled: true, nameValid: 'invalid'};
-    }
+   private baseState = {} as any;
+
+   constructor(props: any) {
+      super(props);
+      this.state = { name: "", deleteLogs: true, disabled: true, nameValid: 'invalid'};
+      this.cancelModal = this.cancelModal.bind(this);
+      this.baseState = this.state;
+   }
 
     public async handleClick(event: any) {
         if (this.state.name !== this.props.name) {
@@ -36,6 +40,12 @@ export class DeleteModal extends React.Component<any, any>  {
         this.setState({deleteLogs: event.target.checked});
     }
 
+    public cancelModal(event: any) {
+      $("#check").click();
+      this.setState(this.baseState);
+      this.render();
+  }
+
     public render() {
         return (
             <div className="modal fade" id={this.props.id} role="dialog"
@@ -44,7 +54,8 @@ export class DeleteModal extends React.Component<any, any>  {
                     <div className="modal-content myCRT-modal">
                         <div className="modal-header myCRT-modal-danger">
                             <h4 className="modal-title">Delete {this.props.name}</h4>
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <button type="button" className="close" data-dismiss="modal"
+                              onClick={this.cancelModal} aria-label="Close">
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
@@ -70,7 +81,7 @@ export class DeleteModal extends React.Component<any, any>  {
                                         <br/>
                                         <div className="form-check">
                                             <label className="form-check-label">
-                                            <input type="checkbox" className="form-check-input"
+                                            <input type="checkbox" className="form-check-input" id="check"
                                                 onChange={(e) => this.handleCheckChange(e)}
                                                 defaultChecked={this.state.deleteLogs}/>
                                             Delete All Workload and Metric Files
@@ -82,7 +93,7 @@ export class DeleteModal extends React.Component<any, any>  {
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" id="cancelButton"
-                                    data-dismiss="modal">Cancel</button>
+                                    data-dismiss="modal" onClick={this.cancelModal}>Cancel</button>
                             <button type="button" className="btn btn-danger"
                                     disabled={this.state.disabled}
                                     onClick={this.handleClick.bind(this)}>Delete {this.props.type}</button>

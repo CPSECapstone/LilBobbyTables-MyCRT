@@ -133,7 +133,9 @@ export class ReplayModal extends React.Component<any, any>  {
               if (!name) {
                   name = `capture ${capture.id}`;
               }
-              captures.push((<option id={capture.id}>{name}</option>));
+              if (capture.status === ChildProgramStatus.DONE) {
+                  captures.push((<option id={capture.id}>{name}</option>));
+              }
            }
         }
         const databases: JSX.Element[] = [];
