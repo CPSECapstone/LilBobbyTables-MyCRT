@@ -53,8 +53,9 @@ class EnvironmentsApp extends React.Component<any, any> {
               <div className="page-header">
                 <h1 style={{ display: "inline"}}>Environments</h1>
                 <a role="button" className="btn btn-primary" data-toggle="modal" href="#" id="newEnv"
-                    data-target="#envModal" style={{ marginBottom: "20px", marginLeft: "15px" }}>
-                    <i className="fa fa-plus" aria-hidden="true"></i>
+                  data-backdrop="static" data-keyboard={false}
+                  data-target="#envModal" style={{ marginBottom: "20px", marginLeft: "15px" }}>
+                  <i className="fa fa-plus" aria-hidden="true"></i>
                 </a>
               </div>
             </div>
