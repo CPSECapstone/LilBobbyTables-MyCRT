@@ -13,6 +13,7 @@
   "scripts": {},
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
+    "@types/bcrypt": "^1.0.0",
     "@types/chai": "^4.0.5",
     "@types/command-line-args": "^4.0.2",
     "@types/fs-extra": "^5.0.0",
@@ -31,8 +32,10 @@
   },
   "dependencies": {
     "aws-sdk": "^2.188.0",
+    "bcrypt": "^1.0.3",
     "child_process": "^1.0.2",
     "command-line-args": "^5.0.1",
+    "cryptr": "^3.0.0",
     "fs": "0.0.1-security",
     "fs-extra": "^5.0.0",
     "moment": "^2.21.0",
