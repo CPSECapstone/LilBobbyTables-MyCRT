@@ -23,7 +23,7 @@ export class ReplaySelectDrop extends React.Component<any, any>  {
                 <li key={replay.id}><p className="small" data-value={replay.id} tabIndex={-1}
                     style={{ color: "#3498DB", margin: "10px", marginLeft: "20px" }}>
                 <input type="checkbox" onChange={(e) => this.selectReplays(e)} value={replay.id}
-                    defaultChecked={this.props.default === id ? true : false}/>
+                    defaultChecked={this.props.default === String(replay.id) ? true : false}/>
                     &nbsp;&nbsp;&nbsp;{replay.name}</p>
             </li>);
         }
