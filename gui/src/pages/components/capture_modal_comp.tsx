@@ -218,7 +218,7 @@ export class CaptureModal extends React.Component<any, any>  {
                                 data-dismiss="modal" onClick={this.cancelModal}>Cancel</button>
                             <button type="button" className="btn btn-info"
                                  disabled={this.state.captureNameValid === 'valid' ? false : true}
-                                 onClick = { (e) => this.handleClick(e) }>Save Capture</button>
+                                 onClick = { (e) => this.handleClick(e) }>Create</button>
                         </div>
                     </div>
                 </div>
