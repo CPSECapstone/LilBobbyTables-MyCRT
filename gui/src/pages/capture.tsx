@@ -236,6 +236,7 @@ class CaptureApp extends React.Component<any, any> {
                <div className="page-header">
                   <h1 className="align">{this.state.capture.name}</h1>
                   <a role="button" className="btn btn-danger deleteBtn" data-toggle="modal" href="#"
+                     data-backdrop="static" data-keyboard={false}
                      data-target="#deleteCaptureModal">
                      <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                   </a>

@@ -15,13 +15,14 @@ import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/dat
 export class CaptureModal extends React.Component<any, any>  {
 
    private baseState = {} as any;
+   private startDateChild = {} as any;
 
    constructor(props: any) {
       super(props);
       this.handleClick = this.handleClick.bind(this);
       this.cancelModal = this.cancelModal.bind(this);
       this.state = { captureName: "", scheduledStart: moment().format("YYYY-MM-DDTHH:mm"),
-         captureType: "immediately",  captureNameValid: 'invalid',
+         captureType: "immediately",  captureNameValid: 'invalid', reset: true,
          automaticStop: false, errorMsg: '', endDuration: {days: 0, hours: 0, minutes: 5},
          defaultDate: moment().format("YYYY-MM-DDTHH:mm")};
       this.handleTimeChange = this.handleTimeChange.bind(this);
@@ -114,7 +115,7 @@ export class CaptureModal extends React.Component<any, any>  {
     }
 
     public handleNameChange(event: any) {
-      if (/^[a-zA-Z0-9 :_\-]{4,30}$/.test(event.target.value)) {
+      if (/^[a-zA-Z0-9 :_\-]{4,25}$/.test(event.target.value)) {
          this.setState({captureNameValid: 'valid'});
       } else {
          this.setState({captureNameValid: 'invalid'});
@@ -123,6 +124,7 @@ export class CaptureModal extends React.Component<any, any>  {
     }
 
     public handleEndTypeChange(event: any) {
+       logger.info(String(event.currentTarget.value === "specific"));
       this.setState({
          automaticStop: event.currentTarget.value === "specific",
          errorMsg: '',
@@ -130,8 +132,10 @@ export class CaptureModal extends React.Component<any, any>  {
     }
 
     public cancelModal(event: any) {
-        this.setState(this.baseState);
-        this.render();
+      $("#manual").click();
+      this.setState(this.baseState);
+      this.startDateChild.resetChecks(this.state.scheduledStart);
+      this.render();
     }
 
     public render() {
@@ -162,18 +166,19 @@ export class CaptureModal extends React.Component<any, any>  {
                                         <small id="captureName" className="form-text text-muted"></small>
                                         <div className={`${this.state.captureNameValid}-feedback`}>
                                           {this.state.captureNameValid === 'valid' ? "Looks good!" :
-                                             `Please provide a name that is 4-30 characters long
+                                             `Please provide a name that is 4-25 characters long
                                              and contains only letters, numbers or spaces.`}</div>
                                         <br/>
                                         <StartDateTime updateTime={this.handleTimeChange}
-                                          default={this.state.defaultDate}
+                                          ref={(instance) => { this.startDateChild = instance; }}
+                                          default={this.state.defaultDate} reset={this.state.reset}
                                           updateType={this.handleCaptureTypeChange}/>
                                        <br/>
                                        <label><b>Stop Options</b></label>
                                        <div className="form-check">
                                           <label className="form-check-label" style={{padding: "5px"}}>
                                              <input type="radio" className="form-check-input" name="end options"
-                                                onChange={this.handleEndTypeChange}
+                                                onChange={this.handleEndTypeChange} id="manual"
                                                 defaultValue="manual" defaultChecked/>
                                                 Manual
                                           </label>
@@ -181,6 +186,7 @@ export class CaptureModal extends React.Component<any, any>  {
                                        <div className="form-check">
                                           <label className="form-check-label" style={{padding: "5px"}}>
                                              <input type="radio" className="form-check-input" name="end options"
+                                                id="specific"
                                                 onChange={this.handleEndTypeChange} defaultValue="specific"/>
                                                 Automatic
                                           </label>

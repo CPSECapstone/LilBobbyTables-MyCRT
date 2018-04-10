@@ -136,7 +136,8 @@ class DashboardApp extends React.Component<any, any> {
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
                      <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
-                           data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}>
+                           data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}
+                           data-backdrop="static" data-keyboard={false}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                         </a>
                      <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
@@ -169,6 +170,7 @@ class DashboardApp extends React.Component<any, any> {
                      <div><br/>
                         <h2 style={{display: "inline"}}>Captures</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
+                           data-backdrop="static" data-keyboard={false}
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
@@ -198,7 +200,8 @@ class DashboardApp extends React.Component<any, any> {
                      <div><br/>
                         <h2 style={{display: "inline"}}>Replays</h2>
                         <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
-                            data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                           data-backdrop="static" data-keyboard={false}
+                           data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
                         <ReplayModal id="replayModal" captures={this.state.captures}
