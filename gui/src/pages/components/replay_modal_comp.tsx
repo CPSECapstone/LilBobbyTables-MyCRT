@@ -17,7 +17,8 @@ export class ReplayModal extends React.Component<any, any>  {
         super(props);
         this.state = { name: "", captureId: "", host: "", parameterGroup: "",
                        user: "", pass: "", instance: "", dbName: "", type: ChildProgramType.REPLAY,
-                       env: this.props.env, dbRefs: [], invalidDBPass: false};
+                       env: this.props.env, dbRefs: [], invalidDBPass: false, replayNameValid: 'invalid',
+                       disabled: true, dbCredentialsValid: 'valid'};
         this.baseState = this.state;
         this.handleDBName = this.handleDBName.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -42,7 +43,21 @@ export class ReplayModal extends React.Component<any, any>  {
     }
 
     public handleInputChange(event: any) {
-        this.setState({[event.currentTarget.id]: event.currentTarget.value});
+      this.setState({[event.target.id]: event.target.value, dbCredentialsValid: 'valid'});
+    }
+
+    public handleNameChange(event: any) {
+      if (/^[a-zA-Z0-9 :_\-]{4,25}$/.test(event.target.value)) {
+         this.setState({replayNameValid: 'valid'});
+         let disabled = true;
+         if (this.state.dbName !== "" && this.state.captureId !== "") {
+            disabled = false;
+         }
+         this.setState({replayNameValid: 'valid', disabled});
+      } else {
+         this.setState({replayNameValid: 'invalid', disabled: true});
+      }
+      this.setState({name: event.target.value});
     }
 
     public async startReplay() {
@@ -59,38 +74,53 @@ export class ReplayModal extends React.Component<any, any>  {
     }
 
     public async validateDB(event: any) {
-        if (!this.allFieldsFilled()) {
-            logger.error("Please fill in all fields");
-            $('#replayWarning').show();
-            return;
-        }
-        const dbRef = {dbName: this.state.dbName, host: this.state.host,
-            user: this.state.user, pass: this.state.pass};
-        const validate = await mycrt.validateDatabase(dbRef);
-        if (validate) {
-            this.setState({invalidDBPass: false});
-            this.startReplay();
-        } else {
-            this.setState({invalidDBPass: true});
-        }
+      const dbRef = {dbName: this.state.dbName, host: this.state.host,
+         user: this.state.user, pass: this.state.pass};
+      const validate = await mycrt.validateDatabase(dbRef);
+      if (validate) {
+         this.setState({dbCredentialsValid: 'valid'});
+         this.startReplay();
+      } else {
+         this.setState({dbCredentialsValid: 'invalid'});
+         logger.error("Could not validate db");
+      }
     }
 
     public handleCaptureId(event: any) {
-        const index = event.target.selectedIndex;
-        const optionElement = event.target.childNodes[index];
-        const captureId =  optionElement.getAttribute('id');
-        this.setState({captureId});
+      const target = event.currentTarget;
+      if (target.value === "default") {
+         this.setState({captureId: '', disabled: true, dbCredentialsValid: 'valid'});
+         return;
+      }
+      const index = event.target.selectedIndex;
+      const optionElement = event.target.childNodes[index];
+      const captureId =  optionElement.getAttribute('id');
+      let disabled = true;
+      if (this.state.replayNameValid === "valid" && this.state.dbName !== "") {
+         disabled = false;
+      }
+      this.setState({captureId, disabled});
     }
 
     public handleDBName(event: any) {
-        const target = event.currentTarget;
-        const dbRef = JSON.parse(target.value);
-        this.setState({dbName: dbRef.name, instance: dbRef.instance, parameterGroup: dbRef.parameterGroup,
-        host: dbRef.host, user: dbRef.user, pass: "", invalidDBPass: false});
+      const target = event.currentTarget;
+      if (target.value === "default") {
+         this.setState({dbName: '', disabled: true, dbCredentialsValid: 'valid'});
+         return;
+      }
+      let disabled = true;
+      if (this.state.replayNameValid === "valid" && this.state.captureId !== "") {
+         disabled = false;
+      }
+      const dbRef = JSON.parse(target.value);
+      this.setState({dbName: dbRef.name, instance: dbRef.instance, parameterGroup: dbRef.parameterGroup,
+      host: dbRef.host, user: dbRef.user, pass: "", dbCredentialsValid: 'valid', disabled});
     }
 
     public cancelModal(event: any) {
         this.setState(this.baseState);
+        $("select#captureDrop").val('default');
+        $("select#dbDrop").val('default');
         this.render();
     }
 
@@ -103,7 +133,9 @@ export class ReplayModal extends React.Component<any, any>  {
               if (!name) {
                   name = `capture ${capture.id}`;
               }
-              captures.push((<option id={capture.id}>{name}</option>));
+              if (capture.status === ChildProgramStatus.DONE) {
+                  captures.push((<option id={capture.id}>{name}</option>));
+              }
            }
         }
         const databases: JSX.Element[] = [];
@@ -132,23 +164,28 @@ export class ReplayModal extends React.Component<any, any>  {
                                 <div className="form-group">
                                     <div className="card card-body bg-light">
                                         <label><b>Replay Name</b></label>
-                                        <input type="name" className="form-control" id="name"
-                                        value={this.state.name} onChange={this.handleInputChange.bind(this)}
+                                        <input type="name" className={`form-control is-${this.state.replayNameValid}`}
+                                        id="name" value={this.state.name} onChange={this.handleNameChange.bind(this)}
                                         aria-describedby="replayName" placeholder="Enter name"></input>
                                             <small id="replayName" className="form-text text-muted"></small>
+                                        <div className={`${this.state.replayNameValid}-feedback`}>
+                                          {this.state.replayNameValid === 'valid' ? "Looks good!" :
+                                             `Please provide a name that is 4-25 characters long
+                                             and contains only letters, numbers or spaces.`}</div>
                                         <br/>
                                         <label><b>Capture</b></label>
-                                        {<select className="form-control" onChange={this.handleCaptureId.bind(this)}
-                                            defaultValue=''>
-                                            <option>Select Capture...</option>
+                                        {<select className="form-control" id="captureDrop"
+                                          onChange={this.handleCaptureId.bind(this)}>
+                                            <option value='default'>Select Capture...</option>
                                             {captures}
                                         </select>}
                                         <br/>
                                         <div style={this.state.captureId ? {display: "block"} : {display: "none"}}>
                                             <label><b>DB Reference</b></label>
-                                            {<select className="form-control input-lg"
-                                                onChange={this.handleDBName.bind(this)}><option>Select Database...
-                                                    </option>{databases}
+                                            {<select className="form-control input-lg" id="dbDrop"
+                                                onChange={this.handleDBName.bind(this)}>
+                                                <option value='default'>Select Database...</option>
+                                                {databases}
                                             </select>} <br/>
                                             <div style={this.state.dbName ? {display: "block"} : {display: "none"}}>
                                                 <dl>
@@ -169,17 +206,15 @@ export class ReplayModal extends React.Component<any, any>  {
                                                 </dl>
                                                 <br/>
                                                 <label><b>Password</b></label>
-                                                <input className={this.state.invalidDBPass ?
-                                                "form-control is-invalid" :
-                                                    "form-control"} id="pass" value={this.state.pass}
+                                                <input className='form-control' id="pass" value={this.state.pass}
                                                     placeholder="Enter Password" type="password"
                                                     onChange={this.handleInputChange.bind(this)}/>
-                                                {this.state.invalidDBPass ? <div className="invalid-feedback">
-                                                    The password given was invalid.</div> :
-                                                    <div className="valid-feedback">Database has been
-                                                    validated</div>}
                                             </div>
                                         </div>
+                                        <br></br>
+                                        <div className="text-danger">
+                                          {this.state.dbCredentialsValid === 'valid' ? "" :
+                                             `Password was invalid. Please try again.`}</div>
                                     </div>
                                 </div>
                             </form>
@@ -188,7 +223,8 @@ export class ReplayModal extends React.Component<any, any>  {
                             <button type="button" className="btn btn-secondary" id="cancelReplayBtn"
                                     data-dismiss="modal" onClick={this.cancelModal}>Cancel</button>
                             <button type="button" className="btn btn-info"
-                                    onClick={this.validateDB.bind(this)}>Save Replay</button>
+                                    disabled={this.state.disabled}
+                                    onClick={this.validateDB.bind(this)}>Validate & Start</button>
                         </div>
                     </div>
                 </div>
