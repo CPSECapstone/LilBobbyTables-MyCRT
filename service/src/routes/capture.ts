@@ -29,10 +29,13 @@ export default class CaptureRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const envId = request.query.envId;
+         const name = request.query.name;
          let captures;
          if (envId) {
             captures = await captureDao.getCapturesForEnvironment(envId);
-
+            if (name) {
+               captures = await captureDao.getCapturesForEnvByName(envId, name);
+            }
          } else {
             captures = await captureDao.getAllCaptures();
          }
