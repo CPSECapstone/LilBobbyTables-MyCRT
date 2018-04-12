@@ -23,7 +23,8 @@ export class ReplayDao extends Dao {
    }
 
    public async getReplaysForCapByName(captureId: number, name: string): Promise<data.IReplay[] | null> {
-      const rawReplays = await this.query<any[]>('SELECT * FROM Replay WHERE id = ? and name = ?', [captureId, name]);
+      const rawReplays = await this.query<any[]>('SELECT * FROM Replay WHERE captureId = ? and name = ?',
+       [captureId, name]);
       if (rawReplays.length === 0) {
          return null;
       }
