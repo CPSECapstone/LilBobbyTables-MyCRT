@@ -78,6 +78,11 @@ export default class ReplayRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
+         const replayWithSameName = await replayDao.getReplaysForCapByName(request.body.captureId, request.body.name);
+         if (replayWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
+         }
+
          const dbRefArgs: IDbReference = {
             name: request.body.dbName,
             host: request.body.host,
