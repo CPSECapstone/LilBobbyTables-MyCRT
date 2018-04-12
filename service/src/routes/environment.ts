@@ -18,11 +18,18 @@ export default class EnvironmentRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', this.handleHttpErrors(async (request, response) => {
+      this.router.get('/', check.validQuery(schema.envNameQuery),
+         this.handleHttpErrors(async (request, response) => {
 
-         const environments = await environmentDao.getAllEnvironments();
+         const envName = request.query.name;
+         let environments;
+         if (envName) {
+            environments = await environmentDao.getEnvironmentByName(envName);
+         } else {
+            environments = await environmentDao.getAllEnvironments();
+         }
+
          response.json(environments);
-
       }));
 
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
