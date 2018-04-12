@@ -47,7 +47,7 @@ export class ReplayModal extends React.Component<any, any>  {
     }
 
     public handleNameChange(event: any) {
-      if (/^[a-zA-Z0-9 :_\-]{4,25}$/.test(event.target.value)) {
+      if (/^[a-zA-Z0-9 :_-]{4,25}$/.test(event.target.value)) {
          this.setState({replayNameValid: 'valid'});
          let disabled = true;
          if (this.state.dbName !== "" && this.state.captureId !== "") {
@@ -170,8 +170,8 @@ export class ReplayModal extends React.Component<any, any>  {
                                             <small id="replayName" className="form-text text-muted"></small>
                                         <div className={`${this.state.replayNameValid}-feedback`}>
                                           {this.state.replayNameValid === 'valid' ? "Looks good!" :
-                                             `Please provide a name that is 4-25 characters long
-                                             and contains only letters, numbers or spaces.`}</div>
+                                             `Please provide a name with 4-25 alphanumeric characters.
+                                             The following characters are also allowed: -_:`}</div>
                                         <br/>
                                         <label><b>Capture</b></label>
                                         {<select className="form-control" id="captureDrop"

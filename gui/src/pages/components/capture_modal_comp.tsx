@@ -119,7 +119,7 @@ export class CaptureModal extends React.Component<any, any>  {
     }
 
     public handleNameChange(event: any) {
-      if (/^[a-zA-Z0-9 :_\-]{4,25}$/.test(event.target.value)) {
+      if (/^[a-zA-Z0-9 :_-]{4,25}$/.test(event.target.value)) {
          this.setState({captureNameValid: 'valid'});
       } else {
          this.setState({captureNameValid: 'invalid'});
@@ -170,8 +170,8 @@ export class CaptureModal extends React.Component<any, any>  {
                                         <small id="captureName" className="form-text text-muted"></small>
                                         <div className={`${this.state.captureNameValid}-feedback`}>
                                           {this.state.captureNameValid === 'valid' ? "Looks good!" :
-                                             `Please provide a name that is 4-25 characters long
-                                             and contains only letters, numbers or spaces.`}</div>
+                                             `Please provide a name with 4-25 alphanumeric characters.
+                                             The following characters are also allowed: -_:`}</div>
                                         <br/>
                                         <StartDateTime updateTime={this.handleTimeChange}
                                           ref={(instance) => { this.startDateChild = instance; }}
