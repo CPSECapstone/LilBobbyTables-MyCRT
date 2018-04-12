@@ -40,6 +40,11 @@ export default class EnvironmentRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.environmentBody),
             this.handleHttpErrors(async (request, response) => {
 
+         const envWithSameName = await environmentDao.getEnvironmentByName(request.body.envName);
+         if (envWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Environment with same name already exists");
+         }
+
          let iamReference: data.IIamReference = {
             accessKey: request.body.accessKey,
             secretKey: request.body.secretKey,

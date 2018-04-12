@@ -1,12 +1,23 @@
 import * as data from '../data';
+import { defaultLogger } from '../logging';
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
+
+const logger = defaultLogger(__dirname);
 
 export class EnvironmentDao extends Dao {
 
    public async getAllEnvironments(): Promise<data.IEnvironment[]> {
       const environmentRows = await this.query<any[]>('SELECT * FROM Environment', []);
       return environmentRows.map(this.rowToIEnvironment);
+   }
+
+   public async getEnvironmentByName(name: string): Promise<data.IEnvironment | null> {
+      const rows = await this.query<any[]>('SELECT * FROM Environment WHERE name = ?', [name]);
+      if (rows.length === 0) {
+         return null;
+      }
+      return this.rowToIEnvironment(rows[0]);
    }
 
    public async getEnvironment(id: number): Promise<data.IEnvironment | null> {
