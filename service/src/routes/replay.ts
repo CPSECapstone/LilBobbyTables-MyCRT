@@ -155,6 +155,5 @@ export default class ReplayRouter extends SelfAwareRouter {
          response.json(replay);
 
       }));
-
    }
 }
