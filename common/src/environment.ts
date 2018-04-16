@@ -7,6 +7,9 @@ export enum MYCRT_ENV {
    // travis-ci
    TRAVIS = "travis",
 
+   // ec2 demo
+   DEMO = "demo",
+
 }
 
 // determine the current environment from the "MYCRT_ENV" environment variable.
@@ -20,6 +23,7 @@ export const mycrtEnv = (() => {
       const envMap: {[key: string]: MYCRT_ENV} = {
          DEV: MYCRT_ENV.DEV,
          TRAVIS: MYCRT_ENV.TRAVIS,
+         DEMO: MYCRT_ENV.DEMO,
       };
       return envMap[envStr];
    }
