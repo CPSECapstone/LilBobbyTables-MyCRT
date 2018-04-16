@@ -12,8 +12,8 @@ CREATE TABLE Environment (
 
 CREATE TABLE IAMReference (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-   accessKey VARCHAR(32), -- must be encrypted
-   secretKey VARCHAR(64), -- must be encrypted
+   accessKey VARCHAR(256),
+   secretKey VARCHAR(256),
    region VARCHAR(16),
    output VARCHAR(16) DEFAULT 'json'
 );
@@ -22,8 +22,8 @@ CREATE TABLE DBReference (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
    name VARCHAR(32),
    host VARCHAR(64),
-   user VARCHAR(32),
-   pass VARCHAR(64), -- must be encrypted
+   user VARCHAR(256),
+   pass VARCHAR(256),
    instance VARCHAR(32),
    parameterGroup VARCHAR(32)
 );

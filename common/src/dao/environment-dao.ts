@@ -3,7 +3,12 @@ import { defaultLogger } from '../logging';
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
 
-const logger = defaultLogger(__dirname);
+import bcrypt = require('bcrypt');
+const saltRounds = 10;
+import Cryptr = require('cryptr');
+const cryptr = new Cryptr('MyCRTSecretKey'); // using aes256 encryption algorithm
+import { Logging } from '../main';
+const logger = Logging.defaultLogger(__dirname);
 
 export class EnvironmentDao extends Dao {
 
@@ -48,11 +53,9 @@ export class EnvironmentDao extends Dao {
       const environment = await this.getEnvironment(id);
 
       if (environment !== null) {
-         // Remove stored DB, S3, and IAM references associated with the environment
          await this.deleteDbReference(environment.dbId);
          await this.deleteIamReference(environment.iamId);
          await this.deleteS3Reference(environment.s3Id);
-         // Delete captures associated with the environment
          await this.query<any[]>('DELETE FROM Capture WHERE envId = ?', [id]);
          return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
       } else {
@@ -80,6 +83,8 @@ export class EnvironmentDao extends Dao {
    }
 
    public async makeIamReference(iamRef: data.IIamReference): Promise<data.IIamReference> {
+      iamRef.accessKey = cryptr.encrypt(iamRef.accessKey);
+      iamRef.secretKey = cryptr.encrypt(iamRef.secretKey);
       const row = await this.query<any>('INSERT INTO IAMReference SET ?', iamRef);
       return await this.getIamReference(row.insertId);
    }
@@ -108,6 +113,8 @@ export class EnvironmentDao extends Dao {
    }
 
    public async makeDbReference(dbRef: data.IDbReference): Promise<data.IDbReference | null> {
+      dbRef.user = cryptr.encrypt(dbRef.user);
+      dbRef.pass = cryptr.encrypt(dbRef.pass);
       const row = await this.query<any>('INSERT INTO DBReference SET ?', dbRef);
       return await this.getDbReference(row.insertId);
    }
@@ -130,13 +137,13 @@ export class EnvironmentDao extends Dao {
       return {
          id: row.id,
          envName: row.envName,
-         accessKey: row.accessKey,
-         secretKey: row.secretKey,
+         accessKey: cryptr.decrypt(row.accessKey),
+         secretKey: cryptr.decrypt(row.secretKey),
          region: row.region,
          dbName: row.dbName,
          host: row.host,
-         user: row.user,
-         pass: row.pass,
+         user: cryptr.decrypt(row.user),
+         pass: cryptr.decrypt(row.pass),
          instance: row.instance,
          parameterGroup: row.parameterGroup,
          bucket: row.bucket,
@@ -146,8 +153,8 @@ export class EnvironmentDao extends Dao {
    private rowToIIamReference(row: any): data.IIamReference {
       return {
          id: row.id,
-         accessKey: row.accessKey,
-         secretKey: row.secretKey,
+         accessKey: cryptr.decrypt(row.accessKey),
+         secretKey: cryptr.decrypt(row.secretKey),
          region: row.region,
       };
    }
@@ -157,8 +164,8 @@ export class EnvironmentDao extends Dao {
          id: row.id,
          name: row.name,
          host: row.host,
-         user: row.user,
-         pass: row.pass,
+         user: cryptr.decrypt(row.user),
+         pass: cryptr.decrypt(row.pass),
          instance: row.instance,
          parameterGroup: row.parameterGroup,
       };
@@ -171,4 +178,31 @@ export class EnvironmentDao extends Dao {
       };
    }
 
+   // Keep this function in case we implement any type of basic auth
+   private async encrypt(str: string): Promise<any> {
+      return new Promise((resolve, reject) => {
+         bcrypt.genSalt(saltRounds, (saltErr, salt) => {
+            bcrypt.hash(str, salt, (hashErr, hash) => {
+               if (hashErr) {
+                  reject(hashErr);
+               } else {
+                  resolve(hash);
+               }
+            });
+         });
+      });
+   }
+
+   // Keep this function in case we implement any type of basic auth
+   private async compareHash(str: string, hash: string): Promise<any> {
+      return new Promise((resolve, reject) => {
+         bcrypt.compare(str, hash, (compErr, res) => {
+            if (compErr) {
+               reject(compErr);
+            } else {
+               resolve(res);
+            }
+         });
+      });
+   }
 }
