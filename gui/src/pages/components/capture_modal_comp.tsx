@@ -15,13 +15,16 @@ import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/dat
 export class CaptureModal extends React.Component<any, any>  {
 
    private baseState = {} as any;
+   private startDateChild = {} as any;
 
    constructor(props: any) {
       super(props);
       this.handleClick = this.handleClick.bind(this);
       this.cancelModal = this.cancelModal.bind(this);
-      this.state = { captureName: "", scheduledStart: "", captureType: "immediately",
-         automaticStop: false, endDuration: {days: 1, hours: 1, minutes: 1}};
+      this.state = { captureName: "", scheduledStart: moment().format("YYYY-MM-DDTHH:mm"),
+         captureType: "immediately",  captureNameValid: 'invalid', reset: true,
+         automaticStop: false, errorMsg: '', endDuration: {days: 0, hours: 0, minutes: 5},
+         defaultDate: moment().format("YYYY-MM-DDTHH:mm")};
       this.handleTimeChange = this.handleTimeChange.bind(this);
       this.handleEndTypeChange = this.handleEndTypeChange.bind(this);
       this.handleCaptureTypeChange = this.handleCaptureTypeChange.bind(this);
@@ -45,17 +48,28 @@ export class CaptureModal extends React.Component<any, any>  {
 
    public async handleClick(event: any) {
       if (!this.allFieldsFilled()) {
-         logger.error("Please fill in all fields");
-         $('#captureWarning').show();
+         this.setState({errorMsg: 'Please fill in all required fields.'});
          return;
       }
       const capture = {name: this.state.captureName, envId: this.props.envId} as any;
       if (this.state.captureType === "specific") {
          capture.status = ChildProgramStatus.SCHEDULED;
          capture.scheduledStart = this.state.scheduledStart;
+         const startDate = new Date(this.state.scheduledStart);
+         const currentDate = new Date();
+         const duration = startDate.getTime() - currentDate.getTime();
+         if (duration <= 0) {
+            this.setState({errorMsg:  `You have chosen a date/time that has already
+               passed. Please choose a different one.`});
+            return;
+         }
       }
       if (this.state.automaticStop) {
          capture.duration = this.calculateDuration();
+         if (capture.duration <= 240) {
+            this.setState({errorMsg: 'Captures can only be run for a duration of 5 minutes or greater.'});
+            return;
+         }
       }
       const captureObj = await mycrt.startCapture(capture);
       if (!captureObj) {
@@ -72,44 +86,56 @@ export class CaptureModal extends React.Component<any, any>  {
 
    public handleTimeChange(date: string) {
       const newDate = new Date(date);
-      this.setState({scheduledStart: newDate});
+      this.setState({scheduledStart: newDate, errorMsg: ''});
    }
 
    public handleCaptureTypeChange(type: string) {
-      this.setState({captureType: type});
+      this.setState({captureType: type, errorMsg: ''});
    }
 
    public handleDayChange(days: number) {
       this.setState((prevState: any) => ({
+         errorMsg: '',
          endDuration: { ...prevState.endDuration, days},
       }));
    }
 
     public handleHourChange(hours: number) {
       this.setState((prevState: any) => ({
+         errorMsg: '',
          endDuration: { ...prevState.endDuration, hours},
       }));
     }
 
     public handleMinuteChange(minutes: number) {
       this.setState((prevState: any) => ({
+         errorMsg: '',
          endDuration: { ...prevState.endDuration, minutes},
       }));
     }
 
     public handleNameChange(event: any) {
-        this.setState({captureName: event.target.value});
+      if (/^[a-zA-Z0-9 :_\-]{4,25}$/.test(event.target.value)) {
+         this.setState({captureNameValid: 'valid'});
+      } else {
+         this.setState({captureNameValid: 'invalid'});
+      }
+      this.setState({captureName: event.target.value, errorMsg: ''});
     }
 
     public handleEndTypeChange(event: any) {
+       logger.info(String(event.currentTarget.value === "specific"));
       this.setState({
          automaticStop: event.currentTarget.value === "specific",
+         errorMsg: '',
      });
     }
 
     public cancelModal(event: any) {
-        this.setState(this.baseState);
-        this.render();
+      $("#manual").click();
+      this.setState(this.baseState);
+      this.startDateChild.resetChecks(this.state.scheduledStart);
+      this.render();
     }
 
     public render() {
@@ -132,20 +158,27 @@ export class CaptureModal extends React.Component<any, any>  {
                                 <div className="form-group">
                                     <div className="card card-body bg-light">
                                         <label><b>Capture Name</b></label>
-                                        <input type="name" className="form-control" id="captureName"
+                                        <input type="name" className={`form-control is-${this.state.captureNameValid}`}
+                                                id="captureName"
                                                 value={this.state.captureName}
                                                 onChange={this.handleNameChange.bind(this)}
                                                 aria-describedby="captureName" placeholder="Enter name"></input>
                                         <small id="captureName" className="form-text text-muted"></small>
+                                        <div className={`${this.state.captureNameValid}-feedback`}>
+                                          {this.state.captureNameValid === 'valid' ? "Looks good!" :
+                                             `Please provide a name that is 4-25 characters long
+                                             and contains only letters, numbers or spaces.`}</div>
                                         <br/>
                                         <StartDateTime updateTime={this.handleTimeChange}
+                                          ref={(instance) => { this.startDateChild = instance; }}
+                                          default={this.state.defaultDate} reset={this.state.reset}
                                           updateType={this.handleCaptureTypeChange}/>
                                        <br/>
                                        <label><b>Stop Options</b></label>
                                        <div className="form-check">
                                           <label className="form-check-label" style={{padding: "5px"}}>
                                              <input type="radio" className="form-check-input" name="end options"
-                                                onChange={this.handleEndTypeChange}
+                                                onChange={this.handleEndTypeChange} id="manual"
                                                 defaultValue="manual" defaultChecked/>
                                                 Manual
                                           </label>
@@ -153,18 +186,28 @@ export class CaptureModal extends React.Component<any, any>  {
                                        <div className="form-check">
                                           <label className="form-check-label" style={{padding: "5px"}}>
                                              <input type="radio" className="form-check-input" name="end options"
+                                                id="specific"
                                                 onChange={this.handleEndTypeChange} defaultValue="specific"/>
                                                 Automatic
                                           </label>
                                           <div className={this.state.automaticStop ? '' : 'hidden'}>
                                              <div className="container">
                                                 <div className="row" >
-                                                   <Duration type="days" update={this.handleDayChange}/>
-                                                   <Duration type="hours" update={this.handleHourChange}/>
-                                                   <Duration type="minutes" update={this.handleMinuteChange}/>
+                                                   <Duration type="days"
+                                                      value={this.state.endDuration.days}
+                                                      update={this.handleDayChange}/>
+                                                   <Duration type="hours"
+                                                      value={this.state.endDuration.hours}
+                                                      update={this.handleHourChange}/>
+                                                   <Duration type="minutes" update={this.handleMinuteChange}
+                                                      value={this.state.endDuration.minutes}/>
                                                 </div>
                                              </div>
                                           </div>
+                                       </div>
+                                       <br></br>
+                                       <div className="text-danger">
+                                          {this.state.errorMsg}
                                        </div>
                                     </div>
                                 </div>
@@ -174,7 +217,8 @@ export class CaptureModal extends React.Component<any, any>  {
                             <button type="button" className="btn btn-secondary" id="cancelBtn"
                                 data-dismiss="modal" onClick={this.cancelModal}>Cancel</button>
                             <button type="button" className="btn btn-info"
-                                    onClick = { (e) => this.handleClick(e) }>Save Capture</button>
+                                 disabled={this.state.captureNameValid === 'valid' ? false : true}
+                                 onClick = { (e) => this.handleClick(e) }>Create</button>
                         </div>
                     </div>
                 </div>
