@@ -30,7 +30,7 @@ export const value = {
    // https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
    dbName: joi.string().regex(/^[0-9a-zA-Z\$_]+$/).max(64),
 
-   /** valid hostname */
+   /** Valid Hostname */
    // https://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
    host: joi.string().regex(/^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$/i),
 
@@ -47,11 +47,8 @@ export const value = {
    // Must start with a letter and only contain letters, digits, or hyphens (NO CONSECUTIVE HYPENS)
    parameterGroup: joi.string(),
 
-   // TODO
-   // Must be a number
    envId: joi.number(),
 
-   // Must be a number
    dbId: joi.number(),
 
    // TODO

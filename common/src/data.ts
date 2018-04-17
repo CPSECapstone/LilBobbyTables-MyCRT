@@ -73,9 +73,9 @@ export interface IEnvironmentFull {
 /** IAM Profile */
 export interface IIamReference {
    id?: number;
-   accessKey?: string;
-   secretKey?: string;
-   region?: string;
+   accessKey: string;
+   secretKey: string;
+   region: string;
 }
 
 /** Database Connection */
