@@ -1,24 +1,25 @@
 language: node_js
 node_js:
-  - '8'
+- '8'
 addons:
   chrome: stable
 install:
-  - wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip -P ~/
-  - unzip ~/chromedriver_linux64.zip -d ~/
-  - rm ~/chromedriver_linux64.zip
-  - sudo mv -f ~/chromedriver /usr/local/share/
-  - sudo chmod +x /usr/local/share/chromedriver
-  - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
+- wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip
+  -P ~/
+- unzip ~/chromedriver_linux64.zip -d ~/
+- rm ~/chromedriver_linux64.zip
+- sudo mv -f ~/chromedriver /usr/local/share/
+- sudo chmod +x /usr/local/share/chromedriver
+- sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
 services:
-  - mysql
+- mysql
 script:
-  - sh scripts/ci_script.sh
-  - whereis google-chrome-stable
-  - whereis chromedriver
+- sh scripts/ci_script.sh
+- whereis google-chrome-stable
+- whereis chromedriver
 before_install: gem install sass
 env:
-  - MYCRT_ENV=travis
+- MYCRT_ENV=travis
 notifications:
   slack:
-    secure: UwjNefGbS2G+AuY0NxZ3wXxttrdGs40eCbpu8FSEbejte9GjPi21nRnCGWbi6ZgC9U3Izko8P76d+eAhde9hrpSas2ayU9DlZe/MNHR7AGJtDLFw9WPcOBU36fjzcoUKXOoRrbls5JjnWtQM1ANl+3EYMwsDvKDr1LS7exXWUN+oGhVIUozb4CY/CuywxMzMAmCujyk8qpL0pOF5m1SNhaAxNQ94EGZoLb/ehrRY22JSibuo14mvdPkEQGL9xzyslhwYY3B+Nt+loaVCnHi/MEgwyfJBVqMelXceGgD5GhAN7SjsLJrYRCeK2zSmTlgpA6LAgwAjonOV2h4WfTwpyKWGr0/Vf54k84wnwhlzks7O5w6wNcTDOYt3FcIeSe1lIz0WBRhDK9wkZ9nfvJILkf/C3vjxkWe96zKWZzdmJzlb461WLJNqNk/SVfRGPqNLUA5hiPyj4HxTKiYD70i9Sond8LRi0mRJcamWRGn729auAsm/WPU/bU8NLyJT7bY9NHlsWIgrMKhSNr9IcSKiUEuzPw7TGoZMzu45KxPAFfTq99Cp206MUWs/T/2Ge28chAqv9dI2hV1HXA0uq5NlgM1T1+1RuJv4drIqmHaZDt5X4OTn027ZrHwKRhAy0g97YOOBv4TlJn/yiMoFPpAEdhh1vu7F9ly8gCr8Lm000Bo=
+    secure: j+UuDmxi6kpFN5cF6JJ/JKIIstZ+ZEfDqQtwBLuPUKwjYpw3ezCRRZyN742wZYykySLZJCJE7b92x4nFzAKNYHxY10g8I0VgfRsJVmlu94zI/+1+Fl63XAqNyJmP1rOVqRSRRYI8tbZsO0HZ5zZjpL8Av+NTFB2+8cMQXp746Ak0tRLwqe0YaXTI+XijEGLq8qnyNXCJX2F6gAx1ceLiAgTq3N2+sCEoLukrtLs8JsVHpLWTsSSkUZTeWelLIaUOGV6Y/OUUFhfJMIN5ScS7t8/vG4jouh+OXpzmHsQnek59qZ6rVPc129a52wdwqUlFrEL5j0M53gEzecw8TjYyCAxGaMpZJiF6IlwOCvgVyUtGYvopZSz7751JRpidsXa6bwITLKJtnBYFb4iJqUtU/QjkZWTtndbyMXYybndpO54rqlPaI3S0iHd7R2YeY5MdO7n8x37VOPDheXdd4BOv3OPvkIynFLXwyHU4twgu1zBenFfkWT8l112CLM6K0jU59PZkDC6v6HaCpF76yRGbwhgIewNIElJoxGDR4S1ocQj6KCSUeBY8VKBy3X8iA7ZJmF92N5OCLpmo4TTQ7HXfHqdZLYctFsTAnSutLj3eYqW5pidThzKVdz3jEfGzWKcsIr1WxaqKDrzqoj+al6SlSyjmkI3BIkeXP7xHnZYH0/k=
