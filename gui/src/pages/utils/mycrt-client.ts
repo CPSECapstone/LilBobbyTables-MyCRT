@@ -17,4 +17,4 @@ const delegate = {
 
 };
 
-export const mycrt = new MyCrtClient('localhost:3000', delegate);
+export const mycrt = new MyCrtClient(window.location.origin, delegate);

@@ -208,9 +208,6 @@ export default class CaptureRouter extends SelfAwareRouter {
             const env = await environmentDao.getEnvironmentFull(captureRow.envId);
 
             if (env) {
-               /* TODO: make sure key matches the key in rds-logging.ts uploadToS3 */
-               const key = "capture" + id + "/workload.json";
-
                /* TODO: Replace with S3StorageBackend object in the Capture Object */
                const storage = new S3Backend(
                      new S3({region: env.region,
@@ -219,9 +216,8 @@ export default class CaptureRouter extends SelfAwareRouter {
                      env.bucket,
                   );
 
-               if (await storage.exists(key)) {
-                  await storage.deleteJson(key);
-               }
+               const key = "capture" + id + "/";
+               await storage.deletePrefix(key);
             }
          }
 

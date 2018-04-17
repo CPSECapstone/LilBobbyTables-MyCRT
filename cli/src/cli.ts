@@ -12,7 +12,7 @@ export default class MyCrtCli {
    private mycrt: MyCrtClient;
 
    constructor() {
-      this.mycrt = new MyCrtClient('localhost:3000', {
+      this.mycrt = new MyCrtClient('http://localhost:3000', {
          fetch,
          logger: this.logger,
          onError: this.clientError,
