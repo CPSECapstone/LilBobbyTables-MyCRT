@@ -13,6 +13,20 @@ export const newEnvBody = {
    parameterGroup: "supergroup",
 };
 
+export const newEnvBody2 = {
+   accessKey: "ACCESSKEY",
+   secretKey: "SECRETKEY",
+   region: "us-east-2",
+   bucket: "nfllogbucket",
+   dbName: "NFL",
+   host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
+   user: "nfl2015user",
+   pass: "nfl2015pass",
+   envName: "NFL environment 2",
+   instance: "nfl2015",
+   parameterGroup: "supergroup",
+};
+
 export const badEnvBody = {
    accessKey: "ACCESSKEY",
    secretKey: "SECRETKEY",
