@@ -18,11 +18,11 @@ export const newEnvBody2 = {
    secretKey: "SECRETKEY",
    region: "us-east-2",
    bucket: "nfllogbucket",
-   dbName: "NFL2",
+   dbName: "NFL",
    host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
    user: "nfl2015user",
    pass: "nfl2015pass",
-   envName: "NFL environment",
+   envName: "NFL environment 2",
    instance: "nfl2015",
    parameterGroup: "supergroup",
 };
