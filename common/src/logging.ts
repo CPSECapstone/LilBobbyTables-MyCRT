@@ -20,7 +20,7 @@ export const noopFormatter: FormatFunction = (args: any): string => {
 };
 
 export const detailedFormatter: FormatFunction = (args: any): string => {
-   return `${args.timestamp} [${args.label}] ${args.level}: ${args.message}`;
+   return `${args.timestamp()} [${args.label}] ${args.level}: ${args.message}`;
 };
 
 /** Retrieves a logger's logging function at the specified level. */
@@ -50,8 +50,8 @@ export const getLoggingFunction = (logger: winston.LoggerInstance, level?: LogLe
 };
 
 /** Gets a Logger that optionally writes to the console and writes to the specified file if provided. */
-export const getLogger = (console?: boolean, consoleFormat?: FormatFunction | undefined,
-                          logFile?: string | undefined, logFormat?: FormatFunction | undefined) => {
+export const getLogger = (console?: boolean, consoleFormat?: FormatFunction, logFile?: string,
+      logFormat?: FormatFunction, name?: string) => {
 
    const transports: winston.TransportInstance[] = [];
 
@@ -64,6 +64,7 @@ export const getLogger = (console?: boolean, consoleFormat?: FormatFunction | un
       }));
    }
 
+   const tsFormat = () => (new Date()).toLocaleString();
    if (logFile) {
       transports.push(new winston.transports.File({
          colorize: false,
@@ -72,6 +73,8 @@ export const getLogger = (console?: boolean, consoleFormat?: FormatFunction | un
          json: false,
          level: 'info',
          silent: process.env.NODE_ENV === 'test',
+         timestamp: tsFormat,
+         label: name || ' -- ',
       }));
    }
 
@@ -89,8 +92,10 @@ export const defaultLogger = (appPath: string) => {
    if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir);
    }
-   const logPath = path.join(logDir, `${Date.now()}.log`);
-   return getLogger(true, undefined, logPath, detailedFormatter);
+   const date = new Date();
+   const day = `${date.getFullYear()}-${date.getMonth()}-${date.getDay()}`;
+   const logPath = path.join(logDir, `${day}.log`);
+   return getLogger(true, undefined, logPath, detailedFormatter, appPath);
 };
 
 export const noopLogger = (appPath: string) => {
@@ -99,8 +104,10 @@ export const noopLogger = (appPath: string) => {
    if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir);
    }
-   const logPath = path.join(logDir, `${Date.now()}.log`);
-   return getLogger(true, noopFormatter, logPath, detailedFormatter);
+   const date = new Date();
+   const day = `${date.getFullYear()}-${date.getMonth()}-${date.getDay()}`;
+   const logPath = path.join(logDir, `${day}.log`);
+   return getLogger(true, noopFormatter, logPath, detailedFormatter, appPath);
 };
 
 export const consoleLogger = () => {
