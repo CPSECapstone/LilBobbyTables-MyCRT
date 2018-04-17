@@ -143,25 +143,18 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          // creation of generic capture template
-         let captureTemplate: ICapture | null;
+         let captureTemplate: ICapture | null = {
+            type: ChildProgramType.CAPTURE,
+               envId: env.id,
+               status: initialStatus === ChildProgramStatus.SCHEDULED ?
+                  ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+               name: request.body.name,
+         };
+
+         // if scheduled, add necessary params
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            captureTemplate = {
-               type: ChildProgramType.CAPTURE,
-               envId: env.id,
-               status: initialStatus === ChildProgramStatus.SCHEDULED ?
-                  ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-               name: request.body.name,
-               scheduledStart: inputTime,
-               scheduledEnd: endTime,
-            };
-         } else {
-            captureTemplate = {
-               type: ChildProgramType.CAPTURE,
-               envId: env.id,
-               status: initialStatus === ChildProgramStatus.SCHEDULED ?
-                  ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-               name: request.body.name,
-            };
+            captureTemplate.scheduledStart = inputTime;
+            captureTemplate.scheduledEnd = endTime;
          }
 
          // assign capture, insert into db
