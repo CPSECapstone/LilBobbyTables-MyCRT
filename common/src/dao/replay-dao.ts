@@ -22,6 +22,15 @@ export class ReplayDao extends Dao {
       return rawReplays.map(this.resultToIReplay);
    }
 
+   public async getReplaysForCapByName(captureId: number, name: string): Promise<data.IReplay[] | null> {
+      const rawReplays = await this.query<any[]>('SELECT * FROM Replay WHERE captureId = ? and name = ?',
+       [captureId, name]);
+      if (rawReplays.length === 0) {
+         return null;
+      }
+      return rawReplays.map(this.resultToIReplay);
+   }
+
    public async makeReplay(replay: data.IReplay): Promise<data.IReplay | null> {
       const result = await this.query<any>('INSERT INTO Replay SET ?', {
          name: replay.name,

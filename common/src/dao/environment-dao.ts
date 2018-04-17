@@ -1,4 +1,5 @@
 import * as data from '../data';
+import { defaultLogger } from '../logging';
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
 
@@ -14,6 +15,14 @@ export class EnvironmentDao extends Dao {
    public async getAllEnvironments(): Promise<data.IEnvironment[]> {
       const environmentRows = await this.query<any[]>('SELECT * FROM Environment', []);
       return environmentRows.map(this.rowToIEnvironment);
+   }
+
+   public async getEnvironmentByName(name: string): Promise<data.IEnvironment | null> {
+      const rows = await this.query<any[]>('SELECT * FROM Environment WHERE name = ?', [name]);
+      if (rows.length === 0) {
+         return null;
+      }
+      return this.rowToIEnvironment(rows[0]);
    }
 
    public async getEnvironment(id: number): Promise<data.IEnvironment | null> {
@@ -76,9 +85,6 @@ export class EnvironmentDao extends Dao {
    public async makeIamReference(iamRef: data.IIamReference): Promise<data.IIamReference> {
       iamRef.accessKey = cryptr.encrypt(iamRef.accessKey);
       iamRef.secretKey = cryptr.encrypt(iamRef.secretKey);
-      logger.debug("look I'm encrypted " + iamRef.secretKey);
-      logger.debug("look I'm decrypted " + cryptr.decrypt(iamRef.secretKey));
-      logger.debug("My length is " + iamRef.secretKey.length);
       const row = await this.query<any>('INSERT INTO IAMReference SET ?', iamRef);
       return await this.getIamReference(row.insertId);
    }

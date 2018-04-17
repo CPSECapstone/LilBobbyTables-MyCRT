@@ -19,6 +19,7 @@ export const captureBody: joi.ObjectSchema = joi.object().keys({
 
 export const envQuery: joi.ObjectSchema = joi.object().keys({
     envId: value.envId.optional(),
+    name: value.nameString.optional(),
 });
 
 export * from './common-schema';

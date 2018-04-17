@@ -1,7 +1,7 @@
 import * as http from 'http-status-codes';
 
 import { ChildProgramStatus, ChildProgramType, IDbReference, IReplay,
-      Logging, MetricsStorage, MetricType } from '@lbt-mycrt/common';
+      Logging, MetricsStorage, MetricType, ReplayDao } from '@lbt-mycrt/common';
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
@@ -37,16 +37,21 @@ export default class ReplayRouter extends SelfAwareRouter {
 
       this.router.get('/', check.validQuery(schema.replayQuery),
             this.handleHttpErrors(async (request, response) => {
+
             const captureId = request.query.captureId;
+            const name = request.query.name;
+            let replays;
 
             if (captureId) {
                   logger.info(`Getting all replays for capture ${captureId}`);
-                  const replays = await replayDao.getReplaysForCapture(captureId);
-                  response.json(replays);
+                  replays = await replayDao.getReplaysForCapture(captureId);
+                  if (name) {
+                     replays = await replayDao.getReplaysForCapByName(captureId, name);
+                  }
             } else {
-                  const replays = await replayDao.getAllReplays();
-                  response.json(replays);
+               replays = await replayDao.getAllReplays();
             }
+            response.json(replays);
       }));
 
       this.router.get('/:id(\\d+)/metrics', check.validParams(schema.idParams),
@@ -78,6 +83,11 @@ export default class ReplayRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
+         const replayWithSameName = await replayDao.getReplaysForCapByName(request.body.captureId, request.body.name);
+         if (replayWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
+         }
+
          const dbRefArgs: IDbReference = {
             name: request.body.dbName,
             host: request.body.host,
@@ -145,6 +155,5 @@ export default class ReplayRouter extends SelfAwareRouter {
          response.json(replay);
 
       }));
-
    }
 }
