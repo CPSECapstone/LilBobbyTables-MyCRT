@@ -43,11 +43,16 @@ export class ReplayInfo extends React.Component<any, any>  {
                         {this.formatTimeStamp(this.props.replay.end)}
                      </label><br/><br/>
                   </div>
-                  <div className="col-xs-6" style={{padding: "20px 60px 0px"}}>
+                  <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
                      <h5>Target Database:</h5>
                      <label><b>&nbsp;&nbsp;&nbsp;Name: </b>{this.props.replay.db.name}</label><br/>
                      <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.props.replay.db.host}</label><br/>
                      <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.props.replay.db.user}</label><br/><br/>
+                  </div>
+                  <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
+                     <h5>S3 File Storage:</h5>
+                     <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.props.bucket}</label><br/>
+                     <label><b>&nbsp;&nbsp;&nbsp;Folder: </b>{"replay" + this.props.replay.id}</label><br/><br/>
                   </div>
                </div>
             </div>
