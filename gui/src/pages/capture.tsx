@@ -269,7 +269,8 @@ class CaptureApp extends React.Component<any, any> {
                   </div>
                   <div className="tab-pane" id="replays" role="tabpanel">
                      {this.state.replayObj ?
-                        <ReplayInfo replay={this.state.replayObj} envId={this.state.envId}/> : null
+                        <ReplayInfo replay={this.state.replayObj} bucket={this.state.env.bucket}
+                        envId={this.state.envId}/> : null
                      }<br/>
                      <div className="page-header"><h2>Replays</h2><br/></div>
                      <div className="myCRT-overflow-col">

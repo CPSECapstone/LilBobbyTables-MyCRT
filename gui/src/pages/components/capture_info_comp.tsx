@@ -34,10 +34,15 @@ export class CaptureInfo extends React.Component<any, any>  {
                         {this.formatTimeStamp(this.props.capture.end)}
                      </label><br/><br/>
                   </div>
-                  <div className="col-xs-6" style={{padding: "20px 60px 0px"}}>
+                  <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
                      <h5>Source Database:</h5>
                      <label><b>&nbsp;&nbsp;&nbsp;Name: </b>{this.props.env.dbName}</label><br/>
                      <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.props.env.host}</label><br/><br/>
+                  </div>
+                  <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
+                     <h5>S3 File Storage:</h5>
+                     <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.props.env.bucket}</label><br/>
+                     <label><b>&nbsp;&nbsp;&nbsp;Folder: </b>{"capture" + this.props.capture.id}</label><br/><br/>
                   </div>
                </div>
             </div>
