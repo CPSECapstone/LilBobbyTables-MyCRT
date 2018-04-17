@@ -83,24 +83,6 @@ export default class ReplayRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
-         const replayWithSameName = await replayDao.getReplaysForCapByName(request.body.captureId, request.body.name);
-         if (replayWithSameName !== null) {
-            throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
-         }
-
-         const dbRefArgs: IDbReference = {
-            name: request.body.dbName,
-            host: request.body.host,
-            user: request.body.user,
-            pass: request.body.pass,
-            instance: request.body.instance,
-         };
-
-         const dbRef = await environmentDao.makeDbReference(dbRefArgs);
-         if (dbRef && !dbRef.id) {
-            throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
-         }
-
          const cap = await captureDao.getCapture(request.body.captureId);
          if (cap == null) {
                throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
@@ -116,6 +98,10 @@ export default class ReplayRouter extends SelfAwareRouter {
          };
 
          const db = await environmentDao.makeDbReference(dbReference);
+         if (db && !db.id) {
+            throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
+         }
+
          if (db) {
             dbReference = db;
          }
