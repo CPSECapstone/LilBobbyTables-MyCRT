@@ -9,6 +9,7 @@ import { utils } from '@lbt-mycrt/common';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
 
+import { indexTests } from './index.test';
 import { captureTests } from './routes/captures.test';
 import { dbReferenceTests } from './routes/db-reference.test';
 import { environmentTests } from './routes/environment.test';
@@ -58,6 +59,7 @@ describe("MyCrtService", function() {
    });
 
    const client = new MyCrtServiceTestClient(mycrt);
+   describe("site index", indexTests(client));
    describe("environment router", environmentTests(client));
    describe("capture router", captureTests(client));
    describe("replay router", replayTests(client));
