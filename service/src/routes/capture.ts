@@ -145,14 +145,19 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          let captureTemplate: ICapture | null = {
             type: ChildProgramType.CAPTURE,
-            envId: env.id,
-            status: initialStatus === ChildProgramStatus.SCHEDULED ?
-               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-            name: request.body.name,
-            scheduledStart: inputTime,
-            scheduledEnd: endTime,
+               envId: env.id,
+               status: initialStatus === ChildProgramStatus.SCHEDULED ?
+                  ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+               name: request.body.name,
          };
 
+         // if scheduled, add necessary params
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            captureTemplate.scheduledStart = inputTime;
+            captureTemplate.scheduledEnd = endTime;
+         }
+
+         // assign capture, insert into db
          captureTemplate = await captureDao.makeCapture(captureTemplate);
 
          if (captureTemplate === null) {
