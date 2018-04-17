@@ -1,10 +1,11 @@
 language: node_js
 node_js:
   - '8'
-addons: # get google-chrome-stable
+addons:
   chrome: stable
-install: # Install ChromeDriver (64bits; replace 64 with 32 for 32bits).
-  - wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip -P ~/
+install:
+  - wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip
+    -P ~/
   - unzip ~/chromedriver_linux64.zip -d ~/
   - rm ~/chromedriver_linux64.zip
   - sudo mv -f ~/chromedriver /usr/local/share/
@@ -21,4 +22,4 @@ env:
   - MYCRT_ENV=travis
 notifications:
   slack:
-    secure: DbRwmkO5OWtk7ZuL9QbhFgdv+5BXewMDLz+alYLbYufeOipNk74jZwqYwlkTyxT2w5jjGTu+E6ja0UrzVBbbKQ/8YRowu0XH3uq3uhc2b4EyiMutIjvlpEwG5+ZZkJ2yM75ZXqwyJCnd0K5SFj+yiSBjXHvDBUk0VwEelhVUOIHNSWZroEK27M4Rm4dI+B9yuQhAf0TmVRns2Wl7RWtmvNT72BAk+Ni2oHO/nylr0WN9Yv/r16PcsmwSca99F/YGcytX7yAfjVm0vnbAGW0oFKHumUA7cv++fXbfnNWgb6qM+6Fx6ex7Xd3uYiIiMr1nbEnTDQD+eK8TPI7n8YO8S+e4cxN18JU8LyF9FZfGhK+XMbe2HzxGFfmbIek6o+QGQOv0wIRwNB4pBLk/ARihhR7hANsmnwqt20uEhuEBtNy9qoR2Z1DB/vTOB6+qtoX//ZjE4lmZrLWJVVdM9WcOQrn0dfnp7njLOIl7RyYd1p+Mqsf1fxj5rzwPaZjNlEG8E2eSp+OwKXpg8w3t5LFdCPKTlSKd+d/GGsAtWz9a2qw1Jbur9lPKpjjLryVOexfus4Fg1+xnfXqeKMtGqYAUX5E/cWmQIMv5Ao03DS0iU2a/A/2MyM8c9D5YndrWInfl9OHRp1SnTjIHU9Urx3uytVEf6V6raPT8tb0Z8UraXY0=
+    secure: UwjNefGbS2G+AuY0NxZ3wXxttrdGs40eCbpu8FSEbejte9GjPi21nRnCGWbi6ZgC9U3Izko8P76d+eAhde9hrpSas2ayU9DlZe/MNHR7AGJtDLFw9WPcOBU36fjzcoUKXOoRrbls5JjnWtQM1ANl+3EYMwsDvKDr1LS7exXWUN+oGhVIUozb4CY/CuywxMzMAmCujyk8qpL0pOF5m1SNhaAxNQ94EGZoLb/ehrRY22JSibuo14mvdPkEQGL9xzyslhwYY3B+Nt+loaVCnHi/MEgwyfJBVqMelXceGgD5GhAN7SjsLJrYRCeK2zSmTlgpA6LAgwAjonOV2h4WfTwpyKWGr0/Vf54k84wnwhlzks7O5w6wNcTDOYt3FcIeSe1lIz0WBRhDK9wkZ9nfvJILkf/C3vjxkWe96zKWZzdmJzlb461WLJNqNk/SVfRGPqNLUA5hiPyj4HxTKiYD70i9Sond8LRi0mRJcamWRGn729auAsm/WPU/bU8NLyJT7bY9NHlsWIgrMKhSNr9IcSKiUEuzPw7TGoZMzu45KxPAFfTq99Cp206MUWs/T/2Ge28chAqv9dI2hV1HXA0uq5NlgM1T1+1RuJv4drIqmHaZDt5X4OTn027ZrHwKRhAy0g97YOOBv4TlJn/yiMoFPpAEdhh1vu7F9ly8gCr8Lm000Bo=
