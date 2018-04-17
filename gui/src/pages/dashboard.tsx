@@ -192,7 +192,7 @@ class DashboardApp extends React.Component<any, any> {
                      <h4>Past</h4>
                      <div className="myCRT-overflow-col">
                         {pastCaptures.length ? pastCaptures : <p className="myCRT-empty-col">
-                            No past captures exist.</p>}
+                            No past captures exist</p>}
                     </div>
                      <br></br>
                   </div>
@@ -223,7 +223,7 @@ class DashboardApp extends React.Component<any, any> {
                      <h4>Past</h4>
                      <div className="myCRT-overflow-col">
                      {pastReplays.length ? pastReplays : <p className="myCRT-empty-col">
-                            No past replays exist.</p>}
+                            No past replays exist</p>}
                     </div>
                      <br></br>
                   </div>
