@@ -26,6 +26,14 @@ export class CaptureDao extends Dao {
       return rawCaptures.map(this.rowToICapture);
    }
 
+   public async getCapturesForEnvByName(envId: number, name: string): Promise<data.ICapture[] | null> {
+      const rawCaptures = await this.query<any[]>('SELECT * FROM Capture WHERE envId = ? AND name = ?', [envId, name]);
+      if (rawCaptures.length === 0) {
+         return null;
+      }
+      return rawCaptures.map(this.rowToICapture);
+   }
+
    public async getRunningCapturesForEnv(envId: number): Promise<data.ICapture[] | null> {
       const rawCaptures = await this.query<any[]>(
          'SELECT * FROM Capture WHERE envId = ? AND status IN (?, ?, ?)',
