@@ -5,6 +5,7 @@ import * as express from 'express';
 import * as fs from 'fs';
 import * as helmet from 'helmet';
 import { Server } from 'http';
+import * as http from 'http-status-codes';
 import * as https from 'https';
 import * as mustache from 'mustache';
 import * as path from 'path';
@@ -13,6 +14,7 @@ import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import { Pages, StaticFileDirs, Template } from '@lbt-mycrt/gui';
 
 import ApiRouter from './routes/api';
+import * as indexRedirect from './routes/index-redirect';
 import SelfAwareRouter from './routes/self-aware-router';
 import settings = require('./settings');
 import { getSslOptions, sslSetupCheck } from './ssl';
@@ -135,8 +137,6 @@ class MyCrtService {
 
    private mountMiddlewares(): void {
 
-      this.express!.use(bodyParser.json());
-
       // log each request to the console
       this.express!.use((request, response, then) => {
          let paramsStr: string = '';
@@ -147,6 +147,20 @@ class MyCrtService {
          /* TODO: Add MySQL connection here */
          then();
       });
+
+      // remove (redirect) trailing slashes
+      this.express!.use((request, response, next) => {
+         if (request.path.substr(-1) === '/' && request.path.length > 1) {
+            const newPath = request.path.slice(0, -1);
+            const query = request.url.slice(request.path.length);
+            response.redirect(http.PERMANENT_REDIRECT, `${newPath}${query}`);
+         } else {
+            next();
+         }
+      });
+
+      // parse bodies into json
+      this.express!.use(bodyParser.json());
 
       // prevent click jacking
       this.express!.use(helmet());
@@ -172,19 +186,19 @@ class MyCrtService {
 
    private mountPageRoutes(): void {
 
+      this.express!.get(/^\/$/, indexRedirect.indexRouteHandler);
+
       const routePage = (urlPattern: RegExp, page: Template) => {
          this.express!.get(urlPattern, (request, response) => {
             response.send(page.getText()).end();
          });
       };
-
-      routePage(/^\/?$/, Pages.index);
-      routePage(/^\/environments\/?$/, Pages.environments);
-      routePage(/^\/dashboard\/?$/, Pages.dashboard);
-      routePage(/^\/captures\/?$/, Pages.captures);
-      routePage(/^\/capture\/?$/, Pages.capture);
-      routePage(/^\/replay\/?$/, Pages.replay);
-      routePage(/^\/metrics\/?$/, Pages.metrics);
+      routePage(/^\/environments$/, Pages.environments);
+      routePage(/^\/dashboard$/, Pages.dashboard);
+      routePage(/^\/captures$/, Pages.captures);
+      routePage(/^\/capture$/, Pages.capture);
+      routePage(/^\/replay$/, Pages.replay);
+      routePage(/^\/metrics$/, Pages.metrics);
 
    }
 }

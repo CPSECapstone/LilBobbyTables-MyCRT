@@ -16,4 +16,8 @@ export const environmentBody: joi.ObjectSchema = joi.object().keys({
    parameterGroup: value.parameterGroup.required(),
 });
 
+export const envNameQuery: joi.ObjectSchema = joi.object().keys({
+   name: value.nameString.optional(),
+});
+
 export * from './common-schema';

@@ -19,6 +19,7 @@ export const replayValues = {
 
 export const replayQuery: joi.ObjectSchema = joi.object().keys({
     captureId: replayValues.captureId.optional(),
+    name: value.nameString.optional(),
 });
 
 export * from './common-schema';
