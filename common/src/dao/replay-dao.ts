@@ -1,6 +1,10 @@
+import { defaultLogger } from '../logging';
+
 import * as data from '../data';
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
+
+const logger = defaultLogger(__dirname);
 
 export class ReplayDao extends Dao {
 
@@ -29,6 +33,20 @@ export class ReplayDao extends Dao {
          return null;
       }
       return rawReplays.map(this.resultToIReplay);
+   }
+
+   public async getAbandonedReplays(): Promise<data.IReplay[] | null> {
+      const status = data.ChildProgramStatus;
+      try {
+         const rawReplays = await this.query<any[]>(
+            `SELECT * FROM Replay WHERE status IN (?, ?, ?, ?)`,
+            [status.STARTED, status.STARTING, status.RUNNING, status.STOPPING],
+         );
+         return rawReplays.map(this.resultToIReplay);
+      } catch (e) {
+         logger.error(e);
+         return null;
+      }
    }
 
    public async makeReplay(replay: data.IReplay): Promise<data.IReplay | null> {

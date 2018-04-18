@@ -2,7 +2,6 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
-import { CaptureConfig, launch } from '@lbt-mycrt/capture';
 import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, Logging,
    MetricType } from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
@@ -11,11 +10,11 @@ import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { Template } from '@lbt-mycrt/gui/dist/main';
 import { getMetrics } from '../common/capture-replay-metrics';
+import { startCapture } from '../common/launching';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
-import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
 
 export default class CaptureRouter extends SelfAwareRouter {
@@ -173,9 +172,9 @@ export default class CaptureRouter extends SelfAwareRouter {
          response.json(captureTemplate);
 
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            schedule.scheduleJob(inputTime, () => { this.startCapture(captureTemplate!); });
+            schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
          } else {
-            this.startCapture(captureTemplate);
+            startCapture(captureTemplate);
          }
 
          logger.info(`Successfully created capture!`);
@@ -218,21 +217,6 @@ export default class CaptureRouter extends SelfAwareRouter {
          response.json(capture);
 
       }));
-   }
-
-   private startCapture(capture: ICapture): void {
-      const logger = Logging.defaultLogger(__dirname);
-      logger.info(`Launching capture with id ${capture!.id!}`);
-
-      // TODO: change implementation so that CaptureConfig() doesn’t pass in the
-      //       environment id since that can be found in the database
-      const config = new CaptureConfig(capture!.id!, capture!.envId!);
-      config.mock = settings.captures.mock;
-      config.interval = settings.captures.interval;
-      config.intervalOverlap = settings.captures.intervalOverlap;
-      config.metricsDelay = settings.captures.metricsDelay;
-      config.filePrepDelay = settings.captures.filePrepDelay;
-      launch(config);
    }
 
    private createEndDate(startTime: Date, seconds: number): Date {
