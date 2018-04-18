@@ -32,10 +32,12 @@ export class ServerIpcNode extends IpcNode {
    /** Send the 'stop' signal to a capture */
    public async stopCapture(id: number) {
       const path = this.getChildSocketPath(ChildProgramType.CAPTURE, id);
-      const result: any = await this.connectSendDisconnect<null, any>(path, CaptureStopMessage, null)
-         .catch((reason) => {
-            this.logger.error(`Failed to stop capture: ${reason}`);
-         });
+      let result: any = null;
+      try {
+         result = await this.connectSendDisconnect<null, any>(path, CaptureStopMessage, null);
+      } catch (e) {
+         this.logger.error(`Failed to stop capture: ${e}`);
+      }
       return result;
    }
 

@@ -42,6 +42,25 @@ export class CaptureDao extends Dao {
       return rawCaptures.map(this.rowToICapture);
    }
 
+   public async getScheduledCaptures(future: boolean, now: Date): Promise<data.ICapture[] | null> {
+      try {
+         const when = future ?
+            'scheduledStart > ?' :
+            'scheduledStart <= ?';
+         const rawCaptures = await this.query<any[]>(
+            `SELECT * FROM Capture WHERE scheduledStart IS NOT NULL AND status = "SCHEDULED" ` +
+               `AND ${when}`,
+            [
+               now,
+            ],
+         );
+         return rawCaptures.map(this.rowToICapture);
+      } catch (e) {
+         logger.error(e);
+         return null;
+      }
+   }
+
    public async makeCapture(capture: data.ICapture): Promise<data.ICapture | null> {
       const result = await this.query<any>('INSERT INTO Capture SET ?', {
          name: capture.name,

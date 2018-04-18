@@ -13,6 +13,8 @@ import * as path from 'path';
 import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import { Pages, StaticFileDirs, Template } from '@lbt-mycrt/gui';
 
+import { rescheduleCaptures } from './management/capture';
+import { markAbandonedReplaysAsFailed } from './management/replay';
 import ApiRouter from './routes/api';
 import * as indexRedirect from './routes/index-redirect';
 import SelfAwareRouter from './routes/self-aware-router';
@@ -84,6 +86,14 @@ class MyCrtService {
             logger.info("-----------------------------------------------------------");
             resolve(true);
          };
+
+         // process any captures/replays that are in a bad state
+         try {
+            rescheduleCaptures();
+            markAbandonedReplaysAsFailed();
+         } catch (e) {
+            logger.error(`Failed while processing captures/replays in bad states: ${e}`);
+         }
 
          if (this.host) {
             this.server = this.express.listen(this.port, this.host, lauchCallback);
