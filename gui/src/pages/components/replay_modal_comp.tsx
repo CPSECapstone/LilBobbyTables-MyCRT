@@ -38,10 +38,6 @@ export class ReplayModal extends React.Component<any, any>  {
         }
     }
 
-    public allFieldsFilled() {
-        return this.state.captureId && this.state.dbName && this.state.pass && this.state.name;
-    }
-
     public handleInputChange(event: any) {
       this.setState({[event.target.id]: event.target.value, errorMsg: ''});
     }
@@ -162,10 +158,8 @@ export class ReplayModal extends React.Component<any, any>  {
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
-                        <WarningAlert id="replayWarning" msg="Please fill in all the provided fields."
-                                      style = {{display: "none"}}/>
                         <div className="modal-body">
-                            <form>
+                            <form onSubmit={(e) => e.preventDefault()}>
                                 <div className="form-group">
                                     <div className="card card-body bg-light">
                                         <label><b>Replay Name</b></label>

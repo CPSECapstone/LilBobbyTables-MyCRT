@@ -79,8 +79,8 @@ class DashboardApp extends React.Component<any, any> {
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
-        const result = await mycrt.deleteEnvironment(id, deleteLogs);
-        window.location.assign('./environments');
+      const result = await mycrt.deleteEnvironment(id, deleteLogs);
+      window.location.assign('./environments');
     }
 
     public render() {

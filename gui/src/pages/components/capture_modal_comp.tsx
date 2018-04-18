@@ -34,10 +34,6 @@ export class CaptureModal extends React.Component<any, any>  {
       this.baseState = this.state;
    }
 
-   public allFieldsFilled() {
-      return this.state.captureName !== ""; // will be extended later
-   }
-
    public calculateDuration() {
       const daysInSecs = this.state.endDuration.days * 86400;
       const hoursInSecs = this.state.endDuration.hours * 3600;
@@ -47,10 +43,6 @@ export class CaptureModal extends React.Component<any, any>  {
    }
 
    public async handleClick(event: any) {
-      if (!this.allFieldsFilled()) {
-         this.setState({errorMsg: 'Please fill in all required fields.'});
-         return;
-      }
       const duplicateName = await mycrt.validateCaptureName(this.state.captureName, this.props.envId);
       if (duplicateName) {
          this.setState({errorMsg: `This capture name already exists within this environment.
@@ -161,10 +153,8 @@ export class CaptureModal extends React.Component<any, any>  {
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
-                        <WarningAlert id="captureWarning" msg="Please fill in all the provided fields."
-                                      style = {{display: "none"}}/>
                         <div className="modal-body">
-                            <form>
+                            <form onSubmit={(e) => e.preventDefault()}>
                                 <div className="form-group">
                                     <div className="card card-body bg-light">
                                         <label><b>Capture Name</b></label>

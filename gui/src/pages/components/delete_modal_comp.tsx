@@ -16,6 +16,9 @@ export class DeleteModal extends React.Component<any, any>  {
    constructor(props: any) {
       super(props);
       this.state = { name: "", deleteLogs: true, disabled: true, nameValid: 'invalid'};
+      this.handleClick = this.handleClick.bind(this);
+      this.handleNameChange = this.handleNameChange.bind(this);
+      this.handleCheckChange = this.handleCheckChange.bind(this);
       this.cancelModal = this.cancelModal.bind(this);
       this.baseState = this.state;
    }
@@ -62,7 +65,7 @@ export class DeleteModal extends React.Component<any, any>  {
                         <WarningAlert id="deleteWarning" msg="Please fill in all the provided fields."
                             style = {{display: "none"}}/>
                         <div className="modal-body">
-                            <form>
+                            <form onSubmit={(e) => e.preventDefault()}>
                                 <div className="form-group">
                                     <div className="card card-body bg-light">
                                         <label className="myCRT-danger-label"><b>
