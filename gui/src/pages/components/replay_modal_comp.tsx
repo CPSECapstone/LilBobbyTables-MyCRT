@@ -18,7 +18,7 @@ export class ReplayModal extends React.Component<any, any>  {
         this.state = { name: "", captureId: "", host: "", parameterGroup: "",
                        user: "", pass: "", instance: "", dbName: "", type: ChildProgramType.REPLAY,
                        env: this.props.env, dbRefs: [], invalidDBPass: false, replayNameValid: 'invalid',
-                       disabled: true, dbCredentialsValid: 'valid'};
+                       disabled: true, errorMsg: ''};
         this.baseState = this.state;
         this.handleDBName = this.handleDBName.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -38,16 +38,12 @@ export class ReplayModal extends React.Component<any, any>  {
         }
     }
 
-    public allFieldsFilled() {
-        return this.state.captureId && this.state.dbName && this.state.pass && this.state.name;
-    }
-
     public handleInputChange(event: any) {
-      this.setState({[event.target.id]: event.target.value, dbCredentialsValid: 'valid'});
+      this.setState({[event.target.id]: event.target.value, errorMsg: ''});
     }
 
     public handleNameChange(event: any) {
-      if (/^[a-zA-Z0-9 :_\-]{4,25}$/.test(event.target.value)) {
+      if (/^[a-zA-Z0-9 :_-]{4,25}$/.test(event.target.value)) {
          this.setState({replayNameValid: 'valid'});
          let disabled = true;
          if (this.state.dbName !== "" && this.state.captureId !== "") {
@@ -57,7 +53,7 @@ export class ReplayModal extends React.Component<any, any>  {
       } else {
          this.setState({replayNameValid: 'invalid', disabled: true});
       }
-      this.setState({name: event.target.value});
+      this.setState({name: event.target.value, errorMsg: ''});
     }
 
     public async startReplay() {
@@ -74,14 +70,19 @@ export class ReplayModal extends React.Component<any, any>  {
     }
 
     public async validateDB(event: any) {
+      const duplicateName = await mycrt.validateReplayName(this.state.name, this.state.captureId);
+      if (duplicateName) {
+         this.setState({errorMsg: 'This replay name already exists within this capture. Please use a different one.'});
+         return;
+      }
       const dbRef = {dbName: this.state.dbName, host: this.state.host,
          user: this.state.user, pass: this.state.pass};
       const validate = await mycrt.validateDatabase(dbRef);
       if (validate) {
-         this.setState({dbCredentialsValid: 'valid'});
+         this.setState({errorMsg: ''});
          this.startReplay();
       } else {
-         this.setState({dbCredentialsValid: 'invalid'});
+         this.setState({errorMsg: 'Password was invalid. Please try again.'});
          logger.error("Could not validate db");
       }
     }
@@ -89,7 +90,7 @@ export class ReplayModal extends React.Component<any, any>  {
     public handleCaptureId(event: any) {
       const target = event.currentTarget;
       if (target.value === "default") {
-         this.setState({captureId: '', disabled: true, dbCredentialsValid: 'valid'});
+         this.setState({captureId: '', disabled: true, errorMsg: ''});
          return;
       }
       const index = event.target.selectedIndex;
@@ -105,7 +106,7 @@ export class ReplayModal extends React.Component<any, any>  {
     public handleDBName(event: any) {
       const target = event.currentTarget;
       if (target.value === "default") {
-         this.setState({dbName: '', disabled: true, dbCredentialsValid: 'valid'});
+         this.setState({dbName: '', disabled: true, errorMsg: ''});
          return;
       }
       let disabled = true;
@@ -114,7 +115,7 @@ export class ReplayModal extends React.Component<any, any>  {
       }
       const dbRef = JSON.parse(target.value);
       this.setState({dbName: dbRef.name, instance: dbRef.instance, parameterGroup: dbRef.parameterGroup,
-      host: dbRef.host, user: dbRef.user, pass: "", dbCredentialsValid: 'valid', disabled});
+      host: dbRef.host, user: dbRef.user, pass: "", errorMsg: '', disabled});
     }
 
     public cancelModal(event: any) {
@@ -157,10 +158,8 @@ export class ReplayModal extends React.Component<any, any>  {
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
-                        <WarningAlert id="replayWarning" msg="Please fill in all the provided fields."
-                                      style = {{display: "none"}}/>
                         <div className="modal-body">
-                            <form>
+                            <form onSubmit={(e) => e.preventDefault()}>
                                 <div className="form-group">
                                     <div className="card card-body bg-light">
                                         <label><b>Replay Name</b></label>
@@ -170,8 +169,8 @@ export class ReplayModal extends React.Component<any, any>  {
                                             <small id="replayName" className="form-text text-muted"></small>
                                         <div className={`${this.state.replayNameValid}-feedback`}>
                                           {this.state.replayNameValid === 'valid' ? "Looks good!" :
-                                             `Please provide a name that is 4-25 characters long
-                                             and contains only letters, numbers or spaces.`}</div>
+                                             `Please provide a name with 4-25 alphanumeric characters.
+                                             The following characters are also allowed: -_:`}</div>
                                         <br/>
                                         <label><b>Capture</b></label>
                                         {<select className="form-control" id="captureDrop"
@@ -213,8 +212,8 @@ export class ReplayModal extends React.Component<any, any>  {
                                         </div>
                                         <br></br>
                                         <div className="text-danger">
-                                          {this.state.dbCredentialsValid === 'valid' ? "" :
-                                             `Password was invalid. Please try again.`}</div>
+                                          {this.state.errorMsg}
+                                       </div>
                                     </div>
                                 </div>
                             </form>
