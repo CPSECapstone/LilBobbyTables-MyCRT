@@ -51,6 +51,12 @@ export class CaptureModal extends React.Component<any, any>  {
          this.setState({errorMsg: 'Please fill in all required fields.'});
          return;
       }
+      const duplicateName = await mycrt.validateCaptureName(this.state.captureName, this.props.envId);
+      if (duplicateName) {
+         this.setState({errorMsg: `This capture name already exists within this environment.
+            Please use a different one.`});
+         return;
+      }
       const capture = {name: this.state.captureName, envId: this.props.envId} as any;
       if (this.state.captureType === "specific") {
          capture.status = ChildProgramStatus.SCHEDULED;

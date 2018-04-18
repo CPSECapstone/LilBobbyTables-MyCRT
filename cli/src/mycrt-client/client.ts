@@ -125,6 +125,21 @@ export class MyCrtClient {
       return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`, {deleteLogs: removeLogs});
    }
 
+   /** Validate environment name when creating an environment */
+   public async validateEnvName(name: string): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.GET, '/environments/', {name});
+   }
+
+   /** Validate capture name when creating a capture */
+   public async validateCaptureName(name: string, envId: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.GET, '/captures/', {envId, name});
+   }
+
+   /** Validate replay name when creating a replay */
+   public async validateReplayName(name: string, captureId: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.GET, '/replays/', {captureId, name});
+   }
+
    /** Validate credentials when creating an environment */
    public async validateCredentials(iamRef: IIamReference): Promise< IDbReference[]| null> {
      return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, iamRef);

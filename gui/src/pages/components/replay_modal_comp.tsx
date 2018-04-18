@@ -18,7 +18,7 @@ export class ReplayModal extends React.Component<any, any>  {
         this.state = { name: "", captureId: "", host: "", parameterGroup: "",
                        user: "", pass: "", instance: "", dbName: "", type: ChildProgramType.REPLAY,
                        env: this.props.env, dbRefs: [], invalidDBPass: false, replayNameValid: 'invalid',
-                       disabled: true, dbCredentialsValid: 'valid'};
+                       disabled: true, errorMsg: ''};
         this.baseState = this.state;
         this.handleDBName = this.handleDBName.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -43,7 +43,7 @@ export class ReplayModal extends React.Component<any, any>  {
     }
 
     public handleInputChange(event: any) {
-      this.setState({[event.target.id]: event.target.value, dbCredentialsValid: 'valid'});
+      this.setState({[event.target.id]: event.target.value, errorMsg: ''});
     }
 
     public handleNameChange(event: any) {
@@ -57,7 +57,7 @@ export class ReplayModal extends React.Component<any, any>  {
       } else {
          this.setState({replayNameValid: 'invalid', disabled: true});
       }
-      this.setState({name: event.target.value});
+      this.setState({name: event.target.value, errorMsg: ''});
     }
 
     public async startReplay() {
@@ -74,14 +74,19 @@ export class ReplayModal extends React.Component<any, any>  {
     }
 
     public async validateDB(event: any) {
+      const duplicateName = await mycrt.validateReplayName(this.state.name, this.state.captureId);
+      if (duplicateName) {
+         this.setState({errorMsg: 'This replay name already exists within this capture. Please use a different one.'});
+         return;
+      }
       const dbRef = {dbName: this.state.dbName, host: this.state.host,
          user: this.state.user, pass: this.state.pass};
       const validate = await mycrt.validateDatabase(dbRef);
       if (validate) {
-         this.setState({dbCredentialsValid: 'valid'});
+         this.setState({errorMsg: ''});
          this.startReplay();
       } else {
-         this.setState({dbCredentialsValid: 'invalid'});
+         this.setState({errorMsg: 'Password was invalid. Please try again.'});
          logger.error("Could not validate db");
       }
     }
@@ -89,7 +94,7 @@ export class ReplayModal extends React.Component<any, any>  {
     public handleCaptureId(event: any) {
       const target = event.currentTarget;
       if (target.value === "default") {
-         this.setState({captureId: '', disabled: true, dbCredentialsValid: 'valid'});
+         this.setState({captureId: '', disabled: true, errorMsg: ''});
          return;
       }
       const index = event.target.selectedIndex;
@@ -105,7 +110,7 @@ export class ReplayModal extends React.Component<any, any>  {
     public handleDBName(event: any) {
       const target = event.currentTarget;
       if (target.value === "default") {
-         this.setState({dbName: '', disabled: true, dbCredentialsValid: 'valid'});
+         this.setState({dbName: '', disabled: true, errorMsg: ''});
          return;
       }
       let disabled = true;
@@ -114,7 +119,7 @@ export class ReplayModal extends React.Component<any, any>  {
       }
       const dbRef = JSON.parse(target.value);
       this.setState({dbName: dbRef.name, instance: dbRef.instance, parameterGroup: dbRef.parameterGroup,
-      host: dbRef.host, user: dbRef.user, pass: "", dbCredentialsValid: 'valid', disabled});
+      host: dbRef.host, user: dbRef.user, pass: "", errorMsg: '', disabled});
     }
 
     public cancelModal(event: any) {
@@ -213,8 +218,8 @@ export class ReplayModal extends React.Component<any, any>  {
                                         </div>
                                         <br></br>
                                         <div className="text-danger">
-                                          {this.state.dbCredentialsValid === 'valid' ? "" :
-                                             `Password was invalid. Please try again.`}</div>
+                                          {this.state.errorMsg}
+                                       </div>
                                     </div>
                                 </div>
                             </form>
