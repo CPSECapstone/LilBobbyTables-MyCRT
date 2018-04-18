@@ -42,6 +42,7 @@ export class IpcNode {
    constructor(id: string, protected logger: winston.LoggerInstance) {
       this.ipc.config.id = id;
       this.ipc.config.retry = 2000;
+      this.ipc.config.maxRetries = 5;
       this.ipc.config.appspace = IpcNodeAppspace;
       this.ipc.config.socketRoot = IpcNodeSocketRoot;
       this.ipc.config.logger = logger.info;
@@ -143,25 +144,40 @@ export class IpcNode {
    }
 
    /** Connect to a socket, make a request, wait for the response, disconnect from the socket, return the result */
-   public async connectSendDisconnect<T, U>(path: string, ipcMessage: string | IIpcMessage<T, U>,
-                                            request: T): Promise<U | null> {
+   public connectSendDisconnect<T, U>(path: string, ipcMessage: string | IIpcMessage<T, U>,
+         request: T): Promise<U | null> {
 
       const requestName = typeof(ipcMessage) === 'string' ? ipcMessage : ipcMessage.name;
       const responseName = `${requestName}${IpcNode.RESPONSE_SUFFIX}`;
       const socketUuid = uuid();
-      const socket = await this.connectTo(socketUuid, path);
-
       return new Promise<U | null>((resolve, reject) => {
-         // wait for the response
-         socket.on(responseName, (data: U) => {
-            this.disconnect(socketUuid);
-            resolve(data);
+         this.connectTo(socketUuid, path).then((socket) => {
+            let done: boolean = false;
+
+            // prepare for the response
+            socket.on(responseName, (data: U) => {
+               this.disconnect(socketUuid);
+               if (!done) {
+                  done = true;
+                  resolve(data);
+               }
+            });
+
+            // timeout after 5 seconds
+            setTimeout(() => {
+               if (!done) {
+                  done = true;
+                  reject("socket response timeout");
+               }
+            }, 5000);
+
+            // make the request
+            socket.emit(requestName, request);
+
+         }).catch((error) => {
+            reject(error);
          });
-
-         // make the request
-         socket.emit(requestName, request);
       });
-
    }
 
    /** wrapper for this.ipc.connectTo */
