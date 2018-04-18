@@ -22,7 +22,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    private ipcNode: IpcNode;
    private capture: ICapture | null = null;
    private expectedEndTime?: Date;
-   private firstLoop: boolean = true;
    private dbRef: IDbReference;
    private targetDb?: any;
    private workload?: IWorkload;
@@ -78,6 +77,15 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
          this.workload = await this.getWorkload();
 
+         this.startTime = new Date();
+         this.replayStartTime = moment(this.startTime);
+         await replayDao.updateReplayStartTime(this.id);
+
+         this.replayEndTime = this.replayStartTime.clone().add(this.workloadEnd!.diff(this.workloadStart));
+         logger.info(`Replay ${this.id} startTime: ${this.replayStartTime.toJSON()}`);
+         logger.info(`Replay ${this.id}   endTime: ${this.replayEndTime.toJSON()}`);
+
+         await replayDao.updateReplayStatus(this.id, ChildProgramStatus.RUNNING);
          this.loop();
 
       } catch (error) {
@@ -88,10 +96,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    protected async loop(): Promise<void> {
 
       logger.info('-----------==[ LOOP ]==-----------');
-      if (this.firstLoop === true) {
-        await this.firstLoopInit();
-      }
-
       let finished = true;
 
       logger.info(`-< Scheduling Commands >---------`);
@@ -166,24 +170,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    protected async dontPanic(): Promise<void> {
       await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED);
-   }
-
-   private async firstLoopInit() {
-     try {
-        this.firstLoop = false;
-        this.startTime = new Date();
-        this.replayStartTime = moment(this.startTime);
-        await replayDao.updateReplayStartTime(this.id);
-
-        this.replayEndTime = this.replayStartTime.clone().add(this.workloadEnd!.diff(this.workloadStart));
-        logger.info(`Replay ${this.id} startTime: ${this.replayStartTime.toJSON()}`);
-        logger.info(`Replay ${this.id}   endTime: ${this.replayEndTime.toJSON()}`);
-
-        await replayDao.updateReplayStatus(this.id, ChildProgramStatus.RUNNING);
-
-     } catch (error) {
-        this.selfDestruct(error);
-     }
    }
 
    private async getWorkload(): Promise<IWorkload> {
