@@ -86,9 +86,15 @@ export default class CaptureRouter extends SelfAwareRouter {
          switch (capture.status) {
 
             case ChildProgramStatus.RUNNING:
-               await this.ipcNode.stopCapture(capture.id!);
-               logger.info(`Capture ${capture.id!} stopped`);
-               response.status(http.OK).end();
+               const stopResult = await this.ipcNode.stopCapture(capture.id!);
+               logger.info(`Got stopResult: ${JSON.stringify(stopResult)}`);
+               if (stopResult === null) {
+                  captureDao.updateCaptureStatus(capture.id!, ChildProgramStatus.FAILED);
+                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to send the capture stop signal");
+               } else {
+                  logger.info(`Capture ${capture.id!} stopped`);
+                  response.status(http.OK).end();
+               }
                return;
 
             case ChildProgramStatus.SCHEDULED:
