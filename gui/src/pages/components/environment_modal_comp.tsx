@@ -24,6 +24,7 @@ export class EnvModal extends React.Component<any, any>  {
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
                       dbName: "", pass: "", bucket: "", dbRefs: [], invalidDBPass: false, modalPage: '1',
+                      envNameDuplicate: false,
                       disabled: true, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid'};
         this.baseState = this.state;
     }
@@ -41,6 +42,15 @@ export class EnvModal extends React.Component<any, any>  {
       $('.progress-bar').css({width: percent + '%'});
       $('.progress-bar').text("Step " + step + " of 4");
       $('#envWizard a[href="#step' + step + '"]').tab('show');
+    }
+
+    public async validateName(event: any) {
+      const result = await mycrt.validateEnvName(this.state.envName);
+      if (result) {
+         this.setState({envNameDuplicate: true});
+      } else {
+         this.changeProgress(2);
+      }
     }
 
     public async validateCredentials(event: any) {
@@ -104,12 +114,12 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public handleNameChange(event: any) {
-      if (/^[a-zA-Z0-9][a-zA-Z0-9 :_\-]{3,24}$/.test(event.target.value)) {
+      if (/^[a-zA-Z0-9][a-zA-Z0-9 :_-]{3,24}$/.test(event.target.value)) {
          this.setState({envNameValid: 'valid', disabled: false});
       } else {
          this.setState({envNameValid: 'invalid', disabled: true});
       }
-      this.setState({[event.target.id]: event.target.value});
+      this.setState({[event.target.id]: event.target.value, envNameDuplicate: false});
   }
 
     public async createEnvironment() {
@@ -129,7 +139,7 @@ export class EnvModal extends React.Component<any, any>  {
     public async handleEvent(event: any) {
       const step = this.state.modalPage;
       if (step === '1' && this.state.envNameValid === 'valid') {
-         this.changeProgress(2);
+         this.validateName(event.target.value);
       } else if (step === '2') {
          this.validateCredentials(event.target.value);
       } else if (step === '3') {
@@ -201,11 +211,14 @@ export class EnvModal extends React.Component<any, any>  {
                                           onInput={this.handleNameChange.bind(this)}/>
                                        <div className={`${this.state.envNameValid}-feedback`}>
                                           {this.state.envNameValid === 'valid' ? "Looks good!" :
-                                             `Please provide a name that is 4-25 characters long
-                                                and contains only letters, numbers or spaces.`}</div>
+                                             `Please provide a name with 4-25 alphanumeric characters.
+                                             The following characters are also allowed: -_:`}</div>
                                         <br/>
+                                       <div className="text-danger">
+                                          {this.state.envNameDuplicate ?
+                                             `An environment already exists with this name.
+                                                Please use a different one.` : ''}</div>
                                     </div>
-                                    <br></br>
                                 </div>
                                 <div className="tab-pane myCRT-tab-pane fade" id="step2">
                                     <div className="card card-body bg-light">

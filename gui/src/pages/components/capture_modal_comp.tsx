@@ -34,10 +34,6 @@ export class CaptureModal extends React.Component<any, any>  {
       this.baseState = this.state;
    }
 
-   public allFieldsFilled() {
-      return this.state.captureName !== ""; // will be extended later
-   }
-
    public calculateDuration() {
       const daysInSecs = this.state.endDuration.days * 86400;
       const hoursInSecs = this.state.endDuration.hours * 3600;
@@ -47,8 +43,10 @@ export class CaptureModal extends React.Component<any, any>  {
    }
 
    public async handleClick(event: any) {
-      if (!this.allFieldsFilled()) {
-         this.setState({errorMsg: 'Please fill in all required fields.'});
+      const duplicateName = await mycrt.validateCaptureName(this.state.captureName, this.props.envId);
+      if (duplicateName) {
+         this.setState({errorMsg: `This capture name already exists within this environment.
+            Please use a different one.`});
          return;
       }
       const capture = {name: this.state.captureName, envId: this.props.envId} as any;
@@ -66,8 +64,12 @@ export class CaptureModal extends React.Component<any, any>  {
       }
       if (this.state.automaticStop) {
          capture.duration = this.calculateDuration();
-         if (capture.duration <= 240) {
-            this.setState({errorMsg: 'Captures can only be run for a duration of 5 minutes or greater.'});
+         if (!capture.duration) {
+            this.setState({errorMsg: 'Capture durations must be a number.'});
+            return;
+         }
+         if (capture.duration <= 240 || capture.duration > 86400) {
+            this.setState({errorMsg: 'Captures can only be run for a duration of 5 minutes to 1 day.'});
             return;
          }
       }
@@ -115,7 +117,7 @@ export class CaptureModal extends React.Component<any, any>  {
     }
 
     public handleNameChange(event: any) {
-      if (/^[a-zA-Z0-9 :_\-]{4,25}$/.test(event.target.value)) {
+      if (/^[a-zA-Z0-9 :_-]{4,25}$/.test(event.target.value)) {
          this.setState({captureNameValid: 'valid'});
       } else {
          this.setState({captureNameValid: 'invalid'});
@@ -151,10 +153,8 @@ export class CaptureModal extends React.Component<any, any>  {
                                 <span aria-hidden="true" style={{color: "white"}}>&times;</span>
                             </button>
                         </div>
-                        <WarningAlert id="captureWarning" msg="Please fill in all the provided fields."
-                                      style = {{display: "none"}}/>
                         <div className="modal-body">
-                            <form>
+                            <form onSubmit={(e) => e.preventDefault()}>
                                 <div className="form-group">
                                     <div className="card card-body bg-light">
                                         <label><b>Capture Name</b></label>
@@ -166,8 +166,8 @@ export class CaptureModal extends React.Component<any, any>  {
                                         <small id="captureName" className="form-text text-muted"></small>
                                         <div className={`${this.state.captureNameValid}-feedback`}>
                                           {this.state.captureNameValid === 'valid' ? "Looks good!" :
-                                             `Please provide a name that is 4-25 characters long
-                                             and contains only letters, numbers or spaces.`}</div>
+                                             `Please provide a name with 4-25 alphanumeric characters.
+                                             The following characters are also allowed: -_:`}</div>
                                         <br/>
                                         <StartDateTime updateTime={this.handleTimeChange}
                                           ref={(instance) => { this.startDateChild = instance; }}
