@@ -35,7 +35,7 @@ export default class ValidateRouter extends SelfAwareRouter {
             data.DBInstances.forEach((dbInstance: RDS.DBInstance) => {
                instances.push({
                   instance: dbInstance.DBInstanceIdentifier,
-                  name: dbInstance.DBName,
+                  name: dbInstance.DBName || dbInstance.DBInstanceIdentifier,
                   user: dbInstance.MasterUsername,
                   host: dbInstance.Endpoint ? dbInstance.Endpoint.Address : "",
                   parameterGroup: dbInstance.DBParameterGroups ?
