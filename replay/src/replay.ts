@@ -21,7 +21,6 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
    private ipcNode: IpcNode;
    private capture: ICapture | null = null;
-   private expectedEndTime?: Date;
    private dbRef: IDbReference;
    private targetDb?: any;
    private workload?: IWorkload;
@@ -215,7 +214,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          let queryStart: Moment;
 
          if (this.config.mock) {
-            queryStart = moment(this.workload!.commands[index].event_time);
+            queryStart = moment(this.workload!.commands[index].event_time).add(7, "hours");
          } else {
             queryStart = moment(this.workload!.commands[index].event_time);
          }
