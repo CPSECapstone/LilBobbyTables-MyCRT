@@ -162,11 +162,6 @@ export default class CaptureRouter extends SelfAwareRouter {
             captureTemplate.scheduledStart = inputTime;
          }
 
-         // if duration is set, set this value
-         // if (request.body.scheduledEnd) {
-         //    captureTemplate.scheduledEnd = endTime;
-         // }
-
          // assign capture, insert into db
          captureTemplate = await captureDao.makeCapture(captureTemplate);
 
