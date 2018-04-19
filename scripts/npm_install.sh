@@ -45,6 +45,3 @@ install_module $SERVICE_DIR build-service
 cd $SCRIPTS_DIR
 echo "Linking Modules"
 bash link_modules.sh
-
-echo "Testing"
-npm run test
