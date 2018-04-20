@@ -5,6 +5,8 @@ import * as $ from 'jquery';
 
 import { ChildProgramStatus } from '@lbt-mycrt/common/dist/data';
 
+import { DeleteModal } from './delete_modal_comp';
+
 export class ReplayInfo extends React.Component<any, any>  {
    public constructor(props: any) {
         super(props);
@@ -31,7 +33,14 @@ export class ReplayInfo extends React.Component<any, any>  {
                   style={{marginLeft: "20px", marginBottom: "15px"}} onClick={this.compareReplay}>
                   <i className="fa fa-line-chart"></i>  Compare
                </button>
+               <a role="button" className="btn btn-danger deleteBtn" data-toggle="modal" href="#"
+                     data-backdrop="static" data-keyboard={false}
+                     data-target="#deleteReplayModal">
+                     <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
+               </a>
             </div>
+            <DeleteModal id="deleteReplayModal" deleteId={this.props.replay.id}
+                               name={this.props.replay.name} delete={this.props.deleteReplay} type="Replay"/>
             <div className="myCRT-overflow-col"
                style={{padding: 0, paddingTop: "10px", paddingLeft: "20px", width: "1050px"}}>
                <div className="row">

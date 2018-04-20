@@ -117,6 +117,11 @@ class CaptureApp extends React.Component<any, any> {
       window.location.assign(`./dashboard?id=${this.state.envId}`);
    }
 
+   public async deleteReplay(id: number, deleteLogs: boolean) {
+      // await mycrt.deleteCapture(id, deleteLogs);
+      window.location.assign(`./capture?id=${this.state.captureId}&envId=${this.props.envId}&view=replays`);
+   }
+
    public async setWorkloadData(captureMetrics: boolean, replayId?: number) {
       const metrics = this.state.allGraphs;
       for (const graphType in metrics) {
