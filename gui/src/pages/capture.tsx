@@ -32,6 +32,7 @@ class CaptureApp extends React.Component<any, any> {
       this.setReplayMetrics = this.setReplayMetrics.bind(this);
       this.removeWorkloadData = this.removeWorkloadData.bind(this);
       this.deleteCapture = this.deleteCapture.bind(this);
+      this.deleteReplay = this.deleteReplay.bind(this);
 
       let id: any = null;
       const match = window.location.search.match(/.*\?.*id=(\d+)/);
@@ -118,8 +119,8 @@ class CaptureApp extends React.Component<any, any> {
    }
 
    public async deleteReplay(id: number, deleteLogs: boolean) {
-      // await mycrt.deleteCapture(id, deleteLogs);
-      window.location.assign(`./capture?id=${this.state.captureId}&envId=${this.props.envId}&view=replays`);
+      await mycrt.deleteReplay(id);
+      window.location.assign(`./capture?id=${this.state.captureId}&envId=${this.state.envId}&view=replays`);
    }
 
    public async setWorkloadData(captureMetrics: boolean, replayId?: number) {
@@ -275,7 +276,7 @@ class CaptureApp extends React.Component<any, any> {
                   <div className="tab-pane" id="replays" role="tabpanel">
                      {this.state.replayObj ?
                         <ReplayInfo replay={this.state.replayObj} bucket={this.state.env.bucket}
-                        envId={this.state.envId} delete={this.deleteReplay}/> : null
+                        envId={this.state.envId} captureId={this.state.captureId} delete={this.deleteReplay}/> : null
                      }<br/>
                      <div className="page-header"><h2>Replays</h2><br/></div>
                      <div className="myCRT-overflow-col">

@@ -11,6 +11,7 @@ export class ReplayInfo extends React.Component<any, any>  {
    public constructor(props: any) {
         super(props);
         this.compareReplay = this.compareReplay.bind(this);
+        this.deleteReplay = this.deleteReplay.bind(this);
         this.formatTimeStamp = this.formatTimeStamp.bind(this);
    }
 
@@ -19,8 +20,12 @@ export class ReplayInfo extends React.Component<any, any>  {
       return time.toLocaleString();
    }
 
+   public deleteReplay(id: number) {
+      this.props.delete(id);
+   }
+
    public compareReplay() {
-      window.location.assign(`/capture?id=${this.props.replay.captureId}&`
+      window.location.assign(`/capture?id=${this.props.captureId}&`
          + `replayId=${this.props.replay.id}envId=${this.props.envId}&view=metrics`);
    }
 
@@ -34,13 +39,14 @@ export class ReplayInfo extends React.Component<any, any>  {
                   <i className="fa fa-line-chart"></i>  Compare
                </button>
                <a role="button" className="btn btn-danger deleteBtn" data-toggle="modal" href="#"
-                     data-backdrop="static" data-keyboard={false}
-                     data-target="#deleteReplayModal">
-                     <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
+                  style={{marginBottom: "15px"}}
+                  data-backdrop="static" data-keyboard={false}
+                  data-target="#deleteReplayModal">
+                  <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                </a>
             </div>
             <DeleteModal id="deleteReplayModal" deleteId={this.props.replay.id}
-                               name={this.props.replay.name} delete={this.props.deleteReplay} type="Replay"/>
+                               name={this.props.replay.name} delete={this.deleteReplay} type="Replay"/>
             <div className="myCRT-overflow-col"
                style={{padding: 0, paddingTop: "10px", paddingLeft: "20px", width: "1050px"}}>
                <div className="row">

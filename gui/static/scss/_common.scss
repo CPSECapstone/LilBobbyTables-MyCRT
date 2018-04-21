@@ -33,6 +33,7 @@ $secondary-success: #24e3be;
 
 .myCRT-overflow-col {
     overflow-y: scroll;
+    overflow-x: hidden;
     max-height: 800px;
     background-color: #ecf0f1;
     border-radius: 20px;
