@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import * as bodyParser from 'body-parser';
+import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as fs from 'fs';
 import * as helmet from 'helmet';
@@ -13,6 +14,7 @@ import * as path from 'path';
 import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import { Pages, StaticFileDirs, Template } from '@lbt-mycrt/gui';
 
+import * as session from './auth/session';
 import { rescheduleCaptures } from './management/capture';
 import { markAbandonedReplaysAsFailed } from './management/replay';
 import ApiRouter from './routes/api';
@@ -169,11 +171,15 @@ class MyCrtService {
          }
       });
 
-      // parse bodies into json
-      this.express!.use(bodyParser.json());
-
       // prevent click jacking
       this.express!.use(helmet());
+
+      // parsing
+      this.express!.use(cookieParser());
+      this.express!.use(bodyParser.json());
+
+      // user session management
+      this.express!.use(session.Session.sessionMiddleware);
    }
 
    private mountApiRoutes(): void {

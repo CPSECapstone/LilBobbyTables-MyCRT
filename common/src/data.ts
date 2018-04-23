@@ -1,3 +1,15 @@
+export interface IUser {
+   id?: number;
+   isAdmin?: boolean;
+}
+
+export interface IEnvironmentUser {
+   id?: number;
+   environmentId?: number;
+   userId?: number;
+   isAdmin?: boolean;
+}
+
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
 
 /** The status of a capture/replay */
@@ -15,6 +27,7 @@ export enum ChildProgramStatus {
 export interface IChildProgram {
    type?: ChildProgramType;
    id?: number;
+   owner?: number;
    envId?: number;
    name?: string;
    start?: Date;
@@ -50,6 +63,7 @@ export interface IReplayFull extends IChildProgram {
 export interface IEnvironment {
    id?: number;
    name?: string;
+   ownerId?: number;
    iamId?: number;
    dbId?: number;
    s3Id?: number;
@@ -58,6 +72,7 @@ export interface IEnvironment {
 export interface IEnvironmentFull {
    id?: number;
    envName: string;
+   ownerId?: number;
    accessKey: string;
    secretKey: string;
    region: string;

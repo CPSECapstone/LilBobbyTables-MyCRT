@@ -4,9 +4,6 @@
 
    "ssl": false,
 
-   "sessionTokenName": "MyCRTAuthToken",
-   "sessionDuration": 7200000,
-
    "captures": {
       "mock": true,
       "interval": 10000,
@@ -21,14 +18,6 @@
       "intervalOverlap": 1000,
       "metricsDelay": 1000,
       "filePrepDelay": 1000
-   },
-
-   "aws": {
-      "cognito": {
-         "appName": "webapp",
-         "poolId": "us-east-2_ygrgxbI8i",
-         "clientId": "4578kqen3bfoca4ps2b1n7csl3"
-      }
    }
 
 }

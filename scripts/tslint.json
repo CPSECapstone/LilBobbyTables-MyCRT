@@ -15,7 +15,8 @@
        "max-classes-per-file": [ true, 3, "exclude-class-expressions" ],
        "radix": false,
        "forin": false,
-       "interface-name": false
+       "interface-name": false,
+       "no-namespace": false
     },
     "rulesDirectory": [],
     "typedef": [

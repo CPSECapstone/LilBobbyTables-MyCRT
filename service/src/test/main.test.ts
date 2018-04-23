@@ -6,7 +6,7 @@ import 'mocha';
 
 import { utils } from '@lbt-mycrt/common';
 
-import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao, replayDao, userDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
 
 import { indexTests } from './index.test';
@@ -15,6 +15,7 @@ import { dbReferenceTests } from './routes/db-reference.test';
 import { environmentTests } from './routes/environment.test';
 import { MyCrtServiceTestClient } from './routes/mycrt';
 import { replayTests } from './routes/replay.test';
+import { userTests } from './routes/users.test';
 import { validateTests } from './routes/validate.test';
 
 const expect = chai.expect;
@@ -50,6 +51,7 @@ describe("MyCrtService", function() {
       await replayDao.nuke();
       await captureDao.nuke();
       await environmentDao.nuke();
+      await userDao.nuke();
       await utils.sleep(1500);
    });
 
@@ -65,5 +67,6 @@ describe("MyCrtService", function() {
    describe("replay router", replayTests(client));
    describe("validate router", validateTests(client));
    describe("dbReference router", dbReferenceTests(client));
+   describe("user router", userTests(client));
 
 });
