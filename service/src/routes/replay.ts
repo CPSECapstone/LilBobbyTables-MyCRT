@@ -1,13 +1,13 @@
 import * as http from 'http-status-codes';
 
 import { ChildProgramStatus, ChildProgramType, IDbReference, IReplay,
-      Logging, MetricsStorage, MetricType, ReplayDao } from '@lbt-mycrt/common';
-import { launch, ReplayConfig } from '@lbt-mycrt/replay';
-
+      Logging, MetricsStorage, MetricType, ReplayDao, ServerIpcNode } from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
+import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
+import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
@@ -19,6 +19,12 @@ import SelfAwareRouter from './self-aware-router';
 export default class ReplayRouter extends SelfAwareRouter {
    public name: string = 'replay';
    public urlPrefix: string = '/replays';
+
+   constructor(ipcNode: ServerIpcNode) {
+      super(ipcNode, [
+         session.loggedIn,
+      ]);
+   }
 
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);

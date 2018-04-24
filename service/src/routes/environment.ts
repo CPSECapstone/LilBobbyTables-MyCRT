@@ -2,7 +2,7 @@ import { S3 } from 'aws-sdk';
 
 import * as http from 'http-status-codes';
 
-import { Logging } from '@lbt-mycrt/common';
+import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import * as data from '@lbt-mycrt/common/dist/data';
 
 import * as session from '../auth/session';
@@ -15,6 +15,12 @@ import SelfAwareRouter from './self-aware-router';
 export default class EnvironmentRouter extends SelfAwareRouter {
    public name: string = 'environment';
    public urlPrefix: string = '/environments';
+
+   constructor(ipcNode: ServerIpcNode) {
+      super(ipcNode, [
+         session.loggedIn,
+      ]);
+   }
 
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
@@ -45,7 +51,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.post('/', session.loggedIn, check.validBody(schema.environmentBody),
+      this.router.post('/', check.validBody(schema.environmentBody),
             this.handleHttpErrors(async (request, response) => {
 
          const envWithSameName = await environmentDao.getEnvironmentByName(request.body.envName);

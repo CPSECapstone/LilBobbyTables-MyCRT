@@ -63,13 +63,16 @@ export class UserRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.delete('/:id(\\d+)', this.handleHttpErrors(async (request, response) => {
-         const user = userDao.deleteUser(request.params.id);
-         if (user === null) {
-            throw new HttpError(http.NOT_FOUND);
-         }
-         response.json(user);
-      }));
+      this.router.delete('/:id(\\d+)',
+         session.loggedIn,
+         this.handleHttpErrors(async (request, response) => {
+            const user = userDao.deleteUser(request.params.id);
+            if (user === null) {
+               throw new HttpError(http.NOT_FOUND);
+            }
+            response.json(user);
+         },
+      ));
 
    }
 

@@ -3,8 +3,9 @@ import * as mysql from 'mysql';
 
 import http = require('http-status-codes');
 
-import { Logging } from '@lbt-mycrt/common/dist/main';
+import { Logging, ServerIpcNode } from '@lbt-mycrt/common/dist/main';
 
+import * as session from '../auth/session';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/validate-schema';
@@ -16,6 +17,12 @@ export default class ValidateRouter extends SelfAwareRouter {
    public urlPrefix: string = '/validate';
 
    private logger = Logging.defaultLogger(__dirname);
+
+   constructor(ipcNode: ServerIpcNode) {
+      super(ipcNode, [
+         session.loggedIn,
+      ]);
+   }
 
    protected mountRoutes(): void {
 
