@@ -70,8 +70,6 @@ export function clearSession(request: Request, response: Response) {
       sessions[token] = undefined;
    }
    request.session = undefined;
-   // request.clearCookie(sessionTokenName);
-   // response.clearCookie(sessionTokenName);
 }
 
 export class Session {
@@ -105,10 +103,16 @@ export class Session {
       const resource = request.url;
       if (!request.session) {
          logger.warn(`Session required for resource ${resource} (admin needed? ${admin})`);
-         response.status(http.FORBIDDEN).end();
+         response.status(http.FORBIDDEN).json({
+            code: http.FORBIDDEN,
+            message: 'Not logged in',
+         });
       } else if (admin && !request.session.user.isAdmin) {
          logger.warn(`Admin session required for resource ${resource}`);
-         response.status(http.FORBIDDEN).end();
+         response.status(http.FORBIDDEN).json({
+            code: http.FORBIDDEN,
+            message: 'admin required',
+         });
       } else {
          logger.info(`Granted permission to user ${request.session.user.id} `
             + `for resource ${resource}`);

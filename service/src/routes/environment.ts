@@ -5,6 +5,7 @@ import * as http from 'http-status-codes';
 import { Logging } from '@lbt-mycrt/common';
 import * as data from '@lbt-mycrt/common/dist/data';
 
+import * as session from '../auth/session';
 import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -44,7 +45,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.post('/', check.validBody(schema.environmentBody),
+      this.router.post('/', session.loggedIn, check.validBody(schema.environmentBody),
             this.handleHttpErrors(async (request, response) => {
 
          const envWithSameName = await environmentDao.getEnvironmentByName(request.body.envName);
@@ -78,6 +79,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          const environment: data.IEnvironment = {
             name: request.body.envName,
+            ownerId: request.session!.user.id,
             iamId: iamReference.id!,
             s3Id: s3Reference.id!,
             dbId: dbReference.id!,

@@ -3,6 +3,8 @@ import chaiHttp = require('chai-http');
 import { Server } from 'http';
 import * as http from 'http-status-codes';
 
+import { IUser } from '@lbt-mycrt/common';
+
 import MyCrtService from '../../main';
 
 export class MyCrtServiceTestClient {
@@ -26,6 +28,10 @@ export class MyCrtServiceTestClient {
       return `[Request: ${method} to ${url}] -> [Response: <${response.status}> | ${body}]`;
    }
 
+   public user: IUser | undefined = undefined;
+
+   private agent: ChaiHttp.Agent | null = null;
+
    constructor(public mycrt: MyCrtService) {}
 
    public async get(expectedStatus: number, url: string, params?: any): Promise<ChaiHttp.Response> {
@@ -47,6 +53,10 @@ export class MyCrtServiceTestClient {
    private async doRequest(expectedStatus: number, method: string, url: string, params?: any,
          body?: any): Promise<ChaiHttp.Response> {
 
+      if (this.agent === null) {
+         this.agent = request.agent(this.mycrt.getServer());
+      }
+
       method = method.toUpperCase();
       let response: ChaiHttp.Response;
 
@@ -54,16 +64,16 @@ export class MyCrtServiceTestClient {
          const server = this.mycrt.getServer();
          switch (method) {
             case 'GET':
-               response = await request(server).get(url).query(params);
+               response = await this.agent.get(url).query(params);
                break;
             case 'POST':
-               response = await request(server).post(url).send(body);
+               response = await this.agent.post(url).send(body);
                break;
             case 'PUT':
-               response = await request(server).put(url).send(body);
+               response = await this.agent.put(url).send(body);
                break;
             case 'DELETE':
-               response = await request(server).del(url);
+               response = await this.agent.del(url);
                break;
             default:
                throw Error(`Unsupported method: ${method} in MyCrtServiceTestClient`);

@@ -15,7 +15,6 @@ import { dbReferenceTests } from './routes/db-reference.test';
 import { environmentTests } from './routes/environment.test';
 import { MyCrtServiceTestClient } from './routes/mycrt';
 import { replayTests } from './routes/replay.test';
-import { userTests } from './routes/users.test';
 import { validateTests } from './routes/validate.test';
 
 const expect = chai.expect;
@@ -24,6 +23,7 @@ chai.use(chaiHttp);
 export const mycrt: MyCrtService = new MyCrtService();
 
 export const launchMyCrtService = async function() {
+   // launch
    expect(await mycrt.launch().catch((reason) => {
       chai.assert.fail(`mycrt launch failed: ${reason}`);
    })).to.be.true;
@@ -39,9 +39,28 @@ export const closeMyCrtService = async function() {
    expect(mycrt.isLaunched()).to.be.false;
 };
 
+export const signupAndLogin = (client: MyCrtServiceTestClient) => async function() {
+
+   await userDao.nuke();
+   await utils.sleep(1500);
+
+   const signupResponse = await client.post(http.OK, '/api/users/signup', {});
+   expect(signupResponse.body.id).to.equal(1);
+   expect(signupResponse.body.isAdmin).to.be.false;
+
+   const loginResponse = await client.post(http.OK, '/api/users/login', signupResponse.body);
+   expect(loginResponse.body.id).to.equal(signupResponse.body.id);
+
+   client.user = loginResponse.body;
+
+};
+
 describe("MyCrtService", function() {
 
+   const client = new MyCrtServiceTestClient(mycrt);
+
    before(launchMyCrtService);
+   before(signupAndLogin(client));
    after(closeMyCrtService);
 
    // TODO: change the service tests to work on a different DB
@@ -51,7 +70,6 @@ describe("MyCrtService", function() {
       await replayDao.nuke();
       await captureDao.nuke();
       await environmentDao.nuke();
-      await userDao.nuke();
       await utils.sleep(1500);
    });
 
@@ -60,13 +78,11 @@ describe("MyCrtService", function() {
       expect(response).to.have.status(http.OK);
    });
 
-   const client = new MyCrtServiceTestClient(mycrt);
    describe("site index", indexTests(client));
    describe("environment router", environmentTests(client));
    describe("capture router", captureTests(client));
    describe("replay router", replayTests(client));
    describe("validate router", validateTests(client));
    describe("dbReference router", dbReferenceTests(client));
-   describe("user router", userTests(client));
 
 });

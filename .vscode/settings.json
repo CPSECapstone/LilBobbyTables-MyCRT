@@ -9,4 +9,7 @@
     "editor.detectIndentation": false,
     "editor.trimAutoWhitespace": true,
     "git.enabled": false,
+
+    "mocha.files.glob": "**/*.test.js",
+
 }

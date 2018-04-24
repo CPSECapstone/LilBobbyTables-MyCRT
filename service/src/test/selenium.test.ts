@@ -15,6 +15,7 @@ import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 import { ChildProgramStatus, CPUMetric, IChildProgram } from '../../../common/dist/main';
 import { captureDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
+import { signupAndLogin } from './main.test';
 import { guiCaptureBody, newEnvBody } from './routes/data';
 import { MyCrtServiceTestClient } from './routes/mycrt';
 
@@ -61,6 +62,8 @@ export const launchMyCrtService = async () => {
    expect(mycrt.getServer()).to.be.instanceOf(Server);
    expect(mycrt.isLaunched()).to.be.true;
 
+   await signupAndLogin(mycrtTest)();
+
    // create environment
    await mycrtTest.post(http.OK, '/api/environments/', newEnvBody);
 
@@ -95,6 +98,7 @@ describe('gui', function() {
    this.timeout(10000);
 
    before(launchMyCrtService);
+   // before(signupAndLogin(mycrtTest));
    after(closeMyCrtService);
 
    step('should add graph to metrics page', async function() {
