@@ -154,12 +154,12 @@ export default class CaptureRouter extends SelfAwareRouter {
                status: initialStatus === ChildProgramStatus.SCHEDULED ?
                   ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
                name: request.body.name,
+               scheduledEnd: endTime,
          };
 
-         // if scheduled, add necessary params
+         // if status is scheduled, start at a scheduled time
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             captureTemplate.scheduledStart = inputTime;
-            captureTemplate.scheduledEnd = endTime;
          }
 
          // assign capture, insert into db
