@@ -195,6 +195,7 @@ class MyCrtService {
       logger.info(`Service static files being served from ${staticFilesDir}`);
       this.express!.use('/', express.static(staticFilesDir));
 
+      // TODO: lock down CORS
       logger.info(`GUI static files and bundles being served from ${StaticFileDirs.js}`);
       this.express!.use('/', express.static(StaticFileDirs.js));
 
@@ -204,17 +205,20 @@ class MyCrtService {
 
       this.express!.get(/^\/$/, indexRedirect.indexRouteHandler);
 
-      const routePage = (urlPattern: RegExp, page: Template) => {
-         this.express!.get(urlPattern, (request, response) => {
-            response.send(page.getText()).end();
-         });
+      const routePageWithLogin = (urlPattern: RegExp, page: Template) => {
+         this.express!.get(urlPattern,
+            session.loggedIn,
+            (request, response) => {
+               response.send(page.getText()).end();
+            },
+         );
       };
-      routePage(/^\/environments$/, Pages.environments);
-      routePage(/^\/dashboard$/, Pages.dashboard);
-      routePage(/^\/captures$/, Pages.captures);
-      routePage(/^\/capture$/, Pages.capture);
-      routePage(/^\/replay$/, Pages.replay);
-      routePage(/^\/metrics$/, Pages.metrics);
+      routePageWithLogin(/^\/environments$/, Pages.environments);
+      routePageWithLogin(/^\/dashboard$/, Pages.dashboard);
+      routePageWithLogin(/^\/captures$/, Pages.captures);
+      routePageWithLogin(/^\/capture$/, Pages.capture);
+      routePageWithLogin(/^\/replay$/, Pages.replay);
+      routePageWithLogin(/^\/metrics$/, Pages.metrics);
 
    }
 }
