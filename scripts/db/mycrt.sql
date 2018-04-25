@@ -4,7 +4,11 @@ USE LBTMyCRT;
 
 CREATE TABLE User (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-   isAdmin TINYINT(1) DEFAULT 0
+   email VARCHAR(256) NOT NULL,
+   passwordHash VARCHAR(256) NOT NULL,
+   isAdmin TINYINT(1) DEFAULT 0,
+   CONSTRAINT userEmailUnique
+      UNIQUE (email)
 );
 
 CREATE TABLE Environment (

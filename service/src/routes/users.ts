@@ -2,6 +2,7 @@ import * as http from 'http-status-codes';
 
 import { IUser, Logging } from '@lbt-mycrt/common';
 
+import * as auth from '../auth';
 import * as session from '../auth/session';
 import { userDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
@@ -36,12 +37,13 @@ export class UserRouter extends SelfAwareRouter {
       this.router.post('/login',
          check.validBody(schema.loginBody),
          this.handleHttpErrors(async (request, response) => {
-
-            const user = await this.getUser(request.body.id);
-
+            const user = await this.getUser(request.body.email, true);
+            const pass: boolean = await auth.compareHash(request.body.password, user.passwordHash!);
+            if (!pass) {
+               throw new HttpError(http.FORBIDDEN, "Invalid Password");
+            }
             const sessionInfo = session.createActiveSession(user, response);
             response.json(user);
-
          },
       ));
 
@@ -53,15 +55,35 @@ export class UserRouter extends SelfAwareRouter {
          }),
       );
 
-      this.router.post('/signup', this.handleHttpErrors(async (request, response) => {
+      this.router.post('/signup',
+         check.validBody(schema.signupBody),
+         this.handleHttpErrors(async (request, response) => {
 
-         let user: IUser | null = {
-            isAdmin: false,
-         };
-         user = await userDao.makeUser(user);
-         response.json(user);
+            if (!request.body.agreeToTerms) {
+               throw new HttpError(http.BAD_REQUEST, "You must accept the terms of use.");
+            }
 
-      }));
+            const passwordHash: string = await auth.encrypt(request.body.password);
+
+            let user: IUser | null = {
+               isAdmin: false,
+               email: request.body.email,
+               passwordHash,
+            };
+
+            try {
+               user = await userDao.makeUser(user);
+            } catch (e) {
+               logger.error(JSON.stringify(e));
+               if (e.code && e.code === 'ER_DUP_ENTRY') {
+                  throw new HttpError(http.BAD_REQUEST,
+                     "An account with that email address already exists");
+               }
+            }
+            response.json(user);
+
+         },
+      ));
 
       this.router.delete('/:id(\\d+)',
          session.loggedIn,
@@ -76,12 +98,12 @@ export class UserRouter extends SelfAwareRouter {
 
    }
 
-   private async getUser(id: number): Promise<IUser> {
+   private async getUser(id: number | string, includePasswordHash?: boolean): Promise<IUser> {
       logger.info(`Getting user ${id}`);
-      const user = await userDao.getUser(id);
+      const user = await userDao.getUser(id, includePasswordHash);
       if (user === null) {
          logger.warn(`User not found`);
-         throw new HttpError(http.FORBIDDEN);
+         throw new HttpError(http.FORBIDDEN, "User not found");
       }
       return user;
    }

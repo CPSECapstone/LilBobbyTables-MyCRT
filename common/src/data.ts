@@ -1,5 +1,7 @@
 export interface IUser {
    id?: number;
+   email?: string;
+   passwordHash?: string;
    isAdmin?: boolean;
 }
 

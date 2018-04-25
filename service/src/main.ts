@@ -85,7 +85,6 @@ class MyCrtService {
                logger.error(error);
             }
             logger.info(`server is listening on ${this.port}`);
-            logger.info("-----------------------------------------------------------");
             resolve(true);
          };
 
@@ -205,20 +204,33 @@ class MyCrtService {
 
       this.express!.get(/^\/$/, indexRedirect.indexRouteHandler);
 
-      const routePageWithLogin = (urlPattern: RegExp, page: Template) => {
-         this.express!.get(urlPattern,
-            session.loggedIn,
-            (request, response) => {
-               response.send(page.getText()).end();
-            },
-         );
+      const routePage = (urlPattern: RegExp, page: Template,
+            login?: express.RequestHandler) => {
+         if (!login) {
+            this.express!.get(urlPattern,
+               (request, response) => {
+                  response.send(page.getText()).end();
+               },
+            );
+         } else {
+            this.express!.get(urlPattern,
+               login!,
+               (request: express.Request, response: express.Response) => {
+                  response.send(page.getText()).end();
+               },
+            );
+         }
       };
-      routePageWithLogin(/^\/environments$/, Pages.environments);
-      routePageWithLogin(/^\/dashboard$/, Pages.dashboard);
-      routePageWithLogin(/^\/captures$/, Pages.captures);
-      routePageWithLogin(/^\/capture$/, Pages.capture);
-      routePageWithLogin(/^\/replay$/, Pages.replay);
-      routePageWithLogin(/^\/metrics$/, Pages.metrics);
+
+      routePage(/^\/signup$/, Pages.signup);
+      routePage(/^\/login$/, Pages.login);
+
+      routePage(/^\/environments$/, Pages.environments, session.loggedIn);
+      routePage(/^\/dashboard$/, Pages.dashboard, session.loggedIn);
+      routePage(/^\/captures$/, Pages.captures, session.loggedIn);
+      routePage(/^\/capture$/, Pages.capture, session.loggedIn);
+      routePage(/^\/replay$/, Pages.replay, session.loggedIn);
+      routePage(/^\/metrics$/, Pages.metrics, session.loggedIn);
 
    }
 }

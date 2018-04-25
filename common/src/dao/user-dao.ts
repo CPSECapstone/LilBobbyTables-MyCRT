@@ -16,25 +16,24 @@ export class UserDao extends Dao {
       }
    }
 
-   public async getUser(id: number): Promise<IUser | null> {
-      const result = await this.query<any[]>('SELECT * FROM User WHERE id = ?', [id]);
-      if (result.length === 0) {
+   public async getUser(id: string | number, includePasswordHash?: boolean): Promise<IUser | null> {
+      const fields: string = includePasswordHash ? '*' : 'id, email, isAdmin';
+      const constriant: string = typeof id === 'string' ?  'email = ?' : 'id = ?';
+      const result = await this.query<any[]>(`SELECT ${fields} FROM User WHERE ${constriant}`, [id]);
+      if (!result || result.length === 0) {
          return null;
       }
       return this.rowToIUser(result[0]);
    }
 
-   public async makeUser(user: IUser): Promise<IUser | null> {
-      try {
-         const result = await this.query<any>('INSERT INTO User SET ?', {
-            id: user.id,
-            isAdmin: user.isAdmin ? 1 : 0,
-         });
-         return await this.getUser(result.insertId);
-      } catch (e) {
-         logger.error(e);
-         return null;
-      }
+   public async makeUser(user: IUser): Promise<IUser> {
+      const result = await this.query<any>('INSERT INTO User SET ?', {
+         id: user.id,
+         isAdmin: user.isAdmin ? 1 : 0,
+         email: user.email,
+         passwordHash: user.passwordHash,
+      });
+      return (await this.getUser(result.insertId))!;
    }
 
    public async deleteUser(id: number): Promise<IUser | null> {
@@ -51,13 +50,6 @@ export class UserDao extends Dao {
    }
 
    private rowToIUser(row: any): IUser {
-      return {
-         ...row,
-         isAdmin: !!row.isAdmin,
-      };
-   }
-
-   private rowToIEnvironmentUser(row: any): IEnvironmentUser {
       return {
          ...row,
          isAdmin: !!row.isAdmin,

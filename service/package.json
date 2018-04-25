@@ -19,6 +19,7 @@
     "@lbt-mycrt/replay": "file:../replay",
     "async": "^2.6.0",
     "aws-sdk": "^2.188.0",
+    "bcrypt": "^2.0.1",
     "body-parser": "^1.18.2",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.2",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@types/async": "^2.0.45",
+    "@types/bcrypt": "^1.0.0",
     "@types/body-parser": "^1.16.8",
     "@types/chai": "^4.0.5",
     "@types/chai-http": "^3.0.3",
