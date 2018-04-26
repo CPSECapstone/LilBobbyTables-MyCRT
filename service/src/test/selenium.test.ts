@@ -14,6 +14,7 @@ import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { ChildProgramStatus, CPUMetric, IChildProgram } from '../../../common/dist/main';
+import * as session from '../auth/session';
 import { captureDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
 import { signupAndLogin } from './main.test';
@@ -79,9 +80,17 @@ export const launchMyCrtService = async () => {
    // stop capture manually
    await captureDao.updateCaptureStatus(1, ChildProgramStatus.DONE);
 
+   // transfer the login session from the mycrt client to the webdriver
+   const sessionToken = Object.keys(session.sessions)[1];
+   await driver.navigate().to('http://localhost:3000/login');
+   await driver.manage().addCookie({
+      name: "MyCRTAuthToken",
+      value: sessionToken,
+   });
+
    // ask the browser to open a page
-   driver.navigate().to('http://localhost:3000/capture?id=1&envId=1&view=metrics');
-   await sleep(4000);
+   await driver.navigate().to('http://localhost:3000/capture?id=1&envId=1&view=metrics');
+   // await sleep(4000);
 };
 
 // close mycrt service and chromedriver

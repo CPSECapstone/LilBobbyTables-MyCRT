@@ -21,7 +21,7 @@ const sessionDuration: number = ((): number => {
 
 /** Store sessions here */
 
-const sessions: {[key: string]: Session | undefined} = {};
+export const sessions: {[key: string]: Session | undefined} = {};
 
 /** Manage a user's session */
 
