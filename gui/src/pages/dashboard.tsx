@@ -12,6 +12,7 @@ import { BrowserLogger as logger } from '../logging';
 import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
 import { DeleteModal } from './components/delete_modal_comp';
+import { ErrorBoundary } from './components/error_boundary_comp';
 import { Pagination } from './components/pagination_comp';
 import { ReplayModal } from './components/replay_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
@@ -29,7 +30,7 @@ class DashboardApp extends React.Component<any, any> {
         if (match) {
             id = match[1];
         }
-        this.state = { envId: id, env: null, captures: [], replays: [] };
+        this.state = { envId: id, env: null, captures: [], replays: [], error: "" };
     }
 
    public async setCaptures() {
@@ -237,4 +238,4 @@ class DashboardApp extends React.Component<any, any> {
    }
 }
 
-ReactDom.render(<DashboardApp />, document.getElementById('dashboard-app'));
+ReactDom.render(<ErrorBoundary><DashboardApp /></ErrorBoundary>, document.getElementById('dashboard-app'));

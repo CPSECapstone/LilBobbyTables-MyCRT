@@ -59,7 +59,7 @@ export class ReplayModal extends React.Component<any, any>  {
     public async startReplay() {
         const replayObj = await mycrt.startReplay(this.state as IReplayFull);
         if (!replayObj) {
-            logger.error("Could not start replay");
+            this.setState({errorMsg: "There was an error: Replay was not started"});
         } else {
             const cancelBtn = document.getElementById("cancelReplayBtn");
             this.props.update();

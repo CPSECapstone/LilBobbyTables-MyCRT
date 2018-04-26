@@ -54,6 +54,10 @@ export class CaptureModal extends React.Component<any, any>  {
          capture.status = ChildProgramStatus.SCHEDULED;
          capture.scheduledStart = this.state.scheduledStart;
          const startDate = new Date(this.state.scheduledStart);
+         if (String(startDate) === "Invalid Date") {
+            this.setState({errorMsg: 'Please enter a valid date and time.'});
+            return;
+         }
          const currentDate = new Date();
          const duration = startDate.getTime() - currentDate.getTime();
          if (duration <= 0) {
@@ -75,7 +79,7 @@ export class CaptureModal extends React.Component<any, any>  {
       }
       const captureObj = await mycrt.startCapture(capture);
       if (!captureObj) {
-         logger.error("Could not start capture");
+         this.setState({errorMsg: "There was an error: Capture was not started"});
       } else {
          logger.info(`${captureObj.name} was made with id ${captureObj.id}`);
          const cancelBtn = document.getElementById("cancelBtn");
@@ -126,7 +130,6 @@ export class CaptureModal extends React.Component<any, any>  {
     }
 
     public handleEndTypeChange(event: any) {
-       logger.info(String(event.currentTarget.value === "specific"));
       this.setState({
          automaticStop: event.currentTarget.value === "specific",
          errorMsg: '',
