@@ -58,7 +58,7 @@ class SignupApp extends React.Component<{}, State> {
                      </div>
                   </div>
 
-                  <p className="text-muted">Already have an accout? <a href="/login">Log In</a></p>
+                  <p className="text-muted">Already have an accout? <a href="/login">Login</a></p>
 
                </div>
             </div>

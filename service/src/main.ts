@@ -225,6 +225,7 @@ class MyCrtService {
       routePage(/^\/signup$/, Pages.signup);
       routePage(/^\/login$/, Pages.login);
 
+      routePage(/^\/account$/, Pages.account, session.loggedIn);
       routePage(/^\/environments$/, Pages.environments, session.loggedIn);
       routePage(/^\/dashboard$/, Pages.dashboard, session.loggedIn);
       routePage(/^\/captures$/, Pages.captures, session.loggedIn);

@@ -53,7 +53,7 @@ class LoginApp extends React.Component<{}, State> {
                   </div>
 
                   <p className="text-muted">
-                     Need to create an account? <a href="/signup">Sign Up</a>
+                     Need to create an account? <a href="/signup">Signup</a>
                   </p>
 
                </div>

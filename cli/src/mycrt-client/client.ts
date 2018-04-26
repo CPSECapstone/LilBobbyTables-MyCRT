@@ -172,6 +172,11 @@ export class MyCrtClient {
       return this.makeRequest<IUser>(HttpMethod.POST, '/users/login', null, user);
    }
 
+   /** Logout */
+   public async logout(): Promise<void | null> {
+      return this.makeRequest<any>(HttpMethod.PUT, '/users/logout');
+   }
+
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
 
       const fullUrl: URL = new URL(`${this.host}/api${url}`);
@@ -186,7 +191,8 @@ export class MyCrtClient {
          headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-          },
+         },
+         credentials: 'include',
          method,
       };
 
