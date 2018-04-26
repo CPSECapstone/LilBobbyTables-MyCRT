@@ -24,7 +24,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
    constructor(ipcNode: ServerIpcNode) {
       super(ipcNode, [
-         session.loggedIn,
+         session.loggedInOrForbidden,
       ]);
    }
 

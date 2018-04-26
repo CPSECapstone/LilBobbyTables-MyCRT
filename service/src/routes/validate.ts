@@ -20,7 +20,7 @@ export default class ValidateRouter extends SelfAwareRouter {
 
    constructor(ipcNode: ServerIpcNode) {
       super(ipcNode, [
-         session.loggedIn,
+         session.loggedInOrForbidden,
       ]);
    }
 

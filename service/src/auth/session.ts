@@ -98,26 +98,35 @@ export class Session {
    };
 
    /** A middleware to enforce that users are logged in */
-   public static getLoggedInMiddleware = (admin: boolean = false) =>
+   public static getLoggedInMiddleware = (admin: boolean = false, redirect: boolean = false) =>
          (request: Request, response: Response, next: NextFunction) => {
+
+      const forbiddenResponse = () => {
+         response.status(http.FORBIDDEN).json({
+            code: http.FORBIDDEN,
+            message: admin ? 'admin login required' : 'login required',
+         });
+      };
+
+      const redirectResponse = () => {
+         response.redirect(http.TEMPORARY_REDIRECT, '/login');
+      };
+
+      const handleNotLoggedIn = redirect ? redirectResponse : forbiddenResponse;
+
       const resource = request.url;
       if (!request.session) {
-         logger.warn(`Session required for resource ${resource} (admin needed? ${admin})`);
-         response.status(http.FORBIDDEN).json({
-            code: http.FORBIDDEN,
-            message: 'Not logged in',
-         });
+         logger.warn(`Session required for resource ${resource} (admin needed? ${admin}`);
+         handleNotLoggedIn();
       } else if (admin && !request.session.user.isAdmin) {
          logger.warn(`Admin session required for resource ${resource}`);
-         response.status(http.FORBIDDEN).json({
-            code: http.FORBIDDEN,
-            message: 'admin required',
-         });
+         handleNotLoggedIn();
       } else {
          logger.info(`Granted permission to user ${request.session.user.id} `
             + `for resource ${resource}`);
          next();
       }
+
    }
 
    private loginTime: number;
@@ -139,5 +148,7 @@ export class Session {
 
 }
 
-export const adminLoggedIn = Session.getLoggedInMiddleware(true);
-export const loggedIn = Session.getLoggedInMiddleware(false);
+export const adminLoggedIn = Session.getLoggedInMiddleware(true, true);
+export const loggedIn = Session.getLoggedInMiddleware(false, true);
+export const adminLoggedInOrForbidden = Session.getLoggedInMiddleware(true, false);
+export const loggedInOrForbidden = Session.getLoggedInMiddleware(false, false);

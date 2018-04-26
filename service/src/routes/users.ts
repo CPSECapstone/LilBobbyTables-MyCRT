@@ -20,7 +20,7 @@ export class UserRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
 
       this.router.get('/',
-         session.adminLoggedIn,
+         session.adminLoggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {
             const users = await userDao.getAllUsers();
             response.json(users);
@@ -28,7 +28,7 @@ export class UserRouter extends SelfAwareRouter {
       ));
 
       this.router.get('/me',
-         session.loggedIn,
+         session.loggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {
             response.json(request.session!.user);
          },
@@ -48,7 +48,7 @@ export class UserRouter extends SelfAwareRouter {
       ));
 
       this.router.put('/logout',
-         session.loggedIn,
+         session.loggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {
             session.clearSession(request, response);
             response.status(http.OK).end();
@@ -86,7 +86,7 @@ export class UserRouter extends SelfAwareRouter {
       ));
 
       this.router.delete('/:id(\\d+)',
-         session.loggedIn,
+         session.adminLoggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {
             const user = userDao.deleteUser(request.params.id);
             if (user === null) {

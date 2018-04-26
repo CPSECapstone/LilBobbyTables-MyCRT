@@ -15,7 +15,7 @@ export default class DBReferenceRouter extends SelfAwareRouter {
 
    constructor(ipcNode: ServerIpcNode) {
       super(ipcNode, [
-         session.loggedIn,
+         session.loggedInOrForbidden,
       ]);
    }
 

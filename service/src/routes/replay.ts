@@ -22,7 +22,7 @@ export default class ReplayRouter extends SelfAwareRouter {
 
    constructor(ipcNode: ServerIpcNode) {
       super(ipcNode, [
-         session.loggedIn,
+         session.loggedInOrForbidden,
       ]);
    }
 

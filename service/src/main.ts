@@ -202,7 +202,7 @@ class MyCrtService {
 
    private mountPageRoutes(): void {
 
-      this.express!.get(/^\/$/, indexRedirect.indexRouteHandler);
+      this.express!.get(/^\/$/, session.loggedIn, indexRedirect.indexRouteHandler);
 
       const routePage = (urlPattern: RegExp, page: Template,
             login?: express.RequestHandler) => {
