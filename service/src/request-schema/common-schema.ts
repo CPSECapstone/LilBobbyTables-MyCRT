@@ -47,7 +47,7 @@ export const value = {
    mycrtPassword: joi.string().regex(/^.{8,64}$/),
 
    // TODO, for mysql db passwords
-   password: joi.string().regex(/^$/),
+   password: joi.string().regex(/^.*$/),
 
    /** A boolean value */
    deleteLog: joi.boolean(),

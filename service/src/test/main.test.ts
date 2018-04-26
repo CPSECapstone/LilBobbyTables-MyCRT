@@ -44,11 +44,18 @@ export const signupAndLogin = (client: MyCrtServiceTestClient) => async function
    await userDao.nuke();
    await utils.sleep(1500);
 
-   const signupResponse = await client.post(http.OK, '/api/users/signup', {});
+   const signupResponse = await client.post(http.OK, '/api/users/signup', {
+      email: "test@gmail.com",
+      password: "thisisthetestpassword",
+      agreeToTerms: true,
+   });
    expect(signupResponse.body.id).to.equal(1);
    expect(signupResponse.body.isAdmin).to.be.false;
 
-   const loginResponse = await client.post(http.OK, '/api/users/login', signupResponse.body);
+   const loginResponse = await client.post(http.OK, '/api/users/login', {
+      email: "test@gmail.com",
+      password: "thisisthetestpassword",
+   });
    expect(loginResponse.body.id).to.equal(signupResponse.body.id);
 
    client.user = loginResponse.body;
