@@ -1,12 +1,13 @@
 import * as data from '../data';
 import { defaultLogger } from '../logging';
+import settings = require('../settings');
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
 
 import bcrypt = require('bcrypt');
 const saltRounds = 10;
 import Cryptr = require('cryptr');
-const cryptr = new Cryptr('MyCRTSecretKey'); // using aes256 encryption algorithm
+const cryptr = new Cryptr(settings.settings.encryptionKey); // using aes256 encryption algorithm
 import { Logging } from '../main';
 const logger = Logging.defaultLogger(__dirname);
 

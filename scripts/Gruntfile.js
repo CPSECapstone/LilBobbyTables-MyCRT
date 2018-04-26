@@ -28,21 +28,21 @@ function tsTaskConfig(modulePath, options, testing) {
    options = Object.assign(globalOptions, options);
 
    // get the types to include
-   const typesDir = path.resolve(modulePath, 'node_modules', '@types');
-   let types = [];
-   if (fs.existsSync(typesDir)) {
-      const contents = fs.readdirSync(typesDir)
-      for (let i = 0; i < contents.length; ++i) {
-         const fullPath = path.resolve(typesDir, contents[i]);
-         const stats = fs.statSync(fullPath);
-         if (stats.isDirectory()) {
-            types.push(fullPath);
-         }
-      }
-   }
-   if (types.length) {
-      options.typeRoots = types;
-   }
+   // const typesDir = path.resolve(modulePath, 'node_modules', '@types');
+   // let types = [];
+   // if (fs.existsSync(typesDir)) {
+   //    const contents = fs.readdirSync(typesDir)
+   //    for (let i = 0; i < contents.length; ++i) {
+   //       const fullPath = path.resolve(typesDir, contents[i]);
+   //       const stats = fs.statSync(fullPath);
+   //       if (stats.isDirectory()) {
+   //          types.push(fullPath);
+   //       }
+   //    }
+   // }
+   // if (types.length) {
+   //    // options.typeRoots = types;
+   // }
 
    const src = [
       path.resolve(modulePath, 'src') + '/\*\*/\*.{ts,tsx}',
