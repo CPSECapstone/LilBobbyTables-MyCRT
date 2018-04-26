@@ -149,7 +149,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          let captureTemplate: ICapture | null = {
-            type: ChildProgramType.CAPTURE,
+               type: ChildProgramType.CAPTURE,
                envId: env.id,
                status: initialStatus === ChildProgramStatus.SCHEDULED ?
                   ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,

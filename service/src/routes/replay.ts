@@ -3,12 +3,14 @@ import * as http from 'http-status-codes';
 import { ChildProgramStatus, ChildProgramType, IDbReference, IReplay,
       Logging, MetricsStorage, MetricType, ReplayDao } from '@lbt-mycrt/common';
 import { launch, ReplayConfig } from '@lbt-mycrt/replay';
+import schedule = require('node-schedule');
 
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 
 import { getMetrics } from '../common/capture-replay-metrics';
+import { startReplay} from '../common/launching';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -83,11 +85,26 @@ export default class ReplayRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
+         const initialStatus: string | undefined = request.body.status;
+         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+
+         logger.debug(`time is: ${inputTime}`);
+         if (!inputTime) {
+            inputTime = new Date();
+         }
+
+         logger.debug("here2");
          const cap = await captureDao.getCapture(request.body.captureId);
          if (cap == null) {
                throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
          }
 
+         logger.debug("here3");
+         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
+         }
+
+         logger.debug("here4");
          let dbReference: IDbReference = {
             name: request.body.dbName,
             host: request.body.host,
@@ -99,33 +116,51 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const db = await environmentDao.makeDbReference(dbReference);
          if (db && !db.id) {
+            logger.debug("here5");
             throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
          }
 
          if (db) {
+            logger.debug("here6");
             dbReference = db;
          }
 
-         const replayTemplate: IReplay = {
+         logger.debug("here7");
+         let replayTemplate: IReplay | null = {
             name: request.body.name,
             captureId: request.body.captureId,
+            status: initialStatus === ChildProgramStatus.SCHEDULED ?
+               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             dbId: dbReference.id!,
             type: ChildProgramType.REPLAY,
-            status: ChildProgramStatus.STARTED, // no scheduled replays yet
          };
 
-         const replay = await replayDao.makeReplay(replayTemplate);
+         // if status is scheduled, start at a scheduled time
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            logger.debug("here8");
+            replayTemplate.scheduledStart = inputTime;
+         }
 
-         logger.info(`Launching replay with id ${replay!.id!} for capture ${replay!.captureId!}`);
-         const config = new ReplayConfig(replay!.id!, replay!.captureId!, replay!.dbId!);
-         config.mock = settings.replays.mock;
-         config.interval = settings.replays.interval;
-         config.intervalOverlap = settings.replays.intervalOverlap;
-         config.metricsDelay = settings.replays.metricsDelay;
-         config.filePrepDelay = settings.replays.filePrepDelay;
+         logger.debug("here9");
+         replayTemplate = await replayDao.makeReplay(replayTemplate);
 
-         launch(config);
-         response.json(replay);
+         logger.debug("here10");
+         if (replayTemplate === null) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating replay in db`);
+         }
+
+         logger.debug("here11");
+         response.json(replayTemplate);
+
+         // logger.debug(initialStatus.toString());
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            logger.debug("here13");
+            schedule.scheduleJob(inputTime, () => { startReplay(replayTemplate!); });
+         } else {
+            logger.debug("here14");
+            startReplay(replayTemplate);
+         }
+
          logger.info(`Successfully created replay!`);
 
       }));
