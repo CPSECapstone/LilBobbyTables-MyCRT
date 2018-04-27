@@ -31,10 +31,14 @@ $secondary-success: #24e3be;
     margin-bottom: 20px;
 }
 
+.myCRT-dropdown {
+   overflow-y: scroll;
+   max-height: 170px;
+}
+
 .myCRT-overflow-col {
-    overflow-y: scroll;
     overflow-x: hidden;
-    max-height: 940px;
+    max-height: 1200px;
     background-color: #ecf0f1;
     border-radius: 20px;
     border: 1px solid #dee2e6;

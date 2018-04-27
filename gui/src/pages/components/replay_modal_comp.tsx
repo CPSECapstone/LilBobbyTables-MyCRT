@@ -2,26 +2,32 @@ import React = require('react');
 import ReactDom = require('react-dom');
 
 import * as $ from 'jquery';
+import * as moment from 'moment';
 
 import { ChildProgramStatus, ChildProgramType, IReplayFull } from '@lbt-mycrt/common/dist/data';
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
 import { WarningAlert } from './alert_warning_comp';
+import { StartDateTime } from './start_date_time_comp';
 
 export class ReplayModal extends React.Component<any, any>  {
 
     private baseState = {} as any;
+    private startDateChild = {} as any;
 
     constructor(props: any) {
         super(props);
         this.state = { name: "", captureId: "", host: "", parameterGroup: "",
                        user: "", pass: "", instance: "", dbName: "", type: ChildProgramType.REPLAY,
                        env: this.props.env, dbRefs: [], invalidDBPass: false, replayNameValid: 'invalid',
-                       disabled: true, errorMsg: ''};
+                       disabled: true, errorMsg: '', defaultDate: moment().format("YYYY-MM-DDTHH:mm"),
+                       reset: true, scheduledStart: moment().format("YYYY-MM-DDTHH:mm"), replayType: "immediately"};
         this.baseState = this.state;
         this.handleDBName = this.handleDBName.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleTimeChange = this.handleTimeChange.bind(this);
+        this.handleReplayTypeChange = this.handleReplayTypeChange.bind(this);
         this.cancelModal = this.cancelModal.bind(this);
     }
 
@@ -42,6 +48,15 @@ export class ReplayModal extends React.Component<any, any>  {
       this.setState({[event.target.id]: event.target.value, errorMsg: ''});
     }
 
+    public handleReplayTypeChange(type: string) {
+      this.setState({replayType: type, errorMsg: ''});
+   }
+
+    public handleTimeChange(date: string) {
+      const newDate = new Date(date);
+      this.setState({scheduledStart: newDate, errorMsg: ''});
+   }
+
     public handleNameChange(event: any) {
       if (/^[a-zA-Z0-9 :_-]{4,25}$/.test(event.target.value)) {
          this.setState({replayNameValid: 'valid'});
@@ -56,8 +71,8 @@ export class ReplayModal extends React.Component<any, any>  {
       this.setState({name: event.target.value, errorMsg: ''});
     }
 
-    public async startReplay() {
-        const replayObj = await mycrt.startReplay(this.state as IReplayFull);
+    public async startReplay(replay: IReplayFull) {
+       const replayObj = await mycrt.startReplay(replay);
         if (!replayObj) {
             this.setState({errorMsg: "There was an error: Replay was not started"});
         } else {
@@ -75,12 +90,31 @@ export class ReplayModal extends React.Component<any, any>  {
          this.setState({errorMsg: 'This replay name already exists within this capture. Please use a different one.'});
          return;
       }
+      const replay = {name: this.state.name, captureId: this.state.captureId, type: this.state.type,
+         host: this.state.host, parameterGroup: this.state.parameterGroup, user: this.state.user,
+         pass: this.state.pass, instance: this.state.instance, dbName: this.state.dbName} as IReplayFull;
+      if (this.state.replayType === "specific") {
+         replay.status = ChildProgramStatus.SCHEDULED;
+         replay.scheduledStart = this.state.scheduledStart;
+         const startDate = new Date(this.state.scheduledStart);
+         if (String(startDate) === "Invalid Date") {
+            this.setState({errorMsg: 'Please enter a valid date and time.'});
+            return;
+         }
+         const currentDate = new Date();
+         const duration = startDate.getTime() - currentDate.getTime();
+         if (duration <= 0) {
+            this.setState({errorMsg:  `You have chosen a date/time that has already
+               passed. Please choose a different one.`});
+            return;
+         }
+      }
       const dbRef = {dbName: this.state.dbName, host: this.state.host,
          user: this.state.user, pass: this.state.pass};
       const validate = await mycrt.validateDatabase(dbRef);
       if (validate) {
          this.setState({errorMsg: ''});
-         this.startReplay();
+         this.startReplay(replay);
       } else {
          this.setState({errorMsg: 'Password was invalid. Please try again.'});
          logger.error("Could not validate db");
@@ -122,6 +156,7 @@ export class ReplayModal extends React.Component<any, any>  {
         this.setState(this.baseState);
         $("select#captureDrop").val('default');
         $("select#dbDrop").val('default');
+        this.startDateChild.resetChecks(this.state.scheduledStart);
         this.render();
     }
 
@@ -179,6 +214,11 @@ export class ReplayModal extends React.Component<any, any>  {
                                             {captures}
                                         </select>}
                                         <br/>
+                                        <StartDateTime updateTime={this.handleTimeChange}
+                                          ref={(instance) => { this.startDateChild = instance; }}
+                                          default={this.state.defaultDate} reset={this.state.reset}
+                                          updateType={this.handleReplayTypeChange}/>
+                                       <br/>
                                         <div style={this.state.captureId ? {display: "block"} : {display: "none"}}>
                                             <label><b>DB Reference</b></label>
                                             {<select className="form-control input-lg" id="dbDrop"

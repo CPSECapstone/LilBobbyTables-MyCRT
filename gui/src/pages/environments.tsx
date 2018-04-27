@@ -9,6 +9,7 @@ import { BrowserLogger as logger } from './../logging';
 
 import { EnvironmentPanel } from './components/env_panel_comp';
 import { EnvModal } from './components/environment_modal_comp';
+import { Pagination } from './components/pagination_comp';
 import { mycrt } from './utils/mycrt-client';
 
 class EnvironmentsApp extends React.Component<any, any> {
@@ -65,8 +66,8 @@ class EnvironmentsApp extends React.Component<any, any> {
             <div className="col-sm-12 mb-r">
               <EnvModal id="envModal" update={this.componentWillMount}/>
               <div className="myCRT-overflow-col">
-                {environments.length ? environments : <p className="myCRT-empty-col">
-                            No environments currently exist.</p>}
+                {environments.length ? <Pagination list={environments} limit={4}/> :
+                  <p className="myCRT-empty-col">No environments currently exist.</p>}
               </div>
             </div>
           </div>

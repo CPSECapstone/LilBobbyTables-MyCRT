@@ -181,21 +181,21 @@ class DashboardApp extends React.Component<any, any> {
                      <br></br>
                      <h4>Active</h4>
                      <div className="myCRT-overflow-col">
-                     {liveCaptures.length ? <Pagination list={liveCaptures}/> : <p className="myCRT-empty-col">
-                            No currently active captures</p>}
+                     {liveCaptures.length ? <Pagination list={liveCaptures} limit={4}/> :
+                        <p className="myCRT-empty-col">No currently active captures</p>}
                     </div>
                      <br></br>
                      <h4>Scheduled</h4>
                      <div className="myCRT-overflow-col">
                      {scheduledCaptures.length ?
-                        <Pagination list={scheduledCaptures}/> : <p className="myCRT-empty-col">
+                        <Pagination list={scheduledCaptures} limit={4}/> : <p className="myCRT-empty-col">
                             No currently scheduled captures</p>}
                     </div>
                      <br></br>
                      <h4>Past</h4>
                      <div className="myCRT-overflow-col">
-                        {pastCaptures.length ? <Pagination list={pastCaptures}/> : <p className="myCRT-empty-col">
-                            No past captures exist</p>}
+                        {pastCaptures.length ? <Pagination list={pastCaptures} limit={4}/> :
+                           <p className="myCRT-empty-col">No past captures exist</p>}
                     </div>
                      <br></br>
                   </div>
@@ -213,21 +213,21 @@ class DashboardApp extends React.Component<any, any> {
                      <br></br>
                      <h4>Active</h4>
                      <div className="myCRT-overflow-col">
-                        {liveReplays.length ? <Pagination list={liveReplays}/> : <p className="myCRT-empty-col">
-                            No currently active replays</p>}
+                        {liveReplays.length ? <Pagination list={liveReplays} limit={4}/> :
+                           <p className="myCRT-empty-col">No currently active replays</p>}
                     </div>
                      <br></br>
                      <h4>Scheduled</h4>
                      <div className="myCRT-overflow-col">
                         {scheduledReplays.length ?
-                           <Pagination list={scheduledReplays}/> : <p className="myCRT-empty-col">
+                           <Pagination list={scheduledReplays} limit={4}/> : <p className="myCRT-empty-col">
                             No currently scheduled replays</p>}
                     </div>
                      <br></br>
                      <h4>Past</h4>
                      <div className="myCRT-overflow-col">
-                     {pastReplays.length ? <Pagination list={pastReplays}/> : <p className="myCRT-empty-col">
-                            No past replays exist</p>}
+                     {pastReplays.length ? <Pagination list={pastReplays} limit={4}/> :
+                        <p className="myCRT-empty-col">No past replays exist</p>}
                     </div>
                      <br></br>
                   </div>

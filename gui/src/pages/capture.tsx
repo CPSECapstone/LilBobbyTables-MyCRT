@@ -17,6 +17,7 @@ import { DeleteModal } from './components/delete_modal_comp';
 import { Graph } from './components/graph_comp';
 import { GraphSelectDrop } from './components/graph_dropdown_comp';
 import { MessageModal } from './components/message_handler_comp';
+import { Pagination } from './components/pagination_comp';
 import { ReplaySelectDrop } from './components/replay_compare_dropdown_comp';
 import { ReplayInfo } from './components/replay_info_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
@@ -281,7 +282,7 @@ class CaptureApp extends React.Component<any, any> {
                      <div className="page-header"><h2>Replays</h2><br/></div>
                      <div className="myCRT-overflow-col">
                         {replays.length ?
-                           <div className="card-columns">{replays}</div> :
+                           <div className="card-columns"><Pagination list={replays} limit={6}/></div> :
                            <p className="myCRT-empty-col">No replays exist.</p>
                         }
                      </div>

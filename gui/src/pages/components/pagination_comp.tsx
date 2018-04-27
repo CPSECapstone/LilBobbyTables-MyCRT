@@ -7,7 +7,7 @@ export class Pagination extends React.Component<any, any>  {
 
    constructor(props: any) {
       super(props);
-      this.state = {page: 0, pageSize: 4, totalPages: 0};
+      this.state = {page: 0, pageSize: this.props.limit, totalPages: 0};
       this.prevPage = this.prevPage.bind(this);
       this.nextPage = this.nextPage.bind(this);
    }
