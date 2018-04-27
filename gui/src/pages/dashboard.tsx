@@ -16,6 +16,7 @@ import { ErrorBoundary } from './components/error_boundary_comp';
 import { Pagination } from './components/pagination_comp';
 import { ReplayModal } from './components/replay_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
+import { Search } from './components/search_comp';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 class DashboardApp extends React.Component<any, any> {
@@ -179,20 +180,24 @@ class DashboardApp extends React.Component<any, any> {
                         <CaptureModal id="captureModal" envId={this.state.envId} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     <h4>Active</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>
+                     <Search length={liveCaptures.length}/>
+                     <br/>
                      <div className="myCRT-overflow-col">
                      {liveCaptures.length ? <Pagination list={liveCaptures} limit={4}/> :
                         <p className="myCRT-empty-col">No currently active captures</p>}
                     </div>
                      <br></br>
-                     <h4>Scheduled</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Scheduled</h4>
+                     <Search length={scheduledCaptures.length}/>
                      <div className="myCRT-overflow-col">
                      {scheduledCaptures.length ?
                         <Pagination list={scheduledCaptures} limit={4}/> : <p className="myCRT-empty-col">
                             No currently scheduled captures</p>}
                     </div>
                      <br></br>
-                     <h4>Past</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Past</h4>
+                     <Search length={pastCaptures.length}/>
                      <div className="myCRT-overflow-col">
                         {pastCaptures.length ? <Pagination list={pastCaptures} limit={4}/> :
                            <p className="myCRT-empty-col">No past captures exist</p>}
@@ -211,20 +216,23 @@ class DashboardApp extends React.Component<any, any> {
                             env = {this.state.env} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     <h4>Active</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>
+                     <Search length={liveReplays.length}/>
                      <div className="myCRT-overflow-col">
                         {liveReplays.length ? <Pagination list={liveReplays} limit={4}/> :
                            <p className="myCRT-empty-col">No currently active replays</p>}
                     </div>
                      <br></br>
-                     <h4>Scheduled</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Scheduled</h4>
+                     <Search length={scheduledReplays.length}/>
                      <div className="myCRT-overflow-col">
                         {scheduledReplays.length ?
                            <Pagination list={scheduledReplays} limit={4}/> : <p className="myCRT-empty-col">
                             No currently scheduled replays</p>}
                     </div>
                      <br></br>
-                     <h4>Past</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Past</h4>
+                     <Search length={pastReplays.length}/>
                      <div className="myCRT-overflow-col">
                      {pastReplays.length ? <Pagination list={pastReplays} limit={4}/> :
                         <p className="myCRT-empty-col">No past replays exist</p>}

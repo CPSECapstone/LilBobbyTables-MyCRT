@@ -29,8 +29,8 @@ export class StartDateTime extends React.Component<any, any>  {
     }
 
     public resetChecks(date: string) {
-      $("#now").click();
-      $("#start_date").val(this.props.default);
+      $(`#${this.props.now}`).click();
+      $(`#${this.props.id}`).val(this.props.default);
     }
 
     public render() {
@@ -39,20 +39,20 @@ export class StartDateTime extends React.Component<any, any>  {
                 <label><b>Start Options</b></label>
                 <div className="form-check">
                     <label className="form-check-label" style={{padding: "5px"}}>
-                        <input type="radio" className="form-check-input" name="start options" id="now"
+                        <input type="radio" className="form-check-input" name="start options" id={this.props.now}
                                onChange={this.handleOptionChange} defaultValue="immediate" defaultChecked/>
                         Immediate
                     </label>
                 </div>
                 <div className="form-check">
                     <label className="form-check-label" style={{padding: "5px"}}>
-                        <input type="radio" className="form-check-input" name="start options" id="scheduled"
+                        <input type="radio" className="form-check-input" name="start options" id={this.props.scheduled}
                                onChange={this.handleOptionChange} defaultValue="specific"/>
                         Scheduled
                     </label>
                     <input className={this.state.showDateTime ? 'form-control' : 'form-control hidden'}
                            style={{width: "70%", marginLeft: "10px"}}
-                           type="datetime-local" defaultValue={this.props.default} id="start_date"
+                           type="datetime-local" defaultValue={this.props.default} id={this.props.id}
                            onChange={this.handleTimeSelection}/>
                 </div>
             </div>

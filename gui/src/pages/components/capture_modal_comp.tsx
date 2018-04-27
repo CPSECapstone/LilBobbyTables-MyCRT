@@ -175,6 +175,7 @@ export class CaptureModal extends React.Component<any, any>  {
                                         <StartDateTime updateTime={this.handleTimeChange}
                                           ref={(instance) => { this.startDateChild = instance; }}
                                           default={this.state.defaultDate} reset={this.state.reset}
+                                          now="captureNow" scheduled="captureScheduled" id="captureStartDate"
                                           updateType={this.handleCaptureTypeChange}/>
                                        <br/>
                                        <label><b>Stop Options</b></label>

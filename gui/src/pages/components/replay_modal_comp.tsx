@@ -217,6 +217,7 @@ export class ReplayModal extends React.Component<any, any>  {
                                         <StartDateTime updateTime={this.handleTimeChange}
                                           ref={(instance) => { this.startDateChild = instance; }}
                                           default={this.state.defaultDate} reset={this.state.reset}
+                                          now="replayNow" scheduled="replayScheduled" id="replayStartDate"
                                           updateType={this.handleReplayTypeChange}/>
                                        <br/>
                                         <div style={this.state.captureId ? {display: "block"} : {display: "none"}}>
