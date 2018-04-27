@@ -35,7 +35,7 @@ export class ReplaySelectDrop extends React.Component<any, any>  {
                     {this.props.prompt}
                     <span className="caret"></span>
                 </button>
-                <ul className="dropdown-menu" onClick={(e) => this.selectReplays(e)}>
+                <ul className="dropdown-menu myCRT-dropdown" onClick={(e) => this.selectReplays(e)}>
                     {checkboxes}
                 </ul>
             </div>
