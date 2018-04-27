@@ -28,6 +28,8 @@ export class Pagination extends React.Component<any, any>  {
    }
 
    public render() {
+      if (this.props.list.length === 0) {
+         return <p className="myCRT-empty-col">No matches according to your search.</p>; }
       const totalPages = Math.ceil(this.props.list.length / this.state.pageSize);
       const pages: JSX.Element[] = [];
       let prev = false;

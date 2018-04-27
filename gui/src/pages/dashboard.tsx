@@ -25,13 +25,17 @@ class DashboardApp extends React.Component<any, any> {
         super(props);
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
+        this.filterSearch = this.filterSearch.bind(this);
+        this.updateSearch = this.updateSearch.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
         if (match) {
             id = match[1];
         }
-        this.state = { envId: id, env: null, captures: [], replays: [], error: "" };
+        this.state = { envId: id, env: null, captures: [], replays: [], error: "",
+         pastCSearch: "", scheduleCSearch: "", liveCSearch: "",
+         pastRSearch: "", scheduleRSearch: "", liveRSearch: ""};
     }
 
    public async setCaptures() {
@@ -72,6 +76,10 @@ class DashboardApp extends React.Component<any, any> {
         this.setState({captures});
     }
 
+    public updateSearch(searchText: string, type: string) {
+       this.setState({[type]: searchText});
+    }
+
     public async componentWillMount() {
       if (this.state.envId) {
          this.setState({
@@ -84,6 +92,10 @@ class DashboardApp extends React.Component<any, any> {
     public async deleteEnv(id: number, deleteLogs: boolean) {
       const result = await mycrt.deleteEnvironment(id, deleteLogs);
       window.location.assign('./environments');
+    }
+
+    public filterSearch(text: string) {
+       return (val: any) => val.props.title.toLowerCase().search(text.toLowerCase()) >= 0;
     }
 
     public render() {
@@ -181,25 +193,30 @@ class DashboardApp extends React.Component<any, any> {
                      </div>
                      <br></br>
                      <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>
-                     <Search length={liveCaptures.length}/>
+                     <Search length={liveCaptures.length} type="liveCSearch" update={this.updateSearch}/>
                      <br/>
                      <div className="myCRT-overflow-col">
-                     {liveCaptures.length ? <Pagination list={liveCaptures} limit={4}/> :
+                     {liveCaptures.length ? <Pagination
+                        list={liveCaptures.filter(this.filterSearch(this.state.liveCSearch))}
+                        limit={4}/> :
                         <p className="myCRT-empty-col">No currently active captures</p>}
                     </div>
                      <br></br>
                      <h4 style={{padding: "10px", display: "inline-block"}}>Scheduled</h4>
-                     <Search length={scheduledCaptures.length}/>
+                     <Search length={scheduledCaptures.length} type="scheduleCSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
                      {scheduledCaptures.length ?
-                        <Pagination list={scheduledCaptures} limit={4}/> : <p className="myCRT-empty-col">
+                        <Pagination list={scheduledCaptures.filter(this.filterSearch(this.state.scheduleCSearch))}
+                           limit={4}/> : <p className="myCRT-empty-col">
                             No currently scheduled captures</p>}
                     </div>
                      <br></br>
                      <h4 style={{padding: "10px", display: "inline-block"}}>Past</h4>
-                     <Search length={pastCaptures.length}/>
+                     <Search length={pastCaptures.length} type="pastCSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
-                        {pastCaptures.length ? <Pagination list={pastCaptures} limit={4}/> :
+                        {pastCaptures.length ? <Pagination
+                           list={pastCaptures.filter(this.filterSearch(this.state.pastCSearch))}
+                           limit={4}/> :
                            <p className="myCRT-empty-col">No past captures exist</p>}
                     </div>
                      <br></br>
@@ -217,24 +234,29 @@ class DashboardApp extends React.Component<any, any> {
                      </div>
                      <br></br>
                      <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>
-                     <Search length={liveReplays.length}/>
+                     <Search length={liveReplays.length} type="liveRSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
-                        {liveReplays.length ? <Pagination list={liveReplays} limit={4}/> :
+                        {liveReplays.length ? <Pagination
+                           list={liveReplays.filter(this.filterSearch(this.state.liveRSearch))}
+                           limit={4}/> :
                            <p className="myCRT-empty-col">No currently active replays</p>}
                     </div>
                      <br></br>
                      <h4 style={{padding: "10px", display: "inline-block"}}>Scheduled</h4>
-                     <Search length={scheduledReplays.length}/>
+                     <Search length={scheduledReplays.length} type="scheduleRSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
                         {scheduledReplays.length ?
-                           <Pagination list={scheduledReplays} limit={4}/> : <p className="myCRT-empty-col">
-                            No currently scheduled replays</p>}
+                           <Pagination list={scheduledReplays.filter(this.filterSearch(this.state.scheduleRSearch))}
+                              limit={4}/> : <p className="myCRT-empty-col">
+                              No currently scheduled replays</p>}
                     </div>
                      <br></br>
                      <h4 style={{padding: "10px", display: "inline-block"}}>Past</h4>
-                     <Search length={pastReplays.length}/>
+                     <Search length={pastReplays.length} type="pastRSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
-                     {pastReplays.length ? <Pagination list={pastReplays} limit={4}/> :
+                     {pastReplays.length ? <Pagination
+                        list={pastReplays.filter(this.filterSearch(this.state.pastRSearch))}
+                        limit={4}/> :
                         <p className="myCRT-empty-col">No past replays exist</p>}
                     </div>
                      <br></br>

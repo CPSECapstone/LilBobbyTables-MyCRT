@@ -17,10 +17,13 @@ export class Search extends React.Component<any, any> {
    public handleSearch(event: any) {
       const search = this.state.search;
       this.setState({search: !search, searchText: ""});
+      this.props.update("", this.props.type);
    }
 
    public searchText(event: any) {
-      this.setState({searchText: event.currentTarget.value});
+      const searchText = event.currentTarget.value;
+      this.setState({searchText});
+      this.props.update(searchText, this.props.type);
    }
 
    public render() {
@@ -28,7 +31,7 @@ export class Search extends React.Component<any, any> {
          return (<div></div>);
       }
       return (
-         <div className="input-group mb-3 myCRT-search">
+         <div className="input-group mb-3 myCRT-search" style={this.props.style}>
             <div className="input-group-append search-icon">
                <a role="button" className="btn btn-outline-secondary" onClick={this.handleSearch}
                   style={{borderRadius: "24px"}}>
