@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import * as bodyParser from 'body-parser';
+import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as fs from 'fs';
 import * as helmet from 'helmet';
@@ -13,6 +14,7 @@ import * as path from 'path';
 import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import { Pages, StaticFileDirs, Template } from '@lbt-mycrt/gui';
 
+import * as session from './auth/session';
 import { rescheduleCaptures } from './management/capture';
 import { markAbandonedReplaysAsFailed } from './management/replay';
 import ApiRouter from './routes/api';
@@ -83,7 +85,6 @@ class MyCrtService {
                logger.error(error);
             }
             logger.info(`server is listening on ${this.port}`);
-            logger.info("-----------------------------------------------------------");
             resolve(true);
          };
 
@@ -169,11 +170,15 @@ class MyCrtService {
          }
       });
 
-      // parse bodies into json
-      this.express!.use(bodyParser.json());
-
       // prevent click jacking
       this.express!.use(helmet());
+
+      // parsing
+      this.express!.use(cookieParser());
+      this.express!.use(bodyParser.json());
+
+      // user session management
+      this.express!.use(session.Session.sessionMiddleware);
    }
 
    private mountApiRoutes(): void {
@@ -189,6 +194,7 @@ class MyCrtService {
       logger.info(`Service static files being served from ${staticFilesDir}`);
       this.express!.use('/', express.static(staticFilesDir));
 
+      // TODO: lock down CORS
       logger.info(`GUI static files and bundles being served from ${StaticFileDirs.js}`);
       this.express!.use('/', express.static(StaticFileDirs.js));
 
@@ -196,19 +202,36 @@ class MyCrtService {
 
    private mountPageRoutes(): void {
 
-      this.express!.get(/^\/$/, indexRedirect.indexRouteHandler);
+      this.express!.get(/^\/$/, session.loggedIn, indexRedirect.indexRouteHandler);
 
-      const routePage = (urlPattern: RegExp, page: Template) => {
-         this.express!.get(urlPattern, (request, response) => {
-            response.send(page.getText()).end();
-         });
+      const routePage = (urlPattern: RegExp, page: Template,
+            login?: express.RequestHandler) => {
+         if (!login) {
+            this.express!.get(urlPattern,
+               (request, response) => {
+                  response.send(page.getText()).end();
+               },
+            );
+         } else {
+            this.express!.get(urlPattern,
+               login!,
+               (request: express.Request, response: express.Response) => {
+                  response.send(page.getText()).end();
+               },
+            );
+         }
       };
-      routePage(/^\/environments$/, Pages.environments);
-      routePage(/^\/dashboard$/, Pages.dashboard);
-      routePage(/^\/captures$/, Pages.captures);
-      routePage(/^\/capture$/, Pages.capture);
-      routePage(/^\/replay$/, Pages.replay);
-      routePage(/^\/metrics$/, Pages.metrics);
+
+      routePage(/^\/signup$/, Pages.signup);
+      routePage(/^\/login$/, Pages.login);
+
+      routePage(/^\/account$/, Pages.account, session.loggedIn);
+      routePage(/^\/environments$/, Pages.environments, session.loggedIn);
+      routePage(/^\/dashboard$/, Pages.dashboard, session.loggedIn);
+      routePage(/^\/captures$/, Pages.captures, session.loggedIn);
+      routePage(/^\/capture$/, Pages.capture, session.loggedIn);
+      routePage(/^\/replay$/, Pages.replay, session.loggedIn);
+      routePage(/^\/metrics$/, Pages.metrics, session.loggedIn);
 
    }
 }

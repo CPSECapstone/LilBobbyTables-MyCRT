@@ -37,8 +37,17 @@ export const value = {
    // TODO
    user: joi.string(),
 
-   // TODO
-   password: joi.string(),
+   // http://emailregex.com/
+   // tslint:disable-next-line:max-line-length
+   email: joi.string().regex(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/),
+
+   // Passwords for MyCRT
+   //   * at least 8 characters
+   //   * no more than 64 characters
+   mycrtPassword: joi.string().regex(/^.{8,64}$/),
+
+   // TODO, for mysql db passwords
+   password: joi.string().regex(/^.*$/),
 
    /** A boolean value */
    deleteLog: joi.boolean(),

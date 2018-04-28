@@ -1,0 +1,23 @@
+{
+
+   "name": "MyCRT Server",
+
+   "ssl": true,
+
+   "captures": {
+      "mock": false,
+      "interval": 3600000,
+      "intervalOverlap": 60000,
+      "metricsDelay": 120000,
+      "filePrepDelay": 120000
+   },
+
+   "replays": {
+      "mock": false,
+      "interval": 3600000,
+      "intervalOverlap": 60000,
+      "metricsDelay": 120000,
+      "filePrepDelay": 120000
+   }
+
+}

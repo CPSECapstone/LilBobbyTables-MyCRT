@@ -179,31 +179,4 @@ export class EnvironmentDao extends Dao {
       };
    }
 
-   // Keep this function in case we implement any type of basic auth
-   private async encrypt(str: string): Promise<any> {
-      return new Promise((resolve, reject) => {
-         bcrypt.genSalt(saltRounds, (saltErr, salt) => {
-            bcrypt.hash(str, salt, (hashErr, hash) => {
-               if (hashErr) {
-                  reject(hashErr);
-               } else {
-                  resolve(hash);
-               }
-            });
-         });
-      });
-   }
-
-   // Keep this function in case we implement any type of basic auth
-   private async compareHash(str: string, hash: string): Promise<any> {
-      return new Promise((resolve, reject) => {
-         bcrypt.compare(str, hash, (compErr, res) => {
-            if (compErr) {
-               reject(compErr);
-            } else {
-               resolve(res);
-            }
-         });
-      });
-   }
 }

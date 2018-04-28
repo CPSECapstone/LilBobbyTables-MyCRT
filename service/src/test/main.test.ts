@@ -6,7 +6,7 @@ import 'mocha';
 
 import { utils } from '@lbt-mycrt/common';
 
-import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao, replayDao, userDao } from '../dao/mycrt-dao';
 import MyCrtService from '../main';
 
 import { indexTests } from './index.test';
@@ -23,6 +23,7 @@ chai.use(chaiHttp);
 export const mycrt: MyCrtService = new MyCrtService();
 
 export const launchMyCrtService = async function() {
+   // launch
    expect(await mycrt.launch().catch((reason) => {
       chai.assert.fail(`mycrt launch failed: ${reason}`);
    })).to.be.true;
@@ -38,9 +39,35 @@ export const closeMyCrtService = async function() {
    expect(mycrt.isLaunched()).to.be.false;
 };
 
+export const signupAndLogin = (client: MyCrtServiceTestClient) => async function() {
+
+   await userDao.nuke();
+   await utils.sleep(1500);
+
+   const signupResponse = await client.post(http.OK, '/api/users/signup', {
+      email: "test@gmail.com",
+      password: "thisisthetestpassword",
+      agreeToTerms: true,
+   });
+   expect(signupResponse.body.id).to.equal(1);
+   expect(signupResponse.body.isAdmin).to.be.false;
+
+   const loginResponse = await client.post(http.OK, '/api/users/login', {
+      email: "test@gmail.com",
+      password: "thisisthetestpassword",
+   });
+   expect(loginResponse.body.id).to.equal(signupResponse.body.id);
+
+   client.user = loginResponse.body;
+
+};
+
 describe("MyCrtService", function() {
 
+   const client = new MyCrtServiceTestClient(mycrt);
+
    before(launchMyCrtService);
+   before(signupAndLogin(client));
    after(closeMyCrtService);
 
    // TODO: change the service tests to work on a different DB
@@ -58,7 +85,6 @@ describe("MyCrtService", function() {
       expect(response).to.have.status(http.OK);
    });
 
-   const client = new MyCrtServiceTestClient(mycrt);
    describe("site index", indexTests(client));
    describe("environment router", environmentTests(client));
    describe("capture router", captureTests(client));

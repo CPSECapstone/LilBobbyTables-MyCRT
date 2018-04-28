@@ -4,6 +4,9 @@ const config = {
 
    entry: {       // one per web page
       index: path.resolve(__dirname, 'dist', 'pages', 'index.js'),
+      signup: path.resolve(__dirname, 'dist', 'pages', 'signup.js'),
+      login: path.resolve(__dirname, 'dist', 'pages', 'login.js'),
+      account: path.resolve(__dirname, 'dist', 'pages', 'account.js'),
       environments: path.resolve(__dirname, 'dist', 'pages', 'environments.js'),
       dashboard: path.resolve(__dirname, 'dist', 'pages', 'dashboard.js'),
       capture: path.resolve(__dirname, 'dist', 'pages', 'capture.js'),

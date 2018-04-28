@@ -4,9 +4,6 @@
 
    "ssl": false,
 
-   "sessionTokenName": "MyCRTAuthToken",
-   "sessionDuration": 7200000,
-
    "captures": {
       "mock": true,
       "interval": 10000,

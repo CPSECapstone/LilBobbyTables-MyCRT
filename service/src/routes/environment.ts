@@ -2,9 +2,10 @@ import { S3 } from 'aws-sdk';
 
 import * as http from 'http-status-codes';
 
-import { Logging } from '@lbt-mycrt/common';
+import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import * as data from '@lbt-mycrt/common/dist/data';
 
+import * as session from '../auth/session';
 import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -14,6 +15,12 @@ import SelfAwareRouter from './self-aware-router';
 export default class EnvironmentRouter extends SelfAwareRouter {
    public name: string = 'environment';
    public urlPrefix: string = '/environments';
+
+   constructor(ipcNode: ServerIpcNode) {
+      super(ipcNode, [
+         session.loggedInOrForbidden,
+      ]);
+   }
 
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
@@ -78,6 +85,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          const environment: data.IEnvironment = {
             name: request.body.envName,
+            ownerId: request.session!.user.id,
             iamId: iamReference.id!,
             s3Id: s3Reference.id!,
             dbId: dbReference.id!,

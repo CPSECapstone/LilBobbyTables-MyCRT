@@ -1,9 +1,11 @@
 import * as http from 'http-status-codes';
 
-import { ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull, IIamReference, IMetricsList,
-   IReplay, IReplayFull, IS3Reference, MetricType } from '@lbt-mycrt/common/dist/data';
+import { ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull, IIamReference,
+   IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
+   } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
+import * as types from './types';
 
 export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELETE' }
 
@@ -142,13 +144,13 @@ export class MyCrtClient {
 
    /** Validate credentials when creating an environment */
    public async validateCredentials(iamRef: IIamReference): Promise< IDbReference[]| null> {
-     return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, iamRef);
+      return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, iamRef);
    }
 
    /** Validate buckets when creating an environment */
    public async validateBuckets(iamRef: IIamReference): Promise< string[]| null> {
-    return this.makeRequest<string[]>(HttpMethod.POST, `/validate/bucket`, null, iamRef);
-  }
+      return this.makeRequest<string[]>(HttpMethod.POST, `/validate/bucket`, null, iamRef);
+   }
 
    /** Valid database credentials when creating an environment */
    public async validateDatabase(dbRef: IDbReference): Promise<any | null> {
@@ -158,7 +160,22 @@ export class MyCrtClient {
    /** Get database credentials for a replay */
    public async getReplayDB(id: number): Promise<IDbReference | null> {
       return this.makeRequest<IDbReference>(HttpMethod.GET, `/dbReferences/${id}`);
-    }
+   }
+
+   /** Signup to MyCRT */
+   public async signup(user: types.SignupBody): Promise<IUser | null> {
+      return this.makeRequest<IUser>(HttpMethod.POST, '/users/signup', null, user);
+   }
+
+   /** Login to MyCRT */
+   public async login(user: types.LoginBody): Promise<IUser | null> {
+      return this.makeRequest<IUser>(HttpMethod.POST, '/users/login', null, user);
+   }
+
+   /** Logout */
+   public async logout(): Promise<void | null> {
+      return this.makeRequest<any>(HttpMethod.PUT, '/users/logout');
+   }
 
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
 
@@ -174,7 +191,8 @@ export class MyCrtClient {
          headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-          },
+         },
+         credentials: 'include',
          method,
       };
 

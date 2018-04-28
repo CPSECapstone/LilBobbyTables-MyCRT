@@ -20,7 +20,7 @@ function tsTaskConfig(modulePath, options, testing) {
    // build the options object
    options = options || {};
    options = Object.assign(options, {
-      sourceRoot: path.resolve(modulePath, 'src'),
+      // sourceRoot: path.resolve(modulePath, 'src'),
       rootDir: path.resolve(modulePath, 'src'),
       declarationDir: path.resolve(modulePath, 'dist'),
    });

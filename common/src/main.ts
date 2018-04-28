@@ -37,3 +37,4 @@ export * from './dao/config';
 export * from './dao/dao';
 export * from './dao/environment-dao';
 export * from './dao/replay-dao';
+export * from './dao/user-dao';
