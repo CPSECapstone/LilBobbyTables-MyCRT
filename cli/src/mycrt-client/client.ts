@@ -98,8 +98,8 @@ export class MyCrtClient {
   }
 
    /** Delete a specific replay */
-   public async deleteReplay(id: number): Promise<any> {
-      return this.makeRequest<any>(HttpMethod.DELETE, `/replays/${id}`);
+   public async deleteReplay(id: number, removeLogs?: boolean): Promise<any> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/replays/${id}`, {deleteLogs: removeLogs});
    }
 
    /** Create a new Environment */

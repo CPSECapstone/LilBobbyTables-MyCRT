@@ -9,6 +9,8 @@ import { BrowserLogger as logger } from './../logging';
 
 import { EnvironmentPanel } from './components/env_panel_comp';
 import { EnvModal } from './components/environment_modal_comp';
+import { Pagination } from './components/pagination_comp';
+import { Search } from './components/search_comp';
 import { mycrt } from './utils/mycrt-client';
 
 class EnvironmentsApp extends React.Component<any, any> {
@@ -16,7 +18,8 @@ class EnvironmentsApp extends React.Component<any, any> {
   public constructor(props: any) {
     super(props);
     this.componentWillMount = this.componentWillMount.bind(this);
-    this.state = {envs: []};
+    this.updateSearch = this.updateSearch.bind(this);
+    this.state = {envs: [], envSearch: ""};
   }
 
   public async componentWillMount() {
@@ -27,6 +30,10 @@ class EnvironmentsApp extends React.Component<any, any> {
         });
     }
   }
+
+  public updateSearch(searchText: string, type: string) {
+      this.setState({[type]: searchText});
+   }
 
   public render() {
     const environments: JSX.Element[] = [];
@@ -57,6 +64,8 @@ class EnvironmentsApp extends React.Component<any, any> {
                   data-target="#envModal" style={{ marginBottom: "20px", marginLeft: "15px" }}>
                   <i className="fa fa-plus" aria-hidden="true"></i>
                 </a>
+                <Search length={environments.length} type="envSearch" update={this.updateSearch}
+                  style={{float: "right", display: "inline-block", margin: "10px", paddingTop: "10px", width: "50%"}}/>
               </div>
             </div>
           </div>
@@ -65,8 +74,11 @@ class EnvironmentsApp extends React.Component<any, any> {
             <div className="col-sm-12 mb-r">
               <EnvModal id="envModal" update={this.componentWillMount}/>
               <div className="myCRT-overflow-col">
-                {environments.length ? environments : <p className="myCRT-empty-col">
-                            No environments currently exist.</p>}
+                {environments.length ?
+                  <Pagination list={environments.filter((val) =>
+                     val.props.title.toLowerCase().search(this.state.envSearch.toLowerCase()) >= 0)}
+                  limit={4}/> :
+                  <p className="myCRT-empty-col">No environments currently exist.</p>}
               </div>
             </div>
           </div>

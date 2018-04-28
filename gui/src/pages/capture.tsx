@@ -17,9 +17,11 @@ import { DeleteModal } from './components/delete_modal_comp';
 import { Graph } from './components/graph_comp';
 import { GraphSelectDrop } from './components/graph_dropdown_comp';
 import { MessageModal } from './components/message_handler_comp';
+import { Pagination } from './components/pagination_comp';
 import { ReplaySelectDrop } from './components/replay_compare_dropdown_comp';
 import { ReplayInfo } from './components/replay_info_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
+import { Search } from './components/search_comp';
 
 class CaptureApp extends React.Component<any, any> {
 
@@ -32,6 +34,8 @@ class CaptureApp extends React.Component<any, any> {
       this.setReplayMetrics = this.setReplayMetrics.bind(this);
       this.removeWorkloadData = this.removeWorkloadData.bind(this);
       this.deleteCapture = this.deleteCapture.bind(this);
+      this.updateSearch = this.updateSearch.bind(this);
+      this.deleteReplay = this.deleteReplay.bind(this);
 
       let id: any = null;
       const match = window.location.search.match(/.*\?.*id=(\d+)/);
@@ -60,7 +64,7 @@ class CaptureApp extends React.Component<any, any> {
       }
 
       this.state = {envId, view, defaultReplay, replayInfo, env: null, captureId: id, capture: null,
-            areaChart: false, allReplays: [], selectedReplays: [],
+            areaChart: false, allReplays: [], selectedReplays: [], replaySearch: "",
             allGraphs: [], selectedGraphs: ["WRITE"], navTabs: ["Details", "Metrics", "Replays"],
       };
    }
@@ -115,6 +119,11 @@ class CaptureApp extends React.Component<any, any> {
    public async deleteCapture(id: number, deleteLogs: boolean) {
       await mycrt.deleteCapture(id, deleteLogs);
       window.location.assign(`./dashboard?id=${this.state.envId}`);
+   }
+
+   public async deleteReplay(id: number, deleteLogs: boolean) {
+      await mycrt.deleteReplay(id);
+      window.location.assign(`./capture?id=${this.state.captureId}&envId=${this.state.envId}&view=replays`);
    }
 
    public async setWorkloadData(captureMetrics: boolean, replayId?: number) {
@@ -204,6 +213,10 @@ class CaptureApp extends React.Component<any, any> {
       }
    }
 
+   public updateSearch(searchText: string, type: string) {
+      this.setState({[type]: searchText});
+   }
+
    public render() {
       if (this.state.allGraphs.length === 0) { return (<div></div>); }
       const graphs: JSX.Element[] = [];
@@ -270,12 +283,21 @@ class CaptureApp extends React.Component<any, any> {
                   <div className="tab-pane" id="replays" role="tabpanel">
                      {this.state.replayObj ?
                         <ReplayInfo replay={this.state.replayObj} bucket={this.state.env.bucket}
-                        envId={this.state.envId}/> : null
+                        envId={this.state.envId} captureId={this.state.captureId} delete={this.deleteReplay}/> : null
                      }<br/>
-                     <div className="page-header"><h2>Replays</h2><br/></div>
+                     <div className="page-header">
+                        <h2 style={{display: "inline"}}>Replays</h2>
+                        <Search length={replays.length} type="replaySearch" update={this.updateSearch}
+                           style={{float: "right", display: "inline-block", margin: "10px",
+                           paddingTop: "5px", width: "50%"}}/>
+                     </div>
+                     <br/>
                      <div className="myCRT-overflow-col">
                         {replays.length ?
-                           <div className="card-columns">{replays}</div> :
+                           <div className="card-columns"><Pagination
+                              list={replays.filter((val) =>
+                                 val.props.title.toLowerCase().search(this.state.replaySearch.toLowerCase()) >= 0)}
+                              limit={6}/></div> :
                            <p className="myCRT-empty-col">No replays exist.</p>
                         }
                      </div>
