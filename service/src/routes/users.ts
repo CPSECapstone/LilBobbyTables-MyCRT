@@ -30,7 +30,12 @@ export class UserRouter extends SelfAwareRouter {
       this.router.get('/me',
          session.loggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {
-            response.json(request.session!.user);
+            const user = request.session!.user;
+            response.json({
+               id: user.id,
+               isAdmin: user.isAdmin,
+               email: user.email,
+            });
          },
       ));
 
@@ -42,12 +47,13 @@ export class UserRouter extends SelfAwareRouter {
             if (!pass) {
                throw new HttpError(http.FORBIDDEN, "Invalid Password");
             }
-            const sessionInfo = session.createActiveSession(user, response);
-            response.json({
+            const responseUser: IUser = {
                id: user.id,
                email: user.email,
                isAdmin: user.isAdmin,
-            });
+            };
+            const sessionInfo = session.createActiveSession(responseUser, response);
+            response.json(responseUser);
          },
       ));
 
