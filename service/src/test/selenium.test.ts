@@ -77,6 +77,7 @@ export const launchMyCrtService = async () => {
    const keysBefore = Object.keys(session.sessions);
    await signupAndLogin(mycrtTest)();
    let sessionToken: string = '';
+   expect(Object.keys(session.sessions).length - 1).to.equal(keysBefore.length);
    Object.keys(session.sessions).forEach((token) => {
       if (!contains<string>(keysBefore, token)) {
          sessionToken = token;
