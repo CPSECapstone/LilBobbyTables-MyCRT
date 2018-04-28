@@ -56,6 +56,16 @@ const buildMockMetrics = async (capture: IChildProgram): Promise<void> => {
    await metricsBackend.writeJson(path.metrics.getDoneKey(capture), [writeMetrics, cpuMetrics]);
 };
 
+function contains<T>(arr: T[], val: T): boolean {
+   let found = false;
+   arr.forEach((thing) => {
+      if (thing === val) {
+         found = true;
+      }
+   });
+   return found;
+}
+
 // launch mycrt service and chromedriver
 export const launchMyCrtService = async () => {
    expect(await mycrt.launch().catch((reason: any) => {
@@ -64,7 +74,14 @@ export const launchMyCrtService = async () => {
    expect(mycrt.getServer()).to.be.instanceOf(Server);
    expect(mycrt.isLaunched()).to.be.true;
 
+   const keysBefore = Object.keys(session.sessions);
    await signupAndLogin(mycrtTest)();
+   let sessionToken: string = '';
+   Object.keys(session.sessions).forEach((token) => {
+      if (!contains<string>(keysBefore, token)) {
+         sessionToken = token;
+      }
+   });
 
    // create environment
    await mycrtTest.post(http.OK, '/api/environments/', newEnvBody);
@@ -81,7 +98,6 @@ export const launchMyCrtService = async () => {
    await captureDao.updateCaptureStatus(1, ChildProgramStatus.DONE);
 
    // transfer the login session from the mycrt client to the webdriver
-   const sessionToken = Object.keys(session.sessions)[1];
    await driver.navigate().to('http://localhost:3000/login');
    await driver.manage().addCookie({
       name: "MyCRTAuthToken",
