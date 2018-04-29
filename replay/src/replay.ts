@@ -1,8 +1,8 @@
 import moment = require('moment-timezone');
 import mysql = require('mysql');
 
-import { CPUMetric, ICapture, IpcNode, IReplayIpcNodeDelegate, Logging, MemoryMetric,
-   MetricsBackend, mycrtDbConfig, ReadMetric, ReplayDao, ReplayIpcNode, utils, WriteMetric } from '@lbt-mycrt/common';
+import { ICapture, IpcNode, IReplayIpcNodeDelegate, Logging, MetricsBackend,
+   MetricsHash, MetricType, mycrtDbConfig, ReplayDao, ReplayIpcNode, utils } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram } from '@lbt-mycrt/common/dist/data';
 import { ICommand, IDbReference, IWorkload } from '@lbt-mycrt/common/dist/data';
@@ -294,28 +294,26 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
       this.tryTwice(async () => {
 
-         logger.info(`      * memory...`);
-         const memoryMetrics = await this.metrics.getMetricsForType(MemoryMetric, start, end);
-         const datapoints = memoryMetrics.dataPoints;
-         datapoints.forEach((metric) => {
-            metric.Unit = "Megabytes";
-            metric.Maximum *= ByteToMegabyte;
-         });
-         logger.info(`         * ${datapoints.length} datapoints`);
+         const data = [];
 
-         logger.info(`      * cpu...`);
-         const cpu = await this.metrics.getMetricsForType(CPUMetric, start, end);
-         logger.info(`         * ${cpu.dataPoints.length} datapoints`);
+         for (const entry in MetricsHash) {
+            const metricType = MetricsHash[entry];
 
-         logger.info(`      * read...`);
-         const read = await this.metrics.getMetricsForType(ReadMetric, start, end);
-         logger.info(`         * ${read.dataPoints.length} datapoints`);
+            logger.info(`   * ${metricType.metricName}...`);
 
-         logger.info(`      * write...`);
-         const write = await this.metrics.getMetricsForType(WriteMetric, start, end);
-         logger.info(`         * ${write.dataPoints.length} datapoints`);
+            const metrics = await this.metrics.getMetricsForType(metricType, start, end);
+            const datapoints = metrics.dataPoints;
 
-         const data = [cpu, read, write, memoryMetrics];
+            if (metricType.metricType === MetricType.MEMORY) {
+               datapoints.forEach((metric) => {
+                  metric.Unit = "Megabytes";
+                  metric.Maximum *= ByteToMegabyte;
+               });
+            }
+
+            logger.info(`      * ${datapoints.length} datapoints`);
+            data.push(metrics);
+         }
 
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
          logger.info(`      * saving metrics to ${key}`);

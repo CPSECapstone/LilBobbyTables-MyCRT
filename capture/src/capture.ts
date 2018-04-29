@@ -1,8 +1,8 @@
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
-import { CaptureIpcNode, CPUMetric, ICaptureIpcNodeDelegate, IpcNode, Logging, MemoryMetric, Metric,
-   MetricsBackend, ReadMetric, utils, WriteMetric } from '@lbt-mycrt/common';
+import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging, Metric,
+   MetricsBackend, MetricsHash, MetricType, utils } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
    IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
@@ -182,33 +182,32 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
       await this.tryTwice(async () => {
 
-         logger.info(`   * memory...`);
-         const memoryMetrics = await this.metrics.getMetricsForType(MemoryMetric, start, end);
-         const datapoints = memoryMetrics.dataPoints;
-         datapoints.forEach((metric) => {
-            metric.Unit = "Megabytes";
-            metric.Maximum *= ByteToMegabyte;
-         });
-         logger.info(`      * ${datapoints.length} datapoints`);
+         const data = [];
 
-         logger.info(`   * cpu...`);
-         const cpu = await this.metrics.getMetricsForType(CPUMetric, start, end);
-         logger.info(`      * ${cpu.dataPoints.length} datapoints`);
+         for (const entry in MetricsHash) {
+            const metricType = MetricsHash[entry];
 
-         logger.info(`   * read...`);
-         const read = await this.metrics.getMetricsForType(ReadMetric, start, end);
-         logger.info(`      * ${read.dataPoints.length} datapoints`);
+            logger.info(`   * ${metricType.metricName}...`);
 
-         logger.info(`   * write...`);
-         const write = await this.metrics.getMetricsForType(WriteMetric, start, end);
-         logger.info(`      * ${write.dataPoints.length} datapoints`);
+            const metrics = await this.metrics.getMetricsForType(metricType, start, end);
+            const datapoints = metrics.dataPoints;
 
-         const data = [cpu, read, write, memoryMetrics];
+            if (metricType.metricType === MetricType.MEMORY) {
+               datapoints.forEach((metric) => {
+                  metric.Unit = "Megabytes";
+                  metric.Maximum *= ByteToMegabyte;
+               });
+            }
+
+            logger.info(`      * ${datapoints.length} datapoints`);
+            data.push(metrics);
+         }
 
          const key = schema.metrics.getSingleSampleKey(this.asIChildProgram(), end);
          logger.info(`   * saving metrics to ${key}`);
          await this.storage.writeJson(key, data);
          logger.info(`   * done!`);
+
       }, "send metrics to S3");
    }
 
