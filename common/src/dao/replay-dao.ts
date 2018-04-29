@@ -55,6 +55,7 @@ export class ReplayDao extends Dao {
          status: replay.status,
          captureId: replay.captureId,
          dbId: replay.dbId,
+         scheduledStart: replay.scheduledStart,
       });
       return await this.getReplay(result.insertId);
    }
