@@ -31,9 +31,9 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          const envName = request.query.name;
          let environments;
          if (envName) {
-            environments = await environmentDao.getEnvironmentByName(envName, request.session!.user);
+            environments = await environmentDao.getEnvironmentByName(envName, request.user);
          } else {
-            environments = await environmentDao.getAllEnvironments(request.session!.user);
+            environments = await environmentDao.getAllEnvironments(request.user);
          }
 
          response.json(environments);
@@ -47,8 +47,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
          }
-         if (environment.ownerId !== request.session!.user.id) {
-            logger.info(`owner = ${environment!.ownerId}, user = ${request.session!.user.id}`);
+         if (environment.ownerId !== request.user!.id) {
+            logger.info(`owner = ${environment!.ownerId}, user = ${request.user!.id}`);
             throw new HttpError(http.NOT_FOUND);
          }
          response.json(environment);
@@ -89,7 +89,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          const environment: data.IEnvironment = {
             name: request.body.envName,
-            ownerId: request.session!.user.id,
+            ownerId: request.user!.id,
             iamId: iamReference.id!,
             s3Id: s3Reference.id!,
             dbId: dbReference.id!,

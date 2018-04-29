@@ -4,7 +4,7 @@ import { IUser, Logging } from '@lbt-mycrt/common';
 
 import * as auth from '../auth';
 import * as session from '../auth/session';
-import { userDao } from '../dao/mycrt-dao';
+import { sessionDao, userDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/user-schema';
@@ -30,11 +30,11 @@ export class UserRouter extends SelfAwareRouter {
       this.router.get('/me',
          session.loggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {
-            const user = request.session!.user;
+            const user = request.user;
             response.json({
-               id: user.id,
-               isAdmin: user.isAdmin,
-               email: user.email,
+               id: user!.id,
+               isAdmin: user!.isAdmin,
+               email: user!.email,
             });
          },
       ));
@@ -52,7 +52,13 @@ export class UserRouter extends SelfAwareRouter {
                email: user.email,
                isAdmin: user.isAdmin,
             };
-            const sessionInfo = session.createActiveSession(responseUser, response);
+            try {
+               const sessionInfo = await session.createActiveSession(responseUser, response);
+            } catch (e) {
+               logger.error("Failed to make session");
+               logger.error(JSON.stringify(e));
+               throw new HttpError(http.INTERNAL_SERVER_ERROR);
+            }
             response.json(responseUser);
          },
       ));
@@ -60,7 +66,7 @@ export class UserRouter extends SelfAwareRouter {
       this.router.put('/logout',
          session.loggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {
-            session.clearSession(request, response);
+            await sessionDao.clearSession(request.user!);
             response.json({});
          }),
       );

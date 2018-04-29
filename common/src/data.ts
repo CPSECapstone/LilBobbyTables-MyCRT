@@ -1,4 +1,10 @@
-export interface IUser {
+export interface ISession {
+   sessionToken?: string;
+   loginTime?: number | null;
+   lastTokenCheck?: number | null;
+}
+
+export interface IUser extends ISession {
    id?: number;
    email?: string;
    passwordHash?: string;
@@ -29,7 +35,7 @@ export enum ChildProgramStatus {
 export interface IChildProgram {
    type?: ChildProgramType;
    id?: number;
-   owner?: number;
+   ownerId?: number;
    envId?: number;
    name?: string;
    start?: Date;
@@ -51,15 +57,15 @@ export interface IReplay extends IChildProgram {
 }
 
 export interface IReplayFull extends IChildProgram {
-    type: ChildProgramType.REPLAY;
-    captureId?: number;
-    dbName: string;
-    host: string;
-    user: string;
-    pass: string;
-    instance: string;
-    parameterGroup: string;
- }
+   type: ChildProgramType.REPLAY;
+   captureId?: number;
+   dbName: string;
+   host: string;
+   user: string;
+   pass: string;
+   instance: string;
+   parameterGroup: string;
+}
 
 /** Interface for Environment objects sent/received from the MyCRT service. */
 export interface IEnvironment {

@@ -7,6 +7,12 @@ CREATE TABLE User (
    email VARCHAR(256) NOT NULL,
    passwordHash VARCHAR(256) NOT NULL,
    isAdmin TINYINT(1) DEFAULT 0,
+
+   -- Session Stuff
+   sessionToken VARCHAR(256) DEFAULT NULL,
+   loginTime BIGINT(11) DEFAULT NULL,
+   lastTokenCheck BIGINT(11) DEFAULT NULL,
+
    CONSTRAINT userEmailUnique
       UNIQUE (email)
 );
