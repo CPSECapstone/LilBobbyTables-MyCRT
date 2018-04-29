@@ -124,11 +124,6 @@ export default class CaptureRouter extends SelfAwareRouter {
 
       this.router.post('/',
          check.validBody(schema.captureBody),
-         (request, response, next) => {
-            response.status(http.NOT_IMPLEMENTED).json({
-               msg: "Cameron, you need to make sure ownerId is set properly",
-            });
-         },
          this.handleHttpErrors(async (request, response) => {
 
             const initialStatus: string | undefined = request.body.status;
