@@ -36,7 +36,7 @@ export class GraphSelectDrop extends React.Component<any, any>  {
                     {this.props.prompt}
                     <span className="caret"></span>
                 </button>
-                <ul className="dropdown-menu">
+                <ul className="dropdown-menu myCRT-dropdown">
                     {checkboxes}
                 </ul>
             </div>

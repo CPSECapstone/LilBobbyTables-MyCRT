@@ -37,10 +37,12 @@
   "dependencies": {
     "@lbt-mycrt/cli": "file:../cli",
     "@lbt-mycrt/common": "file:../common",
+    "@types/jquery.cookie": "^1.4.31",
     "@types/react-redux": "^5.0.14",
     "bootstrap": "^4.0.0",
     "font-awesome": "^4.7.0",
     "jquery": "^3.2.1",
+    "jquery.cookie": "^1.4.1",
     "moment": "^2.21.0",
     "mustache": "^2.3.0",
     "popper.js": "^1.12.9",

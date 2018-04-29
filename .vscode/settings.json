@@ -9,4 +9,10 @@
     "editor.detectIndentation": false,
     "editor.trimAutoWhitespace": true,
     "git.enabled": false,
+
+    "search.exclude": {
+       "**/node_modules": true,
+       "**/bower_components": true
+    }
+
 }

@@ -12,8 +12,11 @@ import { BrowserLogger as logger } from '../logging';
 import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
 import { DeleteModal } from './components/delete_modal_comp';
+import { ErrorBoundary } from './components/error_boundary_comp';
+import { Pagination } from './components/pagination_comp';
 import { ReplayModal } from './components/replay_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
+import { Search } from './components/search_comp';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 class DashboardApp extends React.Component<any, any> {
@@ -22,13 +25,17 @@ class DashboardApp extends React.Component<any, any> {
         super(props);
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
+        this.filterSearch = this.filterSearch.bind(this);
+        this.updateSearch = this.updateSearch.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
         if (match) {
             id = match[1];
         }
-        this.state = { envId: id, env: null, captures: [], replays: [] };
+        this.state = { envId: id, env: null, captures: [], replays: [], error: "",
+         pastCSearch: "", scheduleCSearch: "", liveCSearch: "",
+         pastRSearch: "", scheduleRSearch: "", liveRSearch: ""};
     }
 
    public async setCaptures() {
@@ -69,6 +76,10 @@ class DashboardApp extends React.Component<any, any> {
         this.setState({captures});
     }
 
+    public updateSearch(searchText: string, type: string) {
+       this.setState({[type]: searchText});
+    }
+
     public async componentWillMount() {
       if (this.state.envId) {
          this.setState({
@@ -81,6 +92,10 @@ class DashboardApp extends React.Component<any, any> {
     public async deleteEnv(id: number, deleteLogs: boolean) {
       const result = await mycrt.deleteEnvironment(id, deleteLogs);
       window.location.assign('./environments');
+    }
+
+    public filterSearch(text: string) {
+       return (val: any) => val.props.title.toLowerCase().search(text.toLowerCase()) >= 0;
     }
 
     public render() {
@@ -177,22 +192,32 @@ class DashboardApp extends React.Component<any, any> {
                         <CaptureModal id="captureModal" envId={this.state.envId} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     <h4>Active</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>
+                     <Search length={liveCaptures.length} type="liveCSearch" update={this.updateSearch}/>
+                     <br/>
                      <div className="myCRT-overflow-col">
-                     {liveCaptures.length ? liveCaptures : <p className="myCRT-empty-col">
-                            No currently active captures</p>}
+                     {liveCaptures.length ? <Pagination
+                        list={liveCaptures.filter(this.filterSearch(this.state.liveCSearch))}
+                        limit={4}/> :
+                        <p className="myCRT-empty-col">No currently active captures</p>}
                     </div>
                      <br></br>
-                     <h4>Scheduled</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Scheduled</h4>
+                     <Search length={scheduledCaptures.length} type="scheduleCSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
-                     {scheduledCaptures.length ? scheduledCaptures : <p className="myCRT-empty-col">
+                     {scheduledCaptures.length ?
+                        <Pagination list={scheduledCaptures.filter(this.filterSearch(this.state.scheduleCSearch))}
+                           limit={4}/> : <p className="myCRT-empty-col">
                             No currently scheduled captures</p>}
                     </div>
                      <br></br>
-                     <h4>Past</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Past</h4>
+                     <Search length={pastCaptures.length} type="pastCSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
-                        {pastCaptures.length ? pastCaptures : <p className="myCRT-empty-col">
-                            No past captures exist</p>}
+                        {pastCaptures.length ? <Pagination
+                           list={pastCaptures.filter(this.filterSearch(this.state.pastCSearch))}
+                           limit={4}/> :
+                           <p className="myCRT-empty-col">No past captures exist</p>}
                     </div>
                      <br></br>
                   </div>
@@ -208,22 +233,31 @@ class DashboardApp extends React.Component<any, any> {
                             env = {this.state.env} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     <h4>Active</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>
+                     <Search length={liveReplays.length} type="liveRSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
-                        {liveReplays.length ? liveReplays : <p className="myCRT-empty-col">
-                            No currently active replays</p>}
+                        {liveReplays.length ? <Pagination
+                           list={liveReplays.filter(this.filterSearch(this.state.liveRSearch))}
+                           limit={4}/> :
+                           <p className="myCRT-empty-col">No currently active replays</p>}
                     </div>
                      <br></br>
-                     <h4>Scheduled</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Scheduled</h4>
+                     <Search length={scheduledReplays.length} type="scheduleRSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
-                        {scheduledReplays.length ? scheduledReplays : <p className="myCRT-empty-col">
-                            No currently scheduled replays</p>}
+                        {scheduledReplays.length ?
+                           <Pagination list={scheduledReplays.filter(this.filterSearch(this.state.scheduleRSearch))}
+                              limit={4}/> : <p className="myCRT-empty-col">
+                              No currently scheduled replays</p>}
                     </div>
                      <br></br>
-                     <h4>Past</h4>
+                     <h4 style={{padding: "10px", display: "inline-block"}}>Past</h4>
+                     <Search length={pastReplays.length} type="pastRSearch" update={this.updateSearch}/>
                      <div className="myCRT-overflow-col">
-                     {pastReplays.length ? pastReplays : <p className="myCRT-empty-col">
-                            No past replays exist</p>}
+                     {pastReplays.length ? <Pagination
+                        list={pastReplays.filter(this.filterSearch(this.state.pastRSearch))}
+                        limit={4}/> :
+                        <p className="myCRT-empty-col">No past replays exist</p>}
                     </div>
                      <br></br>
                   </div>
@@ -234,4 +268,4 @@ class DashboardApp extends React.Component<any, any> {
    }
 }
 
-ReactDom.render(<DashboardApp />, document.getElementById('dashboard-app'));
+ReactDom.render(<ErrorBoundary><DashboardApp /></ErrorBoundary>, document.getElementById('dashboard-app'));

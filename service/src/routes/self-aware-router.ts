@@ -1,4 +1,4 @@
-import { Request, RequestHandler, Response, Router } from 'express';
+import { NextFunction, Request, RequestHandler, Response, Router } from 'express';
 import http = require('http-status-codes');
 import * as joi from 'joi';
 
@@ -15,8 +15,15 @@ export default abstract class SelfAwareRouter {
    public abstract urlPrefix: string;
    public readonly router: Router;
 
-   public constructor(protected ipcNode: ServerIpcNode) {
+   public constructor(protected ipcNode: ServerIpcNode, middlewares?: RequestHandler[]) {
       this.router = Router();
+
+      if (middlewares) {
+         for (const middleware of middlewares) {
+            this.router.use(middleware);
+         }
+      }
+
       this.mountRoutes();
    }
 
@@ -25,7 +32,11 @@ export default abstract class SelfAwareRouter {
    protected handleHttpErrors(handler: RequestHandler): RequestHandler {
       return async (request, response, next) => {
 
-         [['params', request.params], ['query ', request.query], ['body  ', request.body]].forEach((value) => {
+         [
+            ['params', request.params],
+            ['query ', request.query],
+            ['body  ', request.body],
+         ].forEach((value) => {
             if (Object.keys(value[1]).length) {
                logger.info("request." + value[0] + " = " + JSON.stringify(value[1]));
             }

@@ -31,13 +31,53 @@ $secondary-success: #24e3be;
     margin-bottom: 20px;
 }
 
+.myCRT-dropdown {
+   overflow-y: scroll;
+   max-height: 170px;
+}
+
 .myCRT-overflow-col {
-    overflow-y: scroll;
-    max-height: 800px;
+    overflow-x: hidden;
+    max-height: 1200px;
     background-color: #ecf0f1;
     border-radius: 20px;
     border: 1px solid #dee2e6;
     padding: 0px 20px 20px;
+}
+
+.myCRT-search {
+   display: inline;
+}
+
+.search-box {
+   float: right;
+   -webkit-transition: width 0.4s ease-in-out;
+   transition: width 0.4s ease-in-out;
+   width: 0%;
+   padding: 0.375rem 0rem;
+   margin: 0;
+   border: none;
+   border-bottom: 1px solid #95a5a6;
+}
+
+.search-box:focus {
+   outline: none;
+}
+
+input:focus {
+   outline:none;
+   -webkit-box-shadow: none !important;
+   -moz-box-shadow: none !important;
+   box-shadow: none !important;
+}
+
+.search-icon {
+   float: right;
+   padding-left: 4px;
+}
+
+.input-group>.form-control {
+   width: 0%;
 }
 
 .myCRT-empty-col {
@@ -153,4 +193,8 @@ p {
 
 .hidden {
     display: none;
+}
+
+.invisible {
+   visibility: hidden;
 }

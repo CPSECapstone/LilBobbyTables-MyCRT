@@ -2,13 +2,14 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
-import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, Logging,
-   MetricType } from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList,
+   Logging, MetricType, ServerIpcNode} from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
-
 import { Template } from '@lbt-mycrt/gui/dist/main';
+
+import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startCapture } from '../common/launching';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
@@ -20,6 +21,12 @@ import SelfAwareRouter from './self-aware-router';
 export default class CaptureRouter extends SelfAwareRouter {
    public name: string = 'capture';
    public urlPrefix: string = '/captures';
+
+   constructor(ipcNode: ServerIpcNode) {
+      super(ipcNode, [
+         session.loggedInOrForbidden,
+      ]);
+   }
 
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
