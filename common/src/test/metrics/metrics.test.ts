@@ -141,7 +141,7 @@ describe("CloudwatchMetricsBackend", () => {
             } as CloudWatch.GetMetricStatisticsOutput);
          });
 
-      await metrics.getMetricsForType(ReadThroughput, new Date(), new Date())
+      await metrics.getMetricsForType(FreeStorage, new Date(), new Date())
          .then((storageMetrics) => {
             expect(storageMetrics.label).to.equal(dummyFreeStorage.Label);
             expect(storageMetrics.dataPoints).to.deep.equal(dummyFreeStorage.Datapoints);
