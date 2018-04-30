@@ -178,7 +178,7 @@ class MyCrtService {
       this.express!.use(bodyParser.json());
 
       // user session management
-      this.express!.use(session.Session.sessionMiddleware);
+      this.express!.use(session.sessionMiddleware);
    }
 
    private mountApiRoutes(): void {

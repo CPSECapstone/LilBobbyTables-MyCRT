@@ -122,74 +122,80 @@ export default class CaptureRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.post('/', check.validBody(schema.captureBody), this.handleHttpErrors(async (request, response) => {
-         const initialStatus: string | undefined = request.body.status;
-         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
-         let endTime: Date | undefined;
+      this.router.post('/',
+         check.validBody(schema.captureBody),
+         this.handleHttpErrors(async (request, response) => {
 
-         const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
-         if (capWithSameName !== null) {
-            throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
-         }
+            const initialStatus: string | undefined = request.body.status;
+            let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+            let endTime: Date | undefined;
 
-         if (!inputTime) {
-            inputTime = new Date();
-         }
+            const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
+            if (capWithSameName !== null) {
+               throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
+            }
 
-         const duration = request.body.duration;
+            if (!inputTime) {
+               inputTime = new Date();
+            }
 
-         if (duration && duration < 60) {
-            throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
-         }
+            const duration = request.body.duration;
 
-         if (duration) {
-            endTime = this.createEndDate(inputTime, duration);
-         }
+            if (duration && duration < 60) {
+               throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
+            }
 
-         const env = await environmentDao.getEnvironment(request.body.envId);
-         if (!env) {
-            throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
-         }
+            if (duration) {
+               endTime = this.createEndDate(inputTime, duration);
+            }
 
-         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
-            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
-         }
+            const env = await environmentDao.getEnvironment(request.body.envId);
+            if (!env) {
+               throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
+            }
 
-         let captureTemplate: ICapture | null = {
-            type: ChildProgramType.CAPTURE,
+            if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+               throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
+            }
+
+            // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
+            let captureTemplate: ICapture | null = {
+               type: ChildProgramType.CAPTURE,
+               ownerId: request.user!.id,
                envId: env.id,
                status: initialStatus === ChildProgramStatus.SCHEDULED ?
                   ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
                name: request.body.name,
                scheduledEnd: endTime,
-         };
+            };
 
-         // if status is scheduled, start at a scheduled time
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            captureTemplate.scheduledStart = inputTime;
-         }
+            // if status is scheduled, start at a scheduled time
+            if (initialStatus === ChildProgramStatus.SCHEDULED) {
+               captureTemplate.scheduledStart = inputTime;
+            }
 
-         // assign capture, insert into db
-         captureTemplate = await captureDao.makeCapture(captureTemplate);
+            // assign capture, insert into db
+            captureTemplate = await captureDao.makeCapture(captureTemplate);
 
-         if (captureTemplate === null) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
-         }
+            if (captureTemplate === null) {
+               throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
+            }
 
-         response.json(captureTemplate);
+            response.json(captureTemplate);
 
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
-         } else {
-            startCapture(captureTemplate);
-         }
+            if (initialStatus === ChildProgramStatus.SCHEDULED) {
+               schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
+            } else {
+               startCapture(captureTemplate);
+            }
 
-         logger.info(`Successfully created capture!`);
+            logger.info(`Successfully created capture!`);
 
-         if (duration) {
-            schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
-         }
-      }));
+            if (duration) {
+               schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
+            }
+         },
+      ));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             check.validQuery(schema.deleteLogsQuery),

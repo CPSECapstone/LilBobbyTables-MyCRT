@@ -172,6 +172,11 @@ export class MyCrtClient {
       return this.makeRequest<IUser>(HttpMethod.POST, '/users/login', null, user);
    }
 
+   /** Get info about the current user */
+   public async aboutMe(): Promise<IUser | null> {
+      return this.makeRequest<IUser>(HttpMethod.GET, '/users/me', null);
+   }
+
    /** Logout */
    public async logout(): Promise<void | null> {
       return this.makeRequest<any>(HttpMethod.PUT, '/users/logout');
@@ -195,6 +200,7 @@ export class MyCrtClient {
          credentials: 'include',
          method,
       };
+      // this.delegate.logger.info(`options: ${JSON.stringify(options)}`);
 
       const response = await this.delegate.fetch(fullUrl, options).catch(this.delegate.onError);
 

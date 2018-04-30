@@ -52,6 +52,7 @@ export class ReplayDao extends Dao {
    public async makeReplay(replay: data.IReplay): Promise<data.IReplay | null> {
       const result = await this.query<any>('INSERT INTO Replay SET ?', {
          name: replay.name,
+         ownerId: replay.ownerId,
          status: replay.status,
          captureId: replay.captureId,
          dbId: replay.dbId,

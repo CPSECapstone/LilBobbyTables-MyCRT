@@ -1,9 +1,9 @@
-import { ISession } from './session';
+import { IUser } from '@lbt-mycrt/common';
 
 declare global {
    namespace Express {
       export interface Request {
-         session?: ISession;
+         user?: IUser;
       }
    }
 }

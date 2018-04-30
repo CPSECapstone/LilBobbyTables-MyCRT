@@ -88,53 +88,58 @@ export default class ReplayRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
-         const cap = await captureDao.getCapture(request.body.captureId);
-         if (cap == null) {
-               throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
-         }
+      this.router.post('/',
+         check.validBody(schema.replayBody),
+         this.handleHttpErrors(async (request, response) => {
 
-         let dbReference: IDbReference = {
-            name: request.body.dbName,
-            host: request.body.host,
-            user: request.body.user,
-            pass: request.body.pass,
-            instance: request.body.instance,
-            parameterGroup: request.body.parameterGroup,
-         };
+            const cap = await captureDao.getCapture(request.body.captureId);
+            if (cap == null) {
+                  throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
+            }
 
-         const db = await environmentDao.makeDbReference(dbReference);
-         if (db && !db.id) {
-            throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
-         }
+            let dbReference: IDbReference = {
+               name: request.body.dbName,
+               host: request.body.host,
+               user: request.body.user,
+               pass: request.body.pass,
+               instance: request.body.instance,
+               parameterGroup: request.body.parameterGroup,
+            };
 
-         if (db) {
-            dbReference = db;
-         }
+            const db = await environmentDao.makeDbReference(dbReference);
+            if (db && !db.id) {
+               throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
+            }
 
-         const replayTemplate: IReplay = {
-            name: request.body.name,
-            captureId: request.body.captureId,
-            dbId: dbReference.id!,
-            type: ChildProgramType.REPLAY,
-            status: ChildProgramStatus.STARTED, // no scheduled replays yet
-         };
+            if (db) {
+               dbReference = db;
+            }
 
-         const replay = await replayDao.makeReplay(replayTemplate);
+            const replayTemplate: IReplay = {
+               name: request.body.name,
+               ownerId: request.user!.id,
+               captureId: request.body.captureId,
+               dbId: dbReference.id!,
+               type: ChildProgramType.REPLAY,
+               status: ChildProgramStatus.STARTED, // no scheduled replays yet
+            };
 
-         logger.info(`Launching replay with id ${replay!.id!} for capture ${replay!.captureId!}`);
-         const config = new ReplayConfig(replay!.id!, replay!.captureId!, replay!.dbId!);
-         config.mock = settings.replays.mock;
-         config.interval = settings.replays.interval;
-         config.intervalOverlap = settings.replays.intervalOverlap;
-         config.metricsDelay = settings.replays.metricsDelay;
-         config.filePrepDelay = settings.replays.filePrepDelay;
+            const replay = await replayDao.makeReplay(replayTemplate);
 
-         launch(config);
-         response.json(replay);
-         logger.info(`Successfully created replay!`);
+            logger.info(`Launching replay with id ${replay!.id!} for capture ${replay!.captureId!}`);
+            const config = new ReplayConfig(replay!.id!, replay!.captureId!, replay!.dbId!);
+            config.mock = settings.replays.mock;
+            config.interval = settings.replays.interval;
+            config.intervalOverlap = settings.replays.intervalOverlap;
+            config.metricsDelay = settings.replays.metricsDelay;
+            config.filePrepDelay = settings.replays.filePrepDelay;
 
-      }));
+            launch(config);
+            response.json(replay);
+            logger.info(`Successfully created replay!`);
+
+         },
+      ));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {

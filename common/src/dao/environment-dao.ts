@@ -13,13 +13,19 @@ const logger = Logging.defaultLogger(__dirname);
 
 export class EnvironmentDao extends Dao {
 
-   public async getAllEnvironments(): Promise<data.IEnvironment[]> {
-      const environmentRows = await this.query<any[]>('SELECT * FROM Environment', []);
+   public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironment[]> {
+      const environmentRows = user ?
+         await this.query<any[]>('SELECT * FROM Environment WHERE ownerId = ?', [user.id]) :
+         await this.query<any[]>('SELECT * FROM Environment', [])
+      ;
       return environmentRows.map(this.rowToIEnvironment);
    }
 
-   public async getEnvironmentByName(name: string): Promise<data.IEnvironment | null> {
-      const rows = await this.query<any[]>('SELECT * FROM Environment WHERE name = ?', [name]);
+   public async getEnvironmentByName(name: string, user?: data.IUser): Promise<data.IEnvironment | null> {
+      const rows = user ?
+         await this.query<any[]>('SELECT * FROM Environment WHERE name = ? AND ownerId = ?', [name, user.id]) :
+         await this.query<any[]>('SELECT * FROM Environment WHERE name = ?', [name])
+      ;
       if (rows.length === 0) {
          return null;
       }
@@ -35,7 +41,8 @@ export class EnvironmentDao extends Dao {
    }
 
    public async getEnvironmentFull(id: number): Promise<data.IEnvironmentFull | null> {
-      const queryStr = 'SELECT e.name AS envName, d.name AS dbName, host, user, pass, instance, ' +
+      const queryStr = 'SELECT e.name AS envName, e.ownerId AS ownerId, d.name AS dbName, host, ' +
+         'user, pass, instance, ' +
          'parameterGroup, bucket, accessKey, secretKey, region ' +
          'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ' +
          'JOIN S3Reference AS s ON e.S3Id = s.id JOIN IAMReference AS i ON e.iamId = i.id ' +
@@ -138,6 +145,7 @@ export class EnvironmentDao extends Dao {
       return {
          id: row.id,
          envName: row.envName,
+         ownerId: row.ownerId,
          accessKey: cryptr.decrypt(row.accessKey),
          secretKey: cryptr.decrypt(row.secretKey),
          region: row.region,
