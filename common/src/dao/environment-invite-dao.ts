@@ -7,6 +7,8 @@ import { Dao } from './dao';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
+const logger = defaultLogger(__dirname);
+
 export interface IEnvironmentMember {
    userId: number;
    email: string;
@@ -56,14 +58,6 @@ export class EnvironmentInviteDao extends Dao {
       return;
    }
 
-   public async getUserMemberships(environment: IEnvironment):
-         Promise<IEnvironmentMember[] | null> {
-
-      // TODO
-
-      return null;
-   }
-
    public async getUserMembership(user: IUser, environment: IEnvironment):
          Promise<IEnvironmentMember> {
 
@@ -72,6 +66,7 @@ export class EnvironmentInviteDao extends Dao {
 
       // If the user created the environment
       if (environment.ownerId === user.id) {
+         logger.info('User owns the environment');
          isMember = true;
          isAdmin = true;
 
@@ -79,10 +74,13 @@ export class EnvironmentInviteDao extends Dao {
          // otherwise, they were added through invite
          const query = 'SELECT userId, isAdmin FROM EnvironmentUser WHERE userId = ? '
             + 'AND environmentId = ? AND accepted = 1';
-         const rows = await this.query<any[]>(query, [user.id]);
+         const rows = await this.query<any[]>(query, [user.id, environment.id]);
          if (rows.length > 0) {
+            logger.info("Found an invite");
             isMember = true;
             isAdmin = !!(rows[0].isAdmin);
+         } else {
+            logger.info("No membership");
          }
       }
 
@@ -93,6 +91,24 @@ export class EnvironmentInviteDao extends Dao {
          isAdmin,
       };
 
+   }
+
+   public async getAllEnvironmentsWithMembership(user: IUser): Promise<IEnvironment[]> {
+
+      // get owned environments
+      const owned = await this.query<any[]>('SELECT * FROM Environment WHERE ownerId = ?',
+         [user.id]);
+
+      // get invited environments
+      const invited = await this.query<any[]>(
+         'SELECT e.* FROM Environment as e JOIN EnvironmentUser as eu ON e.id = eu.environmentId '
+         + 'WHERE eu.accepted = 1 AND eu.userId = ?', [user.id]);
+
+      return owned.concat(invited).map(this.rowtoIEnvironment);
+   }
+
+   private rowtoIEnvironment(row: any): IEnvironment {
+      return {...row};
    }
 
    private rowToInvite(row: any) {
