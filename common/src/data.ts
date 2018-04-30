@@ -16,6 +16,9 @@ export interface IEnvironmentUser {
    environmentId?: number;
    userId?: number;
    isAdmin?: boolean;
+   inviteCode?: string;
+   accepted?: boolean;
+   createdAt?: number;
 }
 
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
