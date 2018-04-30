@@ -65,7 +65,8 @@ CREATE TABLE DBReference (
 
 CREATE TABLE S3Reference (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-   bucket VARCHAR(32)
+   bucket VARCHAR(32),
+   prefix VARCHAR(32)
 );
 
 CREATE TABLE Capture (

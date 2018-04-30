@@ -1,3 +1,4 @@
+import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 
 import { ChildProgramStatus, ChildProgramType, IDbReference, IReplay,
@@ -142,13 +143,33 @@ export default class ReplayRouter extends SelfAwareRouter {
       ));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
+         const deleteLogs: boolean | undefined = request.query.deleteLogs;
          const replay = await replayDao.deleteReplay(id);
          if (!replay) {
             throw new HttpError(http.NOT_FOUND);
          }
+
+         if (deleteLogs === true && replay && replay.envId) {
+            const env = await environmentDao.getEnvironmentFull(replay.envId);
+
+            if (env) {
+               /* TODO: Replace with S3StorageBackend object in the Replay Object */
+               const storage = new S3Backend(
+                     new S3({region: env.region,
+                        accessKeyId: env.accessKey,
+                        secretAccessKey: env.secretKey}),
+                     env.bucket, env.prefix,
+                  );
+
+               const key = "replay" + id + "/";
+               await storage.deletePrefix(key);
+            }
+         }
+
          response.json(replay);
 
       }));

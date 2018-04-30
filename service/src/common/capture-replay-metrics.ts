@@ -40,7 +40,7 @@ export const getMetrics = (childProgram: IChildProgram, environment: IEnvironmen
          accessKeyId: environment.accessKey,
          secretAccessKey: environment.secretKey,
       };
-      backend = new S3Backend(new S3(awsConfig), environment.bucket);
+      backend = new S3Backend(new S3(awsConfig), environment.bucket, environment.prefix);
    }
    const storage = new MetricsStorage(backend);
 

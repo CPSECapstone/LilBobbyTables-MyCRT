@@ -219,7 +219,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                      new S3({region: env.region,
                         accessKeyId: env.accessKey,
                         secretAccessKey: env.secretKey}),
-                     env.bucket,
+                     env.bucket, env.prefix,
                   );
 
                const key = "capture" + id + "/";

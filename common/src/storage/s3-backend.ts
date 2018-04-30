@@ -7,7 +7,7 @@ import { StorageBackend } from './backend';
 const logger = Logging.defaultLogger(__dirname);
 
 export class S3Backend extends StorageBackend {
-   constructor(private s3: S3, private bucket: string) {
+   constructor(private s3: S3, private bucket: string, private prefix: string) {
       super();
    }
 

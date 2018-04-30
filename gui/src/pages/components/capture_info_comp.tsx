@@ -42,7 +42,7 @@ export class CaptureInfo extends React.Component<any, any>  {
                   <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
                      <h5>S3 File Storage:</h5>
                      <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.props.env.bucket}</label><br/>
-                     <label><b>&nbsp;&nbsp;&nbsp;Folder: </b>{"capture" + this.props.capture.id}</label><br/><br/>
+                     <label><b>&nbsp;&nbsp;&nbsp;Prefix: </b>{this.props.env.prefix}</label><br/><br/>
                   </div>
                </div>
             </div>

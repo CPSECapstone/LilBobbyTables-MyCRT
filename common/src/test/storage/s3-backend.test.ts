@@ -34,7 +34,7 @@ describe("S3Backend", () => {
             callback();
          });
 
-      backend = new S3Backend(s3, 'lil-test-environment');
+      backend = new S3Backend(s3, 'lil-test-environment', 'lil-prefix');
    });
 
    it("should know if a file exists", async () => {

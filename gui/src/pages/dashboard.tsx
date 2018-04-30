@@ -172,6 +172,7 @@ class DashboardApp extends React.Component<any, any> {
                            <div className="col-xs-6" style={{padding: "20px 40px 0px"}}>
                               <h5>S3 File Storage:</h5>
                               <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label>
+                              <label><b>&nbsp;&nbsp;&nbsp;Prefix: </b>{this.state.env.prefix}</label>
                            </div>
                         </div>
                      </div>

@@ -26,6 +26,9 @@ export const value = {
    // https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html#bucketnamingrules
    bucket: joi.string().regex(/^[a-z0-9][a-z0-9\.\-]{1,61}[a-z0-9]$/),
 
+   /** An S3 bucket prefix */
+   prefix: joi.string().regex(/^[a-zA-Z0-9 :_\-]{4,}$/),
+
    /** A database name */
    // https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
    dbName: joi.string().regex(/^[0-9a-zA-Z\$_]+$/).max(64),

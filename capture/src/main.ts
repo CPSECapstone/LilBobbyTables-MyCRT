@@ -57,7 +57,7 @@ async function runCapture(): Promise<void> {
    if (env) {
       const buildCapture = (): Capture => {
          const awsConfig = {region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey};
-         const storage = new S3Backend(new S3(awsConfig), env.bucket);
+         const storage = new S3Backend(new S3(awsConfig), env.bucket, env.prefix);
          const metrics = new CloudWatchMetricsBackend(new CloudWatch(awsConfig), DBIdentifier, env.instance, period,
             statistics);
          const workloadLogger: WorkloadLogger = new AwsWorkloadLogger(ChildProgramType.CAPTURE, config.id,

@@ -91,6 +91,7 @@ export interface IEnvironmentFull {
    instance: string;
    parameterGroup: string;
    bucket: string;
+   prefix: string;
 }
 
 /** IAM Profile */
@@ -116,6 +117,7 @@ export interface IDbReference {
 export interface IS3Reference {
    id?: number;
    bucket?: string;
+   prefix?: string;
 }
 
 /** Commands in a Workload */
