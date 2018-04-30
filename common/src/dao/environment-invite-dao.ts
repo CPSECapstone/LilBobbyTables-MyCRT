@@ -60,29 +60,39 @@ export class EnvironmentInviteDao extends Dao {
          Promise<IEnvironmentMember[] | null> {
 
       // TODO
-      // get a list of all users who are either the nvironment owner
-      // or have accepted an invite to the environment.
 
-      throw new Error("NOT IMPLEMENTED");
-
-      // return null;
+      return null;
    }
 
    public async getUserMembership(user: IUser, environment: IEnvironment):
          Promise<IEnvironmentMember> {
 
-      // TODO
-      // determine whether or not a user belongs to an environment and if they have the
-      // correct admin privileges
+      let isMember = false;
+      let isAdmin = false;
 
-      throw new Error("NOT IMPLEMENTED");
+      // If the user created the environment
+      if (environment.ownerId === user.id) {
+         isMember = true;
+         isAdmin = true;
 
-      // return {
-      //    userId: user.id!,
-      //    email: user.email!,
-      //    isMember: false,
-      //    isAdmin: false,
-      // };
+      } else {
+         // otherwise, they were added through invite
+         const query = 'SELECT userId, isAdmin FROM EnvironmentUser WHERE userId = ? '
+            + 'AND environmentId = ? AND accepted = 1';
+         const rows = await this.query<any[]>(query, [user.id]);
+         if (rows.length > 0) {
+            isMember = true;
+            isAdmin = !!(rows[0].isAdmin);
+         }
+      }
+
+      return {
+         userId: user.id!,
+         email: user.email!,
+         isMember,
+         isAdmin,
+      };
+
    }
 
    private rowToInvite(row: any) {
