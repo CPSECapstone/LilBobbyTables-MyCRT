@@ -135,9 +135,9 @@ export interface IWorkload {
 }
 
 /** The type of data */
-export enum MetricType { CPU = "CPU Utilization", WRITE = "Write IOPS", READ = "Read IOPS", MEMORY = "Freeable Memory",
-                         FREESTORAGE = "Free Storage", READTHROUGHPUT = "Read Throughput",
-                         WRITETHROUGHPUT = "Write Throughput",
+export enum MetricType { CPU = "CPU UTILIZATION", WRITE = "WRITE IOPS", READ = "READ IOPS", MEMORY = "FREEABLE MEMORY",
+                         FREESTORAGE = "FREE STORAGE", READTHROUGHPUT = "READ THROUGHPUT",
+                         WRITETHROUGHPUT = "WRITE THROUGHPUT",
                        }
 
 /** Interface for a single metric measurement */
