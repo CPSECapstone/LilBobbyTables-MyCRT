@@ -27,7 +27,7 @@ export async function createActiveSession(user: IUser, response?: Response): Pro
    }
 
    logger.info(`Creating new session for user ${user.id}`);
-   const newToken = crypto.randomBytes(32).toString('hex');
+   const newToken = crypto.randomBytes(16).toString('hex');
    logger.info(`  ${sessionTokenName}: ${newToken}`);
 
    await sessionDao.beginSession(user, newToken);

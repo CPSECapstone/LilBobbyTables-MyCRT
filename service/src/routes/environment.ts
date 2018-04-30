@@ -10,6 +10,7 @@ import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/environment-schema';
+import InviteRouter from './environment-invite';
 import SelfAwareRouter from './self-aware-router';
 
 export default class EnvironmentRouter extends SelfAwareRouter {
@@ -141,5 +142,9 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          response.json(environment);
 
       }));
+
+      // invites
+      const inviteRouter = new InviteRouter(this.ipcNode);
+      this.router.use(inviteRouter.urlPrefix, inviteRouter.router);
    }
 }
