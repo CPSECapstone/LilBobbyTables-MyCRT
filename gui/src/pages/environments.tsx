@@ -6,7 +6,7 @@ import React = require('react');
 import ReactDom = require('react-dom');
 
 import { BrowserLogger as logger } from './../logging';
-
+import { BasePage } from './components/base_page_comp';
 import { EnvironmentPanel } from './components/env_panel_comp';
 import { EnvModal } from './components/environment_modal_comp';
 import { Pagination } from './components/pagination_comp';
@@ -88,4 +88,4 @@ class EnvironmentsApp extends React.Component<any, any> {
   }
 }
 
-ReactDom.render(<EnvironmentsApp />, document.getElementById('environments-app'));
+ReactDom.render(<BasePage page={<EnvironmentsApp />}/>, document.getElementById('environments-app'));

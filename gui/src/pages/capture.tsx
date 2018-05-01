@@ -10,6 +10,7 @@ import { ChildProgramStatus, IChildProgram, IMetricsList, IReplay, MetricType } 
 import { BrowserLogger as logger } from './../logging';
 import { mycrt } from './utils/mycrt-client';
 
+import { BasePage } from './components/base_page_comp';
 import { Breadcrumbs } from './components/breadcrumbs_comp';
 import { CaptureInfo } from './components/capture_info_comp';
 import { ChartTypeCheck } from './components/chart_type_checkbox_comp';
@@ -310,4 +311,4 @@ class CaptureApp extends React.Component<any, any> {
 
 }
 
-ReactDom.render(<CaptureApp />, document.getElementById('capture-app'));
+ReactDom.render(<BasePage page={<CaptureApp />}/>, document.getElementById('capture-app'));

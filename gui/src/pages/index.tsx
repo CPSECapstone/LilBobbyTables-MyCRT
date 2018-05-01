@@ -7,6 +7,7 @@ import { BrowserLogger as logger } from '../logging';
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { BasePage } from './components/base_page_comp';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 const IndexApp = () => {
@@ -21,4 +22,4 @@ const IndexApp = () => {
     );
  };
 
-ReactDom.render(<IndexApp />, document.getElementById('index-app'));
+ReactDom.render(<BasePage page={<IndexApp />}/>, document.getElementById('index-app'));
