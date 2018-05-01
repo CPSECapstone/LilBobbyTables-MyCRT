@@ -17,7 +17,7 @@ export class S3Backend extends StorageBackend {
 
       const params: S3.HeadObjectRequest = {
          Bucket: this.bucket,
-         Key: key,
+         Key: (this.prefix != null ? this.prefix + "/" + key : key),
       };
 
       return new Promise<boolean>((resolve, reject) => {
@@ -34,7 +34,12 @@ export class S3Backend extends StorageBackend {
    }
 
    public async allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
+      if (this.prefix != null) {
+         dirPrefix = this.prefix + "/" + dirPrefix;
+      }
+
       const keys = await this.listObjects(dirPrefix);
+      logger.info(`in allMatching and keys returned are ${keys}`);
       const result: string[] = [];
       keys.forEach((key) => {
          const check = key.substring(dirPrefix.length);
@@ -46,6 +51,12 @@ export class S3Backend extends StorageBackend {
    }
 
    public async readJson<T>(key: string): Promise<T> {
+
+      if (key.lastIndexOf(this.prefix, 0) !== 0) {
+         key = (this.prefix != null ? this.prefix + "/" + key : key);
+      }
+
+      logger.info(`in readJson, key is ${key}`);
 
       const params: S3.GetObjectRequest = {
          Bucket: this.bucket,
@@ -73,7 +84,7 @@ export class S3Backend extends StorageBackend {
       const params: S3.PutObjectRequest = {
          Body: Buffer.from(JSON.stringify(value)),
          Bucket: this.bucket,
-         Key: key,
+         Key: (this.prefix != null ? this.prefix + "/" + key : key),
       };
 
       return new Promise<void>((resolve, reject) => {
@@ -94,7 +105,7 @@ export class S3Backend extends StorageBackend {
 
       const params: S3.DeleteObjectRequest = {
          Bucket: this.bucket,
-         Key: key,
+         Key: (this.prefix != null ? this.prefix + "/" + key : key),
       };
 
       return new Promise<void>((resolve, reject) => {
@@ -112,11 +123,16 @@ export class S3Backend extends StorageBackend {
    }
 
    public async deletePrefix(dirPrefix: string): Promise<void> {
-      const keys = await this.listObjects(dirPrefix);
+      if (this.prefix != null) {
+         dirPrefix = this.prefix + "/" + dirPrefix;
+      }
+      const keys = await this.listObjects(dirPrefix + "/");
       keys.forEach(async (key) => await this.deleteJson(key));
    }
 
    private async listObjects(prefix?: string): Promise<string[]> {
+      logger.info(`in listobjects and the prefix is ${prefix}`);
+
       const params: S3.ListObjectsRequest = {
          Bucket: this.bucket,
          Prefix: prefix,

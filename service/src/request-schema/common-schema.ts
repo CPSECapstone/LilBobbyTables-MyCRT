@@ -29,7 +29,8 @@ export const value = {
    bucket: joi.string().regex(/^[a-z0-9][a-z0-9\.\-]{1,61}[a-z0-9]$/),
 
    /** An S3 bucket prefix */
-   prefix: joi.string().regex(/^[a-zA-Z0-9 :_\-]{4,}$/),
+   // TODO: Figure out the right regex for this (just used a random one for now)
+   prefix: joi.string().allow(""),
 
    /** A database name */
    // https://dev.mysql.com/doc/refman/5.7/en/identifiers.html

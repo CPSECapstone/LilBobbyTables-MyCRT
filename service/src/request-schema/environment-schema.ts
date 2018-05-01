@@ -8,7 +8,7 @@ export const environmentBody: joi.ObjectSchema = joi.object().keys({
    secretKey: value.secretKey.required(),
    region: value.region.required(),
    bucket: value.bucket.required(),
-   prefix: value.prefix.required(),
+   prefix: value.prefix.optional(),
    dbName: value.dbName.required(),
    host: value.host.required(),
    user: value.user.required(),

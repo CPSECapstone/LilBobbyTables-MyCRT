@@ -57,6 +57,7 @@ export interface IReplay extends IChildProgram {
    type: ChildProgramType.REPLAY;
    captureId?: number;
    dbId?: number;
+   envId?: number;
 }
 
 export interface IReplayFull extends IChildProgram {

@@ -165,8 +165,7 @@ export default class ReplayRouter extends SelfAwareRouter {
                      env.bucket, env.prefix,
                   );
 
-               const key = "replay" + id + "/";
-               await storage.deletePrefix(key);
+               await storage.deletePrefix("replay" + id);
             }
          }
 

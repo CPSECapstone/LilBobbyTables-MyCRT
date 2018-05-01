@@ -148,7 +148,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
                   env.bucket, env.prefix,
                );
 
-               await storage.deletePrefix(env.prefix);
+               await storage.deletePrefix("");
             }
          }
 

@@ -23,8 +23,8 @@ export class EnvModal extends React.Component<any, any>  {
         this.cancelModal = this.cancelModal.bind(this);
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
-                      dbName: "", pass: "", bucket: "", prefix: "", dbRefs: [], invalidDBPass: false, modalPage: '1',
-                      envNameDuplicate: false,
+                      dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
+                      modalPage: '1', envNameDuplicate: false,
                       disabled: true, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid'};
         this.baseState = this.state;
     }

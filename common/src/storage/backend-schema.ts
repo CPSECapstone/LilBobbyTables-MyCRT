@@ -1,4 +1,5 @@
 import { ChildProgramType, IChildProgram } from '../data';
+import { defaultLogger } from '../logging';
 
 const childProcessTypeToString = (type?: ChildProgramType): string => {
    if (!type) {
@@ -11,7 +12,9 @@ const childProcessTypeToString = (type?: ChildProgramType): string => {
  * Get the root prefix for a child program.
  */
 const getRootPrefix = (childProgram: IChildProgram): string => {
-   return `${childProcessTypeToString(childProgram.type)}${childProgram.id}/`;
+   const logger = defaultLogger(__dirname);
+   logger.info(`child program for root prefix is: ${childProgram}`);
+   return `environment${childProgram.envId}/${childProcessTypeToString(childProgram.type)}${childProgram.id}/`;
 };
 
 /**
