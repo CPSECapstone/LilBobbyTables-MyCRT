@@ -9,7 +9,9 @@ export const value = {
    nameString: joi.string().regex(/^[a-zA-Z0-9 :_\-]{4,}$/),
 
    /** A string that, when converted to uppercase, matches a MetricType value */
-   metricType: joi.string().regex(/^(?:cpu|read|write|memory)?$/i).uppercase(),
+   metricType: joi.string()
+   .regex(/^(?:cpu utilization|read iops|write iops|freeable memory|read throughput|write throughput|free storage)?$/i)
+   .uppercase(),
 
    /** A string that can be used as an access key */
    // TODO: verify this pattern

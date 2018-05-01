@@ -39,22 +39,22 @@ describe("idParams", () => {
 describe("metricTypeQuery", () => {
 
    it("should find the correct type", () => {
-      const cpu = {type: 'cpu'};
+      const cpu = {type: 'CPU Utilization'};
       let result = joi.validate(cpu, metricTypeQuery);
       expect(result.error).to.be.null;
       expect(result.value.type).to.equal(data.MetricType.CPU);
 
-      const read = {type: 'read'};
+      const read = {type: 'Read IOPS'};
       result = joi.validate(read, metricTypeQuery);
       expect(result.error).to.be.null;
       expect(result.value.type).to.equal(data.MetricType.READ);
 
-      const write = {type: 'write'};
+      const write = {type: 'Write IOPS'};
       result = joi.validate(write, metricTypeQuery);
       expect(result.error).to.be.null;
       expect(result.value.type).to.equal(data.MetricType.WRITE);
 
-      const memory = {type: 'memORY'};
+      const memory = {type: 'Freeable Memory'};
       result = joi.validate(memory, metricTypeQuery);
       expect(result.error).to.be.null;
       expect(result.value.type).to.equal(data.MetricType.MEMORY);

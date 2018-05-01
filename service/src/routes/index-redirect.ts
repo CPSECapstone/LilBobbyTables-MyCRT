@@ -4,13 +4,13 @@ import * as http from 'http-status-codes';
 import { Logging } from '@lbt-mycrt/common';
 import { Pages } from '@lbt-mycrt/gui';
 
-import { environmentDao } from '../dao/mycrt-dao';
+import { environmentInviteDao as inviteDao } from '../dao/mycrt-dao';
 
 const logger = Logging.defaultLogger(__dirname);
 
 export const indexRouteHandler = async (request: Request, response: Response) => {
 
-   const environments = await environmentDao.getAllEnvironments();
+   const environments = await inviteDao.getAllEnvironmentsWithMembership(request.user!);
    const doRedirect = environments.length > 0;
 
    if (doRedirect) {

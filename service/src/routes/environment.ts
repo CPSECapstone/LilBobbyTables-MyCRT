@@ -8,10 +8,11 @@ import * as data from '@lbt-mycrt/common/dist/data';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
 import * as session from '../auth/session';
-import { environmentDao } from '../dao/mycrt-dao';
+import { environmentDao, environmentInviteDao as inviteDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/environment-schema';
+import InviteRouter from './environment-invite';
 import SelfAwareRouter from './self-aware-router';
 
 export default class EnvironmentRouter extends SelfAwareRouter {
@@ -27,32 +28,47 @@ export default class EnvironmentRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', check.validQuery(schema.envNameQuery),
+      this.router.get('/',
+         check.validQuery(schema.envNameQuery),
          this.handleHttpErrors(async (request, response) => {
 
-         const envName = request.query.name;
-         let environments;
-         if (envName) {
-            environments = await environmentDao.getEnvironmentByName(envName, request.user);
-         } else {
-            environments = await environmentDao.getAllEnvironments(request.user);
-         }
+            const envName = request.query.name;
+            let environments;
+            if (envName) {
+               const env = await environmentDao.getEnvironmentByName(envName);
+               if (!env) {
+                  throw new HttpError(http.NOT_FOUND);
+               }
+               const membership = await inviteDao.getUserMembership(request.user!, env);
+               if (!membership.isMember) {
+                  throw new HttpError(http.NOT_FOUND);
+               }
+               environments = [env];
+            } else {
+               environments = await inviteDao.getAllEnvironmentsWithMembership(request.user!);
+            }
 
-         response.json(environments);
-      }));
+            response.json(environments);
+         },
+      ));
 
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
+         logger.info(`Getting environment ${id}`);
          const environment = await environmentDao.getEnvironmentFull(id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
          }
-         if (environment.ownerId !== request.user!.id) {
-            logger.info(`owner = ${environment!.ownerId}, user = ${request.user!.id}`);
+
+         logger.info(`Getting membership for user ${request.user!.id}`);
+         const membership = await inviteDao.getUserMembership(request.user!, environment);
+         if (!membership.isMember) {
+            logger.info(`User ${request.user!.id} is not a member of this environment`);
             throw new HttpError(http.NOT_FOUND);
          }
+
          response.json(environment);
 
       }));
@@ -144,5 +160,9 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          response.json(environment);
 
       }));
+
+      // invites
+      const inviteRouter = new InviteRouter(this.ipcNode);
+      this.router.use(inviteRouter.urlPrefix, inviteRouter.router);
    }
 }

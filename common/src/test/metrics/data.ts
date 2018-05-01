@@ -1,5 +1,13 @@
 import { IMetricsList, MetricType } from '../../data';
-import { CPUMetric, MemoryMetric, ReadMetric, WriteMetric } from '../../main';
+import { MetricsHash } from '../../main';
+
+const CPUMetric = MetricsHash[MetricType.CPU];
+const ReadMetric = MetricsHash[MetricType.READ];
+const WriteMetric = MetricsHash[MetricType.WRITE];
+const MemoryMetric = MetricsHash[MetricType.MEMORY];
+const WriteThroughput = MetricsHash[MetricType.WRITETHROUGHPUT];
+const ReadThroughput = MetricsHash[MetricType.READTHROUGHPUT];
+const FreeStorage = MetricsHash[MetricType.FREESTORAGE];
 
 export const dummyCPU = {
     Label: CPUMetric.metricName,
@@ -19,6 +27,21 @@ export const dummyRead = {
 export const dummyWrite = {
     Label: WriteMetric.metricName,
     Datapoints: [],
+};
+
+export const dummyReadThroughput = {
+   Label: ReadThroughput.metricName,
+   Datapoints: [],
+};
+
+export const dummyWriteThroughput = {
+   Label: WriteThroughput.metricName,
+   Datapoints: [],
+};
+
+export const dummyFreeStorage = {
+   Label: FreeStorage.metricName,
+   Datapoints: [],
 };
 
 export const time1 = "2018-01-30T02:44:00.000Z";

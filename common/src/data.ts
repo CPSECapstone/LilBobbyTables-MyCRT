@@ -16,6 +16,9 @@ export interface IEnvironmentUser {
    environmentId?: number;
    userId?: number;
    isAdmin?: boolean;
+   inviteCode?: string;
+   accepted?: boolean;
+   createdAt?: number;
 }
 
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
@@ -143,7 +146,10 @@ export interface IWorkload {
 }
 
 /** The type of data */
-export enum MetricType { CPU = "CPU", WRITE = "WRITE", READ = "READ", MEMORY = "MEMORY" }
+export enum MetricType { CPU = "CPU UTILIZATION", WRITE = "WRITE IOPS", READ = "READ IOPS", MEMORY = "FREEABLE MEMORY",
+                         FREESTORAGE = "FREE STORAGE", READTHROUGHPUT = "READ THROUGHPUT",
+                         WRITETHROUGHPUT = "WRITE THROUGHPUT",
+                       }
 
 /** Interface for a single metric measurement */
 export interface IMetric {

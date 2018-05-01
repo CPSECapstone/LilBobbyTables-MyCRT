@@ -29,8 +29,8 @@ export const environmentTests = (mycrt: MyCrtServiceTestClient) => function() {
    });
 
    it("should get all environments", async function() {
-      const responsePost1 = await mycrt.post(http.OK, '/api/environments/', newEnvBody);
-      const responsePost2 = await mycrt.post(http.OK, '/api/environments/', newEnvBody2);
+      const responsePost1 = await mycrt.post(http.OK, '/api/environments', newEnvBody);
+      const responsePost2 = await mycrt.post(http.OK, '/api/environments', newEnvBody2);
       const response = await mycrt.get(http.OK, '/api/environments');
       expect(response.body.length).to.equal(2);
    });
