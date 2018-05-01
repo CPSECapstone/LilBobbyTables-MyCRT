@@ -3,7 +3,7 @@ import * as joi from 'joi';
 import { value } from './common-schema';
 
 export const replayValue = {
-   status: joi.string().regex(/^(?:scheduled|starting|started)?$/i).uppercase(),
+   status: joi.string().regex(/^(?:scheduled)?$/i).uppercase(),
    timestamp: joi.date(),
    duration: joi.number(),
 };
