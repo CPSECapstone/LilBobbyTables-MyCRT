@@ -22,6 +22,12 @@ export default class AwsKeysRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
+      this.router.get('/', this.handleHttpErrors(async (request, response) => {
+
+         const keys = await environmentDao.getAllAwsKeys(request.user!);
+         response.json(keys);
+      }));
+
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 

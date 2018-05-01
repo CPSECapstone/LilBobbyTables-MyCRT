@@ -16,8 +16,7 @@ export class EnvironmentDao extends Dao {
    public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironment[]> {
       const environmentRows = user ?
          await this.query<any[]>('SELECT * FROM Environment WHERE ownerId = ?', [user.id]) :
-         await this.query<any[]>('SELECT * FROM Environment', [])
-      ;
+         await this.query<any[]>('SELECT * FROM Environment', []);
       return environmentRows.map(this.rowToIEnvironment);
    }
 
@@ -85,10 +84,17 @@ export class EnvironmentDao extends Dao {
       return this.query<any>('UPDATE Environment SET ? WHERE id = ?', [changes, id]);
    }
 
+   public async getAllAwsKeys(user?: data.IUser): Promise<data.IAwsKeys[]> {
+      const keysRows = user ?
+         await this.query<any[]>('SELECT * FROM AwsKeys WHERE userId = ?', [user.id]) :
+         await this.query<any[]>('SELECT * FROM AwsKeys', []);
+
+      return keysRows.map(this.rowToAwsKeys);
+   }
+
    public async getAwsKeys(id: number): Promise<data.IAwsKeys | null> {
       const rows = await this.query<any[]>('SELECT * FROM AwsKeys WHERE id = ?', [id]);
       return rows.length ? this.rowToAwsKeys(rows[0]) : null;
-
    }
 
    public async makeAwsKeys(awsKeys: data.IAwsKeys): Promise<data.IAwsKeys | null> {
@@ -167,6 +173,8 @@ export class EnvironmentDao extends Dao {
          accessKey: cryptr.decrypt(row.accessKey),
          secretKey: cryptr.decrypt(row.secretKey),
          region: row.region,
+         name: row.name,
+         userId: row.userId,
       };
    }
 
