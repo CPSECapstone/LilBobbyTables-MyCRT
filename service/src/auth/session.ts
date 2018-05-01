@@ -2,52 +2,35 @@ import * as crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import * as http from 'http-status-codes';
 
-import { IUser, Logging } from '@lbt-mycrt/common';
+import { ISession, IUser, Logging } from '@lbt-mycrt/common';
 
+import { sessionDao } from '../dao/mycrt-dao';
 import { settings } from '../settings';
 
 const logger = Logging.defaultLogger(__dirname);
 
-/** Session Configutation */
+/** Session Configuration */
 
 const sessionTokenName: string = settings.sessionTokenName || "MyCRTAuthToken";
 const sessionDuration: number = ((): number => {
    const setting = settings.sessionDuration;
-   if (typeof setting  === 'number' && setting > 0) {
+   if (typeof setting === 'number' && setting > 0) {
       return setting;
    }
    return 7200000;
 })();
 
-/** Store sessions here */
-
-export const sessions: {[key: string]: Session | undefined} = {};
-
-/** Manage a user's session */
-
-export interface ISession {
-   user: IUser;
-   loginTime: number;
-   lastUsed: number;
-}
-
-export function createActiveSession(user: IUser, response?: Response): [string, ISession] {
+export async function createActiveSession(user: IUser, response?: Response): Promise<string | null> {
 
    if (!user.id) {
       throw new Error("Cannot create an active session without a user id");
    }
 
-   for (const token in sessions) {
-      if (sessions[token] && sessions[token]!.user.id === user.id) {
-         sessions[token] = undefined;
-      }
-   }
-
    logger.info(`Creating new session for user ${user.id}`);
-   const session = new Session(user);
-   const newToken = crypto.randomBytes(32).toString('hex');
+   const newToken = crypto.randomBytes(16).toString('hex');
    logger.info(`  ${sessionTokenName}: ${newToken}`);
-   sessions[newToken] = session;
+
+   await sessionDao.beginSession(user, newToken);
 
    if (response) {
       response.cookie(sessionTokenName, newToken, {
@@ -56,99 +39,73 @@ export function createActiveSession(user: IUser, response?: Response): [string, 
       });
    }
 
-   return [newToken, session.snapshot()];
+   return newToken;
+
 }
 
-export function getSessionToken(request: Request): string | null {
+export function getSessionToken(request: Request): string | null | undefined {
    return request.cookies && request.cookies[sessionTokenName];
 }
 
-export function clearSession(request: Request, response: Response) {
+/** Middlewares */
+
+export async function sessionMiddleware(request: Request, response: Response, next: NextFunction) {
    const token = getSessionToken(request);
-   logger.info(`Clearing session "${token}"`);
+
    if (token) {
-      sessions[token] = undefined;
-   }
-   request.session = undefined;
-}
-
-export class Session {
-
-   /** A middleware to manage the session */
-   public static sessionMiddleware = function(request: Request, response: Response, next: NextFunction) {
-      const token = getSessionToken(request);
-      if (token) {
-         const thisSession = sessions[token];
-         if (thisSession) {
-            const now = new Date().getTime();
-            if (thisSession.lastUsed < now - sessionDuration) {
-               logger.info(`Session for user ${thisSession.user.id} expired`);
-               sessions[token] = undefined;
-            } else {
-               logger.info(`Found session for user ${thisSession.user.id}`);
-               thisSession.lastUsed = now;
-               request.session = thisSession.snapshot();
-            }
+      const user: IUser | null = await sessionDao.getUserWithToken(token);
+      if (user) {
+         const now = new Date().getTime();
+         const expired = !user.lastTokenCheck || user.lastTokenCheck! < now - sessionDuration;
+         if (expired) {
+            logger.info(`Session ${token} for user ${user.email} is not valid`);
+            await sessionDao.clearSession(user);
          } else {
-            logger.info(`Unknown token, removing session`);
-            clearSession(request, response);
+            logger.info(`Found session for user ${user.email}`);
+            const session: ISession | null = await sessionDao.updateSession(user);
+            if (!session) {
+               logger.warn(`Could not update the session`);
+            }
+            request.user = (await sessionDao.getUserWithToken(token))!;
          }
-      }
-      next();
-   };
-
-   /** A middleware to enforce that users are logged in */
-   public static getLoggedInMiddleware = (admin: boolean = false, redirect: boolean = false) =>
-         (request: Request, response: Response, next: NextFunction) => {
-
-      const forbiddenResponse = () => {
-         response.status(http.FORBIDDEN).json({
-            code: http.FORBIDDEN,
-            message: admin ? 'admin login required' : 'login required',
-         });
-      };
-
-      const redirectResponse = () => {
-         response.redirect(http.TEMPORARY_REDIRECT, '/login');
-      };
-
-      const handleNotLoggedIn = redirect ? redirectResponse : forbiddenResponse;
-
-      const resource = request.url;
-      if (!request.session) {
-         logger.warn(`Session required for resource ${resource} (admin needed? ${admin}`);
-         handleNotLoggedIn();
-      } else if (admin && !request.session.user.isAdmin) {
-         logger.warn(`Admin session required for resource ${resource}`);
-         handleNotLoggedIn();
       } else {
-         logger.info(`Granted permission to user ${request.session.user.id} `
-            + `for resource ${resource}`);
-         next();
+         logger.info(`Unknown session token`);
       }
-
    }
 
-   private loginTime: number;
-   private lastUsed: number;
-
-   constructor(public readonly user: IUser) {
-      const now = new Date().getTime();
-      this.loginTime = now;
-      this.lastUsed = now;
-   }
-
-   public snapshot(): ISession {
-      return {
-         user: this.user,
-         loginTime: this.loginTime,
-         lastUsed: this.lastUsed,
-      };
-   }
-
+   next();
 }
 
-export const adminLoggedIn = Session.getLoggedInMiddleware(true, true);
-export const loggedIn = Session.getLoggedInMiddleware(false, true);
-export const adminLoggedInOrForbidden = Session.getLoggedInMiddleware(true, false);
-export const loggedInOrForbidden = Session.getLoggedInMiddleware(false, false);
+declare type Gatekeeper = (resonse: Response, admin: boolean) => void;
+
+const forbidGatekeeper: Gatekeeper = (response: Response, admin: boolean) => {
+   response.status(http.FORBIDDEN).json({
+      code: http.FORBIDDEN,
+      message: admin ? 'admin login required' : 'login required',
+   });
+};
+
+const redirectGatekeeper: Gatekeeper = (response: Response) => {
+   response.redirect(http.TEMPORARY_REDIRECT, '/login');
+};
+
+const getLoggedInMiddleware = (admin: boolean, redirect: boolean) =>
+      (request: Request, response: Response, next: NextFunction) => {
+   const gatekeeper: Gatekeeper = redirect ? redirectGatekeeper : forbidGatekeeper;
+   const resource = request.originalUrl;
+   if (!request.user) {
+      logger.warn(`Session required for resource ${resource} (admin needed? ${admin}`);
+      gatekeeper(response, admin);
+   } else if (admin && !request.user.isAdmin) {
+      logger.warn(`Admin session required for resource ${resource}`);
+      gatekeeper(response, admin);
+   } else {
+      logger.info(`Granted permission to ${request.user.email} for resource ${resource}`);
+      next();
+   }
+};
+
+export const adminLoggedIn = getLoggedInMiddleware(true, true);
+export const loggedIn = getLoggedInMiddleware(false, true);
+export const adminLoggedInOrForbidden = getLoggedInMiddleware(true, false);
+export const loggedInOrForbidden = getLoggedInMiddleware(false, false);

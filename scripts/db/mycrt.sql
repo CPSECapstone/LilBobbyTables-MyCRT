@@ -7,6 +7,12 @@ CREATE TABLE User (
    email VARCHAR(256) NOT NULL,
    passwordHash VARCHAR(256) NOT NULL,
    isAdmin TINYINT(1) DEFAULT 0,
+
+   -- Session Stuff
+   sessionToken VARCHAR(32) DEFAULT NULL,
+   loginTime BIGINT(11) DEFAULT NULL,
+   lastTokenCheck BIGINT(11) DEFAULT NULL,
+
    CONSTRAINT userEmailUnique
       UNIQUE (email)
 );
@@ -26,9 +32,12 @@ CREATE TABLE Environment (
 
 CREATE TABLE EnvironmentUser (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-   environmentId INT(11) REFERENCES Environment(id),
-   userId INT(11) REFERENCES User(id),
+   environmentId INT(11) NOT NULL REFERENCES Environment(id),
+   userId INT(11) NOT NULL REFERENCES User(id),
    isAdmin TINYINT(1) DEFAULT 0,
+   inviteCode VARCHAR(8) NOT NULL,
+   accepted TINYINT(1) DEFAULT 0,
+   createdAt BIGINT(11) NOT NULL,
    CONSTRAINT environmentIdKey
       FOREIGN KEY (environmentId)
       REFERENCES Environment(id)

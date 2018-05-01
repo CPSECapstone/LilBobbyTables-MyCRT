@@ -1,4 +1,10 @@
-export interface IUser {
+export interface ISession {
+   sessionToken?: string;
+   loginTime?: number | null;
+   lastTokenCheck?: number | null;
+}
+
+export interface IUser extends ISession {
    id?: number;
    email?: string;
    passwordHash?: string;
@@ -10,6 +16,9 @@ export interface IEnvironmentUser {
    environmentId?: number;
    userId?: number;
    isAdmin?: boolean;
+   inviteCode?: string;
+   accepted?: boolean;
+   createdAt?: number;
 }
 
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
@@ -29,7 +38,7 @@ export enum ChildProgramStatus {
 export interface IChildProgram {
    type?: ChildProgramType;
    id?: number;
-   owner?: number;
+   ownerId?: number;
    envId?: number;
    name?: string;
    start?: Date;
@@ -51,15 +60,15 @@ export interface IReplay extends IChildProgram {
 }
 
 export interface IReplayFull extends IChildProgram {
-    type: ChildProgramType.REPLAY;
-    captureId?: number;
-    dbName: string;
-    host: string;
-    user: string;
-    pass: string;
-    instance: string;
-    parameterGroup: string;
- }
+   type: ChildProgramType.REPLAY;
+   captureId?: number;
+   dbName: string;
+   host: string;
+   user: string;
+   pass: string;
+   instance: string;
+   parameterGroup: string;
+}
 
 /** Interface for Environment objects sent/received from the MyCRT service. */
 export interface IEnvironment {
@@ -135,7 +144,10 @@ export interface IWorkload {
 }
 
 /** The type of data */
-export enum MetricType { CPU = "CPU", WRITE = "WRITE", READ = "READ", MEMORY = "MEMORY" }
+export enum MetricType { CPU = "CPU UTILIZATION", WRITE = "WRITE IOPS", READ = "READ IOPS", MEMORY = "FREEABLE MEMORY",
+                         FREESTORAGE = "FREE STORAGE", READTHROUGHPUT = "READ THROUGHPUT",
+                         WRITETHROUGHPUT = "WRITE THROUGHPUT",
+                       }
 
 /** Interface for a single metric measurement */
 export interface IMetric {

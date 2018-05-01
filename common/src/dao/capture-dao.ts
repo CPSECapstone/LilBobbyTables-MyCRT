@@ -64,6 +64,7 @@ export class CaptureDao extends Dao {
    public async makeCapture(capture: data.ICapture): Promise<data.ICapture | null> {
       const result = await this.query<any>('INSERT INTO Capture SET ?', {
          name: capture.name,
+         ownerId: capture.ownerId,
          status: capture.status,
          envId: capture.envId,
          scheduledStart: capture.scheduledStart,

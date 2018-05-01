@@ -107,7 +107,7 @@ export default class ReplayRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
          }
 
-         let dbReference: IDbReference = {
+         const dbReference: IDbReference = {
             name: request.body.dbName,
             host: request.body.host,
             user: request.body.user,
@@ -121,16 +121,12 @@ export default class ReplayRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
          }
 
-         if (db) {
-            dbReference = db;
-         }
-
          let replayTemplate: IReplay | null = {
             name: request.body.name,
             captureId: request.body.captureId,
             status: initialStatus === ChildProgramStatus.SCHEDULED ?
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-            dbId: dbReference.id!,
+            dbId: db!.id,
             type: ChildProgramType.REPLAY,
          };
 
@@ -154,9 +150,11 @@ export default class ReplayRouter extends SelfAwareRouter {
             startReplay(replayTemplate);
          }
 
+         response.json(replayTemplate);
          logger.info(`Successfully created replay!`);
 
-      }));
+         },
+      ));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {

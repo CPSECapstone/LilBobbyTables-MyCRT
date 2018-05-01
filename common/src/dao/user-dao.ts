@@ -1,4 +1,4 @@
-import { IEnvironmentUser, IUser } from '../data';
+import { IUser } from '../data';
 import { defaultLogger } from '../logging';
 import { Dao } from './dao';
 
