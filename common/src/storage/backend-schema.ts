@@ -13,7 +13,7 @@ const childProcessTypeToString = (type?: ChildProgramType): string => {
  */
 const getRootPrefix = (childProgram: IChildProgram): string => {
    const logger = defaultLogger(__dirname);
-   logger.info(`child program for root prefix is: ${childProgram}`);
+   logger.info(`child program env id for root prefix is: ${childProgram.envId}`);
    return `environment${childProgram.envId}/${childProcessTypeToString(childProgram.type)}${childProgram.id}/`;
 };
 

@@ -16,7 +16,7 @@ describe("LocalBackend", () => {
    before(() => {
       rootDir = path.join(__dirname, uuid());
       fs.mkdirSync(rootDir);
-      backend = new LocalBackend(rootDir);
+      backend = new LocalBackend(rootDir, "");
    });
 
    after(() => {

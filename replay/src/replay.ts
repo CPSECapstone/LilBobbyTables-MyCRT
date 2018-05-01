@@ -30,6 +30,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
    private replayEndTime?: Moment;
    private workloadPath?: string;
    private workloadIndex: number = 0;
+   private envId?: number;
 
    constructor(public config: ReplayConfig, storage: StorageBackend, metrics: MetricsBackend, db: IDbReference) {
       super(storage, metrics);
@@ -55,6 +56,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          type: ChildProgramType.REPLAY,
          status: this.status,
          start: this.startTime || undefined,
+         envId: this.envId,
       };
    }
 
@@ -68,6 +70,10 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          this.ipcNode.start();
 
          this.capture = await captureDao.getCapture(this.config.captureId);
+
+         if (this.capture !== null) {
+            this.envId = this.capture.envId;
+         }
 
          this.targetDb = this.config.mock ? mycrtDbConfig : { database: this.dbRef.name,
                                                               host: this.dbRef.host,

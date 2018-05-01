@@ -33,7 +33,7 @@ export const getMetrics = (childProgram: IChildProgram, environment: IEnvironmen
    const mocking: boolean = settings.captures.mock && childProgram.type === ChildProgramType.CAPTURE
       || settings.replays.mock && childProgram.type === ChildProgramType.REPLAY;
    if (mocking) {
-      backend = new LocalBackend(getSandboxPath());
+      backend = new LocalBackend(getSandboxPath(), environment.prefix);
    } else {
       const awsConfig: S3.ClientConfiguration = {
          region: environment.region,

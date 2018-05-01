@@ -71,7 +71,7 @@ async function runReplay(): Promise<void> {
          };
 
          const buildMockReplay = (): Replay => {
-            const storage = new LocalBackend(getSandboxPath());
+            const storage = new LocalBackend(getSandboxPath(), capEnv.prefix);
             const metrics = new MockMetricsBackend(5);
             return new Replay(config, storage, metrics, db);
          };
