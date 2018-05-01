@@ -1,17 +1,17 @@
 import * as http from 'http-status-codes';
 
-import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
+import { Logging, ServerIpcNode } from "@lbt-mycrt/common";
 
 import * as session from '../auth/session';
 import { environmentDao } from '../dao/mycrt-dao';
-import { HttpError } from '../http-error';
+import { HttpError } from "../http-error";
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/common-schema';
-import SelfAwareRouter from './self-aware-router';
+import SelfAwareRouter from "./self-aware-router";
 
-export default class DBReferenceRouter extends SelfAwareRouter {
-   public name: string = 'dbReference';
-   public urlPrefix: string = '/dbReferences';
+export default class AwsKeysRouter extends SelfAwareRouter {
+   public name: string = 'awsKeys';
+   public urlPrefix: string = '/awsKeys';
 
    constructor(ipcNode: ServerIpcNode) {
       super(ipcNode, [
@@ -25,12 +25,13 @@ export default class DBReferenceRouter extends SelfAwareRouter {
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
-         const dbId = request.params.id;
-         const dbRef = await environmentDao.getDbReference(dbId);
-         if (!dbRef) {
+         const awsKeysId = request.params.id;
+         const awsKeys = await environmentDao.getAwsKeys(awsKeysId);
+
+         if (!awsKeys) {
             throw new HttpError(http.NOT_FOUND);
          }
-         response.json(dbRef);
+         response.json(awsKeys);
       }));
    }
 }

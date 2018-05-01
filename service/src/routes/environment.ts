@@ -79,6 +79,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, "Environment with same name already exists");
          }
 
+         logger.debug("I'm here");
+
          let awsKeys: data.IAwsKeys = {
             accessKey: request.body.accessKey,
             secretKey: request.body.secretKey,
