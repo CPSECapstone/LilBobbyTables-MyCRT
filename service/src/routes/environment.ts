@@ -98,11 +98,14 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             parameterGroup: request.body.parameterGroup,
          };
 
-         awsKeys = await environmentDao.makeAwsKeys(awsKeys);
+         const awsKeysRow = await environmentDao.makeAwsKeys(awsKeys);
          s3Reference = await environmentDao.makeS3Reference(s3Reference);
          const dbRef = await environmentDao.makeDbReference(dbReference);
          if (dbRef) {
             dbReference = dbRef;
+         }
+         if (awsKeysRow) {
+            awsKeys = awsKeysRow;
          }
 
          const environment: data.IEnvironment = {
