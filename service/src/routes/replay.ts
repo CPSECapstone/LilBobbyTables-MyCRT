@@ -1,4 +1,5 @@
 import * as http from 'http-status-codes';
+import schedule = require('node-schedule');
 
 import { ChildProgramStatus, ChildProgramType, IDbReference, IReplay,
       Logging, MetricsStorage, MetricType, ReplayDao, ServerIpcNode } from '@lbt-mycrt/common';
@@ -9,6 +10,7 @@ import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
+import { startReplay} from '../common/launching';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -88,55 +90,68 @@ export default class ReplayRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.post('/',
-         check.validBody(schema.replayBody),
-         this.handleHttpErrors(async (request, response) => {
+      this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
+         const initialStatus: string | undefined = request.body.status;
+         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
 
-            const cap = await captureDao.getCapture(request.body.captureId);
-            if (cap == null) {
-                  throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
-            }
+         if (!inputTime) {
+            inputTime = new Date();
+         }
 
-            let dbReference: IDbReference = {
-               name: request.body.dbName,
-               host: request.body.host,
-               user: request.body.user,
-               pass: request.body.pass,
-               instance: request.body.instance,
-               parameterGroup: request.body.parameterGroup,
-            };
+         const cap = await captureDao.getCapture(request.body.captureId);
+         if (cap == null) {
+               throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
+         }
 
-            const db = await environmentDao.makeDbReference(dbReference);
-            if (db && !db.id) {
-               throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
-            }
+         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
+         }
 
-            if (db) {
-               dbReference = db;
-            }
+         const dbReference: IDbReference = {
+            name: request.body.dbName,
+            host: request.body.host,
+            user: request.body.user,
+            pass: request.body.pass,
+            instance: request.body.instance,
+            parameterGroup: request.body.parameterGroup,
+         };
 
-            const replayTemplate: IReplay = {
-               name: request.body.name,
-               ownerId: request.user!.id,
-               captureId: request.body.captureId,
-               dbId: dbReference.id!,
-               type: ChildProgramType.REPLAY,
-               status: ChildProgramStatus.STARTED, // no scheduled replays yet
-            };
+         const db = await environmentDao.makeDbReference(dbReference);
+         if (db && !db.id) {
+            throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
+         }
 
-            const replay = await replayDao.makeReplay(replayTemplate);
+         let replayTemplate: IReplay | null = {
+            name: request.body.name,
+            captureId: request.body.captureId,
+            status: initialStatus === ChildProgramStatus.SCHEDULED ?
+               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+            dbId: db!.id,
+            type: ChildProgramType.REPLAY,
+         };
 
-            logger.info(`Launching replay with id ${replay!.id!} for capture ${replay!.captureId!}`);
-            const config = new ReplayConfig(replay!.id!, replay!.captureId!, replay!.dbId!);
-            config.mock = settings.replays.mock;
-            config.interval = settings.replays.interval;
-            config.intervalOverlap = settings.replays.intervalOverlap;
-            config.metricsDelay = settings.replays.metricsDelay;
-            config.filePrepDelay = settings.replays.filePrepDelay;
+         // if status is scheduled, start at a scheduled time
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            replayTemplate.scheduledStart = inputTime;
+         }
 
-            launch(config);
-            response.json(replay);
-            logger.info(`Successfully created replay!`);
+         replayTemplate = await replayDao.makeReplay(replayTemplate);
+
+         if (replayTemplate === null) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating replay in db`);
+         }
+
+         response.json(replayTemplate);
+
+         // logger.debug(initialStatus.toString());
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            schedule.scheduleJob(inputTime, () => { startReplay(replayTemplate!); });
+         } else {
+            startReplay(replayTemplate);
+         }
+
+         response.json(replayTemplate);
+         logger.info(`Successfully created replay!`);
 
          },
       ));
