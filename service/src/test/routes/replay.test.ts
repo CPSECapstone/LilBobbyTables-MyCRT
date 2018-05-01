@@ -4,7 +4,8 @@ import 'mocha';
 
 import { Logging } from '@lbt-mycrt/common/dist/main';
 
-import { anotherBadReplayBody, badReplayBody, liveCaptureBody, newEnvBody, replayBody } from './data';
+import { anotherBadReplayBody, badReplayBody, badScheduledReplay,
+   liveCaptureBody, newEnvBody, replayBody } from './data';
 import { MyCrtServiceTestClient } from './mycrt';
 
 export const replayTests = (mycrt: MyCrtServiceTestClient) => function() {
@@ -15,6 +16,12 @@ export const replayTests = (mycrt: MyCrtServiceTestClient) => function() {
       await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
       const response = await mycrt.post(http.OK, '/api/replays/', replayBody);
       expect(response.body.id).to.equal(1);
+   });
+
+   it("should fail to schedule a replay without a start time", async function() {
+      await mycrt.post(http.OK, '/api/environments/', newEnvBody);
+      await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
+      const response = await mycrt.post(http.BAD_REQUEST, '/api/replays/', badScheduledReplay);
    });
 
    // fail posts

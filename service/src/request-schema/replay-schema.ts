@@ -2,6 +2,12 @@ import * as joi from 'joi';
 
 import { value } from './common-schema';
 
+export const replayValue = {
+   status: joi.string().regex(/^(?:scheduled)?$/i).uppercase(),
+   timestamp: joi.date(),
+   duration: joi.number(),
+};
+
 export const replayBody: joi.ObjectSchema = joi.object().keys({
    name: value.nameString.required(),
    captureId: value.id.required(),
@@ -11,6 +17,9 @@ export const replayBody: joi.ObjectSchema = joi.object().keys({
    pass: value.password.required(),
    instance: value.instance.required(),
    parameterGroup: value.parameterGroup.required(),
+   scheduledStart: replayValue.timestamp.optional(),
+   status: replayValue.status.optional(),
+   start: replayValue.timestamp.optional(),
 });
 
 export const replayValues = {
