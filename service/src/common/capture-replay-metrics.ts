@@ -22,6 +22,7 @@ export const getMetrics = (childProgram: IChildProgram, environment: IEnvironmen
       Promise<IMetricsList | IMetricsList[]> => {
 
    logger.info(`Getting ${metricType} metrics for ${childProgram.type} ${childProgram.id}`);
+   childProgram.envId = environment.id;
 
    const validStatus = childProgram.status && [ChildProgramStatus.DONE, ChildProgramStatus.RUNNING,
    ChildProgramStatus.STOPPING].indexOf(childProgram.status) > -1;

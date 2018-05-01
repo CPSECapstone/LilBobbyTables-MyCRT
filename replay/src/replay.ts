@@ -71,7 +71,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
          this.capture = await captureDao.getCapture(this.config.captureId);
 
-         if (this.capture !== null) {
+         if (this.capture) {
+            logger.info(`Found a capture for the replay with environment ${this.capture.envId}`);
             this.envId = this.capture.envId;
          }
 
@@ -183,6 +184,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       this.workloadPath = schema.workload.getDoneKey({
          id: this.capture!.id,
          type: ChildProgramType.CAPTURE,
+         envId: this.capture!.envId,
       });
 
       const temp: IWorkload = await this.storage.readJson<IWorkload>(this.workloadPath);

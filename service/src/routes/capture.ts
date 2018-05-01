@@ -222,7 +222,8 @@ export default class CaptureRouter extends SelfAwareRouter {
                      env.bucket, env.prefix,
                   );
 
-               await storage.deletePrefix("capture" + id);
+               const capturePrefix = `environment${env.id}/capture${id}/`;
+               await storage.deletePrefix(capturePrefix);
             }
          }
 
