@@ -45,7 +45,7 @@ export abstract class Subprocess {
    protected abstract async setup(): Promise<void>;
    protected abstract async loop(): Promise<void>;
    protected abstract async teardown(): Promise<void>;
-   protected abstract async dontPanic(): Promise<void>;
+   protected abstract async dontPanic(reason: string): Promise<void>;
 
    protected async tryTwice(action: () => Promise<void>, desc: string, firstTry: boolean = true) {
       try {
@@ -66,7 +66,7 @@ export abstract class Subprocess {
       try {
          logger.info('so long and thanks for all the fish');
          logger.error(reason);
-         await this.dontPanic();
+         await this.dontPanic(reason);
       } catch (error) {
          try {
             logger.error(`${this.nameId} failed to self destruct properly`);
