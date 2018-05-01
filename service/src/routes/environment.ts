@@ -83,6 +83,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             accessKey: request.body.accessKey,
             secretKey: request.body.secretKey,
             region: request.body.region,
+            userId: request.user!.id,
+            name: request.body.name || "mykeys", // TODO remove the || "mykeys"
          };
          let s3Reference: data.IS3Reference = {
             bucket: request.body.bucket,
@@ -105,6 +107,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          if (awsKeysRow) {
             awsKeys = awsKeysRow;
          }
+
+         logger.debug(JSON.stringify(request.user!.id));
 
          const environment: data.IEnvironment = {
             name: request.body.envName,
