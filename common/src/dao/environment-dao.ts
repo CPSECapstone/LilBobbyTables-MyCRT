@@ -85,12 +85,13 @@ export class EnvironmentDao extends Dao {
       return this.query<any>('UPDATE Environment SET ? WHERE id = ?', [changes, id]);
    }
 
-   public async getAwsKeys(id: number): Promise<data.IAwsKeys> {
+   public async getAwsKeys(id: number): Promise<data.IAwsKeys | null> {
       const rows = await this.query<any[]>('SELECT * FROM AwsKeys WHERE id = ?', [id]);
-      return this.rowToAwsKeys(rows[0]);
+      return rows.length ? this.rowToAwsKeys(rows[0]) : null;
+
    }
 
-   public async makeAwsKeys(awsKeys: data.IAwsKeys): Promise<data.IAwsKeys> {
+   public async makeAwsKeys(awsKeys: data.IAwsKeys): Promise<data.IAwsKeys | null> {
       awsKeys.accessKey = cryptr.encrypt(awsKeys.accessKey);
       awsKeys.secretKey = cryptr.encrypt(awsKeys.secretKey);
       const row = await this.query<any>('INSERT INTO AwsKeys SET ?', awsKeys);
