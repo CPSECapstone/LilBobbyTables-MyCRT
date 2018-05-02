@@ -75,7 +75,7 @@ export interface IEnvironment {
    id?: number;
    name?: string;
    ownerId?: number;
-   iamId?: number;
+   awsKeysId?: number;
    dbId?: number;
    s3Id?: number;
 }
@@ -96,12 +96,13 @@ export interface IEnvironmentFull {
    bucket: string;
 }
 
-/** IAM Profile */
-export interface IIamReference {
+export interface IAwsKeys {
    id?: number;
    accessKey: string;
    secretKey: string;
    region: string;
+   name?: string;
+   userId?: number;
 }
 
 /** Database Connection */

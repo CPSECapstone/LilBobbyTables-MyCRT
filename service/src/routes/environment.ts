@@ -79,10 +79,12 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, "Environment with same name already exists");
          }
 
-         let iamReference: data.IIamReference = {
+         let awsKeys: data.IAwsKeys = {
             accessKey: request.body.accessKey,
             secretKey: request.body.secretKey,
             region: request.body.region,
+            userId: request.user!.id,
+            name: request.body.name || "mykeys", // TODO remove the || "mykeys"
          };
          let s3Reference: data.IS3Reference = {
             bucket: request.body.bucket,
@@ -96,17 +98,22 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             parameterGroup: request.body.parameterGroup,
          };
 
-         iamReference = await environmentDao.makeIamReference(iamReference);
+         const awsKeysRow = await environmentDao.makeAwsKeys(awsKeys);
          s3Reference = await environmentDao.makeS3Reference(s3Reference);
          const dbRef = await environmentDao.makeDbReference(dbReference);
          if (dbRef) {
             dbReference = dbRef;
          }
+         if (awsKeysRow) {
+            awsKeys = awsKeysRow;
+         }
+
+         logger.debug(JSON.stringify(request.user!.id));
 
          const environment: data.IEnvironment = {
             name: request.body.envName,
             ownerId: request.user!.id,
-            iamId: iamReference.id!,
+            awsKeysId: awsKeys.id!,
             s3Id: s3Reference.id!,
             dbId: dbReference.id!,
          };
