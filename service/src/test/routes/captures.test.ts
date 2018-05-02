@@ -62,10 +62,10 @@ export const captureTests = (mycrt: MyCrtServiceTestClient) => function() {
       const response = await mycrt.post(http.NOT_FOUND, '/api/captures/50/stop/');
    });
 
-   it("should reject the edit of a capture", async function() {
+   it("should reject the edit of a capture name if the new name is already in use", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', scheduledCaptureBody);
-      const response = await mycrt.put(http.NOT_FOUND, '/api/captures/1', scheduledCaptureBody);
+      const response = await mycrt.put(http.CONFLICT, '/api/captures/1', scheduledCaptureBody);
    });
 
    it("should successfully delete an existing capture", async function() {
