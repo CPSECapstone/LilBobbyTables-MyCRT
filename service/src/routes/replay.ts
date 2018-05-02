@@ -141,6 +141,36 @@ export default class ReplayRouter extends SelfAwareRouter {
          },
       ));
 
+      this.router.put('/:id(\\d+)', check.validParams(schema.idParams), check.validBody(schema.putReplayBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const replay = await replayDao.getReplay(request.params.id);
+         if (!replay || !replay!.captureId) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const replays = await replayDao.getReplaysForCapture(replay!.captureId!);
+         if (!replays) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR);
+         }
+
+         let nameAvailable = true;
+
+         replays.forEach( (value, index, arr) => {
+            if (value.name && value.name! === request.body.name) {
+               nameAvailable = false;
+            }
+         });
+
+         if (nameAvailable) {
+            await replayDao.updateReplayName(replay.id!, request.body.name);
+            response.status(http.OK).end();
+         } else {
+            throw new HttpError(http.CONFLICT, "A replay with this name already exists.");
+         }
+
+      }));
+
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 

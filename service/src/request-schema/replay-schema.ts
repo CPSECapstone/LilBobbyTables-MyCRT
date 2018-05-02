@@ -22,4 +22,8 @@ export const replayQuery: joi.ObjectSchema = joi.object().keys({
     name: value.nameString.optional(),
 });
 
+export const putReplayBody: joi.ObjectSchema = joi.object().keys({
+   name: value.nameString.optional(),
+});
+
 export * from './common-schema';

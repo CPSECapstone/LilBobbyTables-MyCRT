@@ -80,6 +80,10 @@ export class ReplayDao extends Dao {
       return this.query('UPDATE Replay SET status = ? WHERE id = ?', [status, id]);
    }
 
+   public updateReplayName(id: number, name: string): Promise<void> {
+      return this.query('UPDATE Replay SET name = ? WHERE id = ?', [name, id]);
+   }
+
    public updateReplayStartTime(id: number): Promise<void> {
       return this.query('UPDATE Replay SET start = NOW() WHERE id = ?', [id]);
    }
