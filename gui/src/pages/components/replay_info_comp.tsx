@@ -20,8 +20,8 @@ export class ReplayInfo extends React.Component<any, any>  {
       return time.toLocaleString();
    }
 
-   public deleteReplay(id: number) {
-      this.props.delete(id);
+   public deleteReplay(id: number, deleteLogs: boolean) {
+      this.props.delete(id, deleteLogs);
    }
 
    public compareReplay() {
@@ -67,7 +67,8 @@ export class ReplayInfo extends React.Component<any, any>  {
                   <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
                      <h5>S3 File Storage:</h5>
                      <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.props.bucket}</label><br/>
-                     <label><b>&nbsp;&nbsp;&nbsp;Folder: </b>{"replay" + this.props.replay.id}</label><br/><br/>
+                     <label><b>&nbsp;&nbsp;&nbsp;Prefix: </b>{this.props.prefix + "/environment" +
+                        this.props.envId + "/replay" + this.props.replay.id}</label><br/><br/>
                   </div>
                </div>
             </div>

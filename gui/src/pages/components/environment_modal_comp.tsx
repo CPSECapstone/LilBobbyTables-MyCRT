@@ -23,8 +23,8 @@ export class EnvModal extends React.Component<any, any>  {
         this.cancelModal = this.cancelModal.bind(this);
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
-                      dbName: "", pass: "", bucket: "", dbRefs: [], invalidDBPass: false, modalPage: '1',
-                      envNameDuplicate: false,
+                      dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
+                      modalPage: '1', envNameDuplicate: false,
                       disabled: true, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid'};
         this.baseState = this.state;
     }
@@ -95,6 +95,10 @@ export class EnvModal extends React.Component<any, any>  {
         host: dbRef.host, user: dbRef.user, pass: "", invalidDBPass: false});
     }
 
+    public handlePrefixChange(event: any) {
+      this.setState({ prefix: event.target.value });
+    }
+
     public handleS3Ref(event: any) {
         const bucket = event.currentTarget.value;
         if (bucket === "default") {
@@ -120,7 +124,7 @@ export class EnvModal extends React.Component<any, any>  {
          this.setState({envNameValid: 'invalid', disabled: true});
       }
       this.setState({[event.target.id]: event.target.value, envNameDuplicate: false});
-  }
+    }
 
     public async createEnvironment() {
         const envObj = await mycrt.createEnvironment(this.state as IEnvironmentFull);
@@ -284,6 +288,11 @@ export class EnvModal extends React.Component<any, any>  {
                                             <option value="default">Select S3 Bucket...</option>
                                             {buckets}
                                         </select>} <br/>
+                                        <label>Prefix Name (Optional):</label>
+                                        <input className="form-control input-lg"
+                                          placeholder="Enter S3 Prefix"
+                                          value={this.state.prefix} id="prefix"
+                                          onInput={this.handlePrefixChange.bind(this)}/>
                                     </div>
                                 </div>
                                 <div className="modal-footer">

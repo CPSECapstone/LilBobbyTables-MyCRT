@@ -57,7 +57,7 @@ async function runCapture(): Promise<void> {
    if (env) {
       const buildCapture = (): Capture => {
          const awsConfig = {region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey};
-         const storage = new S3Backend(new S3(awsConfig), env.bucket);
+         const storage = new S3Backend(new S3(awsConfig), env.bucket, env.prefix);
          const metrics = new CloudWatchMetricsBackend(new CloudWatch(awsConfig), DBIdentifier, env.instance, period,
             statistics);
          const workloadLogger: WorkloadLogger = new AwsWorkloadLogger(ChildProgramType.CAPTURE, config.id,
@@ -66,7 +66,7 @@ async function runCapture(): Promise<void> {
       };
 
       const buildMockCapture = (): Capture => {
-         const storage = new LocalBackend(getSandboxPath());
+         const storage = new LocalBackend(getSandboxPath(), env.prefix);
          const metrics = new MockMetricsBackend(5);
          const workloadLogger = new LocalWorkloadLogger(ChildProgramType.CAPTURE, config.id, storage, env);
          return new Capture(config, workloadLogger, storage, metrics, env);

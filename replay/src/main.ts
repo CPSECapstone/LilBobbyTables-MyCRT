@@ -61,7 +61,7 @@ async function runReplay(): Promise<void> {
                new S3({
                   region: capEnv.region,
                   accessKeyId: capEnv.accessKey,
-                  secretAccessKey: capEnv.secretKey}), capEnv.bucket);
+                  secretAccessKey: capEnv.secretKey}), capEnv.bucket, capEnv.prefix);
             const metrics = new CloudWatchMetricsBackend(
                new CloudWatch({ region: capEnv.region,
                                  accessKeyId: capEnv.accessKey,
@@ -71,7 +71,7 @@ async function runReplay(): Promise<void> {
          };
 
          const buildMockReplay = (): Replay => {
-            const storage = new LocalBackend(getSandboxPath());
+            const storage = new LocalBackend(getSandboxPath(), capEnv.prefix);
             const metrics = new MockMetricsBackend(5);
             return new Replay(config, storage, metrics, db);
          };

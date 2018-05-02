@@ -58,6 +58,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          type: ChildProgramType.CAPTURE,
          status: this.status,
          start: this.startTime || undefined,
+         envId: this.env.id,
       };
    }
 

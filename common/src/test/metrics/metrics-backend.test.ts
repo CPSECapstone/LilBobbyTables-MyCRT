@@ -17,6 +17,7 @@ describe("MetricsBackend", () => {
       status: ChildProgramStatus.DONE,
       start: new Date(),
       end: new Date(),
+      envId: 0,
    };
 
    const c2: IChildProgram = {
@@ -26,6 +27,7 @@ describe("MetricsBackend", () => {
       status: ChildProgramStatus.DONE,
       start: new Date(),
       end: new Date(),
+      envId: 0,
    };
 
    const dummyMetrics: IMetricsList[] = [

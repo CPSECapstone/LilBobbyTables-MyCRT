@@ -7,7 +7,7 @@ import { StorageBackend } from './backend';
 const logger = Logging.defaultLogger(__dirname);
 
 export class S3Backend extends StorageBackend {
-   constructor(private s3: S3, private bucket: string) {
+   constructor(private s3: S3, private bucket: string, private prefix: string) {
       super();
    }
 
@@ -17,7 +17,7 @@ export class S3Backend extends StorageBackend {
 
       const params: S3.HeadObjectRequest = {
          Bucket: this.bucket,
-         Key: key,
+         Key: this.attachPrefix(key),
       };
 
       return new Promise<boolean>((resolve, reject) => {
@@ -34,6 +34,7 @@ export class S3Backend extends StorageBackend {
    }
 
    public async allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
+      dirPrefix = this.attachPrefix(dirPrefix);
       const keys = await this.listObjects(dirPrefix);
       const result: string[] = [];
       keys.forEach((key) => {
@@ -46,10 +47,9 @@ export class S3Backend extends StorageBackend {
    }
 
    public async readJson<T>(key: string): Promise<T> {
-
       const params: S3.GetObjectRequest = {
          Bucket: this.bucket,
-         Key: key,
+         Key: this.attachPrefix(key),
       };
 
       return new Promise<T>((resolve, reject) => {
@@ -73,7 +73,7 @@ export class S3Backend extends StorageBackend {
       const params: S3.PutObjectRequest = {
          Body: Buffer.from(JSON.stringify(value)),
          Bucket: this.bucket,
-         Key: key,
+         Key: this.attachPrefix(key),
       };
 
       return new Promise<void>((resolve, reject) => {
@@ -94,7 +94,7 @@ export class S3Backend extends StorageBackend {
 
       const params: S3.DeleteObjectRequest = {
          Bucket: this.bucket,
-         Key: key,
+         Key: this.attachPrefix(key),
       };
 
       return new Promise<void>((resolve, reject) => {
@@ -112,15 +112,19 @@ export class S3Backend extends StorageBackend {
    }
 
    public async deletePrefix(dirPrefix: string): Promise<void> {
+      dirPrefix = this.attachPrefix(dirPrefix);
+      logger.info(`deleting prefix: ${dirPrefix}`);
       const keys = await this.listObjects(dirPrefix);
       keys.forEach(async (key) => await this.deleteJson(key));
    }
 
    private async listObjects(prefix?: string): Promise<string[]> {
+
       const params: S3.ListObjectsRequest = {
          Bucket: this.bucket,
          Prefix: prefix,
       };
+
       return new Promise<string[]>((resolve, reject) => this.s3.listObjects(params, (err, data) => {
          if (err) {
             logger.error(err.message);
@@ -131,6 +135,13 @@ export class S3Backend extends StorageBackend {
             resolve(data.Contents.map((s3Obj) => s3Obj.Key || ''));
          }
       }));
+   }
+
+   private attachPrefix(key: string): string {
+      if (key.lastIndexOf(this.prefix, 0) !== 0) {
+         key = (this.prefix != null ? this.prefix + "/" + key : key);
+      }
+      return key;
    }
 
 }

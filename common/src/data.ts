@@ -57,6 +57,7 @@ export interface IReplay extends IChildProgram {
    type: ChildProgramType.REPLAY;
    captureId?: number;
    dbId?: number;
+   envId?: number;
 }
 
 export interface IReplayFull extends IChildProgram {
@@ -94,6 +95,7 @@ export interface IEnvironmentFull {
    instance: string;
    parameterGroup: string;
    bucket: string;
+   prefix: string;
 }
 
 export interface IAwsKeys {
@@ -120,6 +122,7 @@ export interface IDbReference {
 export interface IS3Reference {
    id?: number;
    bucket?: string;
+   prefix?: string;
 }
 
 /** Commands in a Workload */

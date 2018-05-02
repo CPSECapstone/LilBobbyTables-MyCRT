@@ -25,6 +25,12 @@ export class MockMetricsBackend extends MetricsBackend {
             return this.makeMockData(metric, 510000000, 540000000, startTime, endTime);
          case MetricType.MEMORY:
             return this.makeMockData(metric, 0, 0.003, startTime, endTime);
+         case MetricType.READTHROUGHPUT:
+            return this.makeMockData(metric, 510000000, 540000000, startTime, endTime);
+         case MetricType.WRITETHROUGHPUT:
+            return this.makeMockData(metric, 510000000, 540000000, startTime, endTime);
+         case MetricType.FREESTORAGE:
+            return this.makeMockData(metric, 510000000, 540000000, startTime, endTime);
          default:
             throw new Error(`Unknown metricName: ${metric.metricType}`);
       }

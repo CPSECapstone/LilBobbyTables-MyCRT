@@ -42,7 +42,7 @@ export class EnvironmentDao extends Dao {
    public async getEnvironmentFull(id: number): Promise<data.IEnvironmentFull | null> {
       const queryStr = 'SELECT e.id, e.name AS envName, e.ownerId AS ownerId, d.name AS dbName, host, ' +
          'user, pass, instance, ' +
-         'parameterGroup, bucket, accessKey, secretKey, region, a.name as keysName ' +
+         'parameterGroup, bucket, prefix, accessKey, secretKey, region, a.name as keysName ' +
          'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ' +
          'JOIN S3Reference AS s ON e.S3Id = s.id JOIN AwsKeys AS a ON e.awsKeysId = a.id ' +
          'WHERE e.id = ?';
@@ -164,6 +164,7 @@ export class EnvironmentDao extends Dao {
          instance: row.instance,
          parameterGroup: row.parameterGroup,
          bucket: row.bucket,
+         prefix: row.prefix,
       };
    }
 
@@ -194,6 +195,7 @@ export class EnvironmentDao extends Dao {
       return {
          id: row.id,
          bucket: row.bucket,
+         prefix: row.prefix,
       };
    }
 }
