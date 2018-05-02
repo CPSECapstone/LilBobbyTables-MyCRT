@@ -122,7 +122,7 @@ class CaptureApp extends React.Component<any, any> {
    }
 
    public async deleteReplay(id: number, deleteLogs: boolean) {
-      await mycrt.deleteReplay(id);
+      await mycrt.deleteReplay(id, deleteLogs);
       window.location.assign(`./capture?id=${this.state.captureId}&envId=${this.state.envId}&view=replays`);
    }
 

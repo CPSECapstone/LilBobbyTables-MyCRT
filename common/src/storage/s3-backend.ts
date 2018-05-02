@@ -36,7 +36,6 @@ export class S3Backend extends StorageBackend {
    public async allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
       dirPrefix = this.attachPrefix(dirPrefix);
       const keys = await this.listObjects(dirPrefix);
-      logger.info(`in allMatching and keys returned are ${keys}`);
       const result: string[] = [];
       keys.forEach((key) => {
          const check = key.substring(dirPrefix.length);
@@ -113,7 +112,9 @@ export class S3Backend extends StorageBackend {
    }
 
    public async deletePrefix(dirPrefix: string): Promise<void> {
-      const keys = await this.listObjects(this.attachPrefix(dirPrefix));
+      dirPrefix = this.attachPrefix(dirPrefix);
+      logger.info(`deleting prefix: ${dirPrefix}`);
+      const keys = await this.listObjects(dirPrefix);
       keys.forEach(async (key) => await this.deleteJson(key));
    }
 

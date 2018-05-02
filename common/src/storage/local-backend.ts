@@ -62,12 +62,13 @@ export class LocalBackend extends StorageBackend {
 
    public async deletePrefix(dirPrefix: string): Promise<void> {
       dirPrefix = path.join(this.rootDir, this.attachPrefix(dirPrefix));
+      logger.info(`deleting prefix: ${dirPrefix}`);
       if (await fs.pathExists(dirPrefix)) {
          await fs.remove(dirPrefix);
       }
    }
 
-   public attachPrefix(key: string): string {
+   private attachPrefix(key: string): string {
       if (key.lastIndexOf(this.prefix, 0) !== 0) {
          key = (this.prefix != null ? this.prefix + "/" + key : key);
       }

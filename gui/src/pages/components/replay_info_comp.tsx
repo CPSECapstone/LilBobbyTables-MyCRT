@@ -20,8 +20,8 @@ export class ReplayInfo extends React.Component<any, any>  {
       return time.toLocaleString();
    }
 
-   public deleteReplay(id: number) {
-      this.props.delete(id);
+   public deleteReplay(id: number, deleteLogs: boolean) {
+      this.props.delete(id, deleteLogs);
    }
 
    public compareReplay() {

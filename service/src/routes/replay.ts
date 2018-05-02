@@ -148,26 +148,36 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const deleteLogs: boolean | undefined = request.query.deleteLogs;
-         const replay = await replayDao.deleteReplay(id);
+
+         const replay = await replayDao.getReplay(id);
          if (!replay) {
             throw new HttpError(http.NOT_FOUND);
+         } else if (!replay.captureId) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id} has no captureId`);
          }
 
-         if (deleteLogs === true && replay && replay.envId) {
-            const env = await environmentDao.getEnvironmentFull(replay.envId);
+         const capture = await captureDao.getCapture(replay.captureId);
+         if (capture === null) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s capture does not exist`);
+         } else if (!capture.envId) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s has no envId`);
+         }
 
-            if (env) {
-               /* TODO: Replace with S3StorageBackend object in the Replay Object */
-               const storage = new S3Backend(
-                     new S3({region: env.region,
+         await replayDao.deleteReplay(id);
+
+         const env = await environmentDao.getEnvironmentFull(capture.envId);
+
+         if (deleteLogs === true && env) {
+
+            const storage = new S3Backend(
+               new S3({region: env.region,
                         accessKeyId: env.accessKey,
                         secretAccessKey: env.secretKey}),
                      env.bucket, env.prefix,
-                  );
+               );
 
-               const replayPrefix = `environment${env.id}/replay${id}/`;
-               await storage.deletePrefix(replayPrefix);
-            }
+            const replayPrefix = `environment${env.id}/replay${id}/`;
+            await storage.deletePrefix(replayPrefix);
          }
 
          response.json(replay);
