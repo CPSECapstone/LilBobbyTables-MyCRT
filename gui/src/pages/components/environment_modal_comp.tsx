@@ -3,7 +3,7 @@ import ReactDom = require('react-dom');
 
 import * as $ from 'jquery';
 
-import { ChildProgramStatus, ChildProgramType, IEnvironmentFull, IIamReference } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType, IAwsKeys, IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
@@ -54,8 +54,8 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public async validateCredentials(event: any) {
-        const iamRef = {accessKey: this.state.accessKey, secretKey: this.state.secretKey, region: this.state.region};
-        const dbRefs = await mycrt.validateCredentials(iamRef);
+        const awsKeys = {accessKey: this.state.accessKey, secretKey: this.state.secretKey, region: this.state.region};
+        const dbRefs = await mycrt.validateCredentials(awsKeys);
         if (dbRefs) {
             this.setState({dbRefs});
             this.changeProgress(3);
@@ -63,7 +63,7 @@ export class EnvModal extends React.Component<any, any>  {
             this.setState({credentialsValid: 'invalid'});
             logger.error("THERE WAS AN ERROR");
         }
-        const bucketList = await mycrt.validateBuckets(iamRef);
+        const bucketList = await mycrt.validateBuckets(awsKeys);
         if (bucketList) {
             this.setState({bucketList});
         } else {
@@ -226,7 +226,7 @@ export class EnvModal extends React.Component<any, any>  {
                                 </div>
                                 <div className="tab-pane myCRT-tab-pane fade" id="step2">
                                     <div className="card card-body bg-light">
-                                        <label>IAM Credentials</label>
+                                        <label> AWS Keys </label>
                                         <input className="form-control input-lg" placeholder="Enter Access Key"
                                             value={this.state.accessKey} id="accessKey"
                                             onInput={this.handleInputChange.bind(this)}/> <br/>

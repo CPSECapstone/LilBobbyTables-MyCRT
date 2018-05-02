@@ -155,8 +155,8 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       }
    }
 
-   protected async dontPanic(): Promise<void> {
-      return captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED);
+   protected async dontPanic(reason: string): Promise<void> {
+      return captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED, reason);
    }
 
    private async sendWorkloadToS3(start: Date, end: Date) {

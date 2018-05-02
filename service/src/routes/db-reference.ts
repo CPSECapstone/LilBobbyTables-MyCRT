@@ -25,12 +25,12 @@ export default class DBReferenceRouter extends SelfAwareRouter {
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
-            const dbId = request.params.id;
-            const dbRef = await environmentDao.getDbReference(dbId);
-            if (!dbRef) {
-               throw new HttpError(http.NOT_FOUND);
-            }
-            response.json(dbRef);
+         const dbId = request.params.id;
+         const dbRef = await environmentDao.getDbReference(dbId);
+         if (!dbRef) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+         response.json(dbRef);
       }));
    }
 }

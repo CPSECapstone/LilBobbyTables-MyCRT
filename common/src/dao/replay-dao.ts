@@ -77,8 +77,16 @@ export class ReplayDao extends Dao {
       await this.query<void>('ALTER TABLE Replay AUTO_INCREMENT = 1');
    }
 
-   public updateReplayStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
-      return this.query('UPDATE Replay SET status = ? WHERE id = ?', [status, id]);
+   public updateReplayStatus(id: number, status: data.ChildProgramStatus, reason?: string): Promise<void> {
+      if (reason) {
+         return this.query('UPDATE Replay SET status = ?, reason = ? WHERE id = ?', [status, reason, id]);
+      } else {
+         return this.query('UPDATE Replay SET status = ? WHERE id = ?', [status, id]);
+      }
+   }
+
+   public updateReplayName(id: number, name: string): Promise<void> {
+      return this.query('UPDATE Replay SET name = ? WHERE id = ?', [name, id]);
    }
 
    public updateReplayStartTime(id: number): Promise<void> {

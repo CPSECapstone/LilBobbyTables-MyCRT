@@ -16,8 +16,7 @@ export class EnvironmentDao extends Dao {
    public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironment[]> {
       const environmentRows = user ?
          await this.query<any[]>('SELECT * FROM Environment WHERE ownerId = ?', [user.id]) :
-         await this.query<any[]>('SELECT * FROM Environment', [])
-      ;
+         await this.query<any[]>('SELECT * FROM Environment', []);
       return environmentRows.map(this.rowToIEnvironment);
    }
 
@@ -43,9 +42,9 @@ export class EnvironmentDao extends Dao {
    public async getEnvironmentFull(id: number): Promise<data.IEnvironmentFull | null> {
       const queryStr = 'SELECT e.id, e.name AS envName, e.ownerId AS ownerId, d.name AS dbName, host, ' +
          'user, pass, instance, ' +
-         'parameterGroup, bucket, prefix, accessKey, secretKey, region ' +
+         'parameterGroup, bucket, prefix, accessKey, secretKey, region, a.name as keysName ' +
          'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ' +
-         'JOIN S3Reference AS s ON e.S3Id = s.id JOIN IAMReference AS i ON e.iamId = i.id ' +
+         'JOIN S3Reference AS s ON e.S3Id = s.id JOIN AwsKeys AS a ON e.awsKeysId = a.id ' +
          'WHERE e.id = ?';
 
       const rows = await this.query<any[]>(queryStr, [id]);
@@ -62,7 +61,7 @@ export class EnvironmentDao extends Dao {
 
       if (environment !== null) {
          await this.deleteDbReference(environment.dbId);
-         await this.deleteIamReference(environment.iamId);
+         await this.deleteAwsKeys(environment.awsKeysId);
          await this.deleteS3Reference(environment.s3Id);
          await this.query<any[]>('DELETE FROM Capture WHERE envId = ?', [id]);
          return this.query<any>('DELETE FROM Environment WHERE id = ?', [id]);
@@ -75,7 +74,7 @@ export class EnvironmentDao extends Dao {
     * Remove everything from the database. Be VERY CAREFUL with this.
     */
    public async nuke(): Promise<void> {
-      ['Environment', 'IAMReference', 'S3Reference', 'DBReference'].forEach(async (table) => {
+      ['Environment', 'AwsKeys', 'S3Reference', 'DBReference'].forEach(async (table) => {
          await this.query<void>(`DELETE FROM ${table}`);
          await this.query<void>(`ALTER TABLE ${table} AUTO_INCREMENT = 1`);
       });
@@ -85,20 +84,28 @@ export class EnvironmentDao extends Dao {
       return this.query<any>('UPDATE Environment SET ? WHERE id = ?', [changes, id]);
    }
 
-   public async getIamReference(id: number): Promise<data.IIamReference> {
-      const rows = await this.query<any[]>('SELECT * FROM IAMReference WHERE id = ?', [id]);
-      return this.rowToIIamReference(rows[0]);
+   public async getAllAwsKeys(user?: data.IUser): Promise<data.IAwsKeys[]> {
+      const keysRows = user ?
+         await this.query<any[]>('SELECT * FROM AwsKeys WHERE userId = ?', [user.id]) :
+         await this.query<any[]>('SELECT * FROM AwsKeys', []);
+
+      return keysRows.map(this.rowToAwsKeys);
    }
 
-   public async makeIamReference(iamRef: data.IIamReference): Promise<data.IIamReference> {
-      iamRef.accessKey = cryptr.encrypt(iamRef.accessKey);
-      iamRef.secretKey = cryptr.encrypt(iamRef.secretKey);
-      const row = await this.query<any>('INSERT INTO IAMReference SET ?', iamRef);
-      return await this.getIamReference(row.insertId);
+   public async getAwsKeys(id: number): Promise<data.IAwsKeys | null> {
+      const rows = await this.query<any[]>('SELECT * FROM AwsKeys WHERE id = ?', [id]);
+      return rows.length ? this.rowToAwsKeys(rows[0]) : null;
    }
 
-   public async deleteIamReference(id: number | undefined): Promise<data.IIamReference | null> {
-      return (id ? this.query<any>('DELETE FROM IAMReference WHERE id = ?', [id]) : null);
+   public async makeAwsKeys(awsKeys: data.IAwsKeys): Promise<data.IAwsKeys | null> {
+      awsKeys.accessKey = cryptr.encrypt(awsKeys.accessKey);
+      awsKeys.secretKey = cryptr.encrypt(awsKeys.secretKey);
+      const row = await this.query<any>('INSERT INTO AwsKeys SET ?', awsKeys);
+      return await this.getAwsKeys(row.insertId);
+   }
+
+   public async deleteAwsKeys(id: number | undefined): Promise<data.IAwsKeys | null> {
+      return (id ? this.query<any>('DELETE FROM AwsKeys WHERE id = ?', [id]) : null);
    }
 
    public async getS3Reference(id: number): Promise<data.IS3Reference> {
@@ -136,7 +143,7 @@ export class EnvironmentDao extends Dao {
          id: row.id,
          name: row.name,
          ownerId: row.ownerId,
-         iamId: row.iamId,
+         awsKeysId: row.awsKeysId,
          dbId: row.dbId,
          s3Id: row.s3Id,
       };
@@ -161,12 +168,14 @@ export class EnvironmentDao extends Dao {
       };
    }
 
-   private rowToIIamReference(row: any): data.IIamReference {
+   private rowToAwsKeys(row: any): data.IAwsKeys {
       return {
          id: row.id,
          accessKey: cryptr.decrypt(row.accessKey),
          secretKey: cryptr.decrypt(row.secretKey),
          region: row.region,
+         name: row.name,
+         userId: row.userId,
       };
    }
 
@@ -189,5 +198,4 @@ export class EnvironmentDao extends Dao {
          prefix: row.prefix,
       };
    }
-
 }

@@ -7,6 +7,7 @@ export const environmentBody: joi.ObjectSchema = joi.object().keys({
    accessKey: value.accessKey.required(),
    secretKey: value.secretKey.required(),
    region: value.region.required(),
+   keysName: value.nameString.optional(),
    bucket: value.bucket.required(),
    prefix: value.prefix.optional(),
    dbName: value.dbName.required(),
@@ -14,7 +15,7 @@ export const environmentBody: joi.ObjectSchema = joi.object().keys({
    user: value.user.required(),
    pass: value.password.required(),
    instance: value.instance.required(),
-   parameterGroup: value.parameterGroup.required(),
+   parameterGroup: value.parameterGroup.optional(),
 });
 
 export const envNameQuery: joi.ObjectSchema = joi.object().keys({
