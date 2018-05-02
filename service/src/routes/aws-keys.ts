@@ -37,6 +37,10 @@ export default class AwsKeysRouter extends SelfAwareRouter {
          if (!awsKeys) {
             throw new HttpError(http.NOT_FOUND);
          }
+         if (awsKeys.userId !== request.user!.id) {
+            throw new HttpError(http.FORBIDDEN);
+         }
+
          response.json(awsKeys);
       }));
    }
