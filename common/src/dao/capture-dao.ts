@@ -105,6 +105,10 @@ export class CaptureDao extends Dao {
       return this.query('UPDATE Capture SET end = NOW() WHERE id = ?', [id]);
    }
 
+   public updateCaptureName(id: number, name: string): Promise<void> {
+      return this.query(`UPDATE Capture SET name = ? where id = ?`, [name, id]);
+   }
+
    private rowToICapture(captureData: any): data.ICapture {
       return {
          id: captureData.id,

@@ -123,6 +123,36 @@ export default class CaptureRouter extends SelfAwareRouter {
 
       }));
 
+      this.router.put('/:id(\\d+)', check.validParams(schema.idParams), check.validBody(schema.putCaptureBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const capture = await captureDao.getCapture(request.params.id);
+         if (!capture || !capture!.envId) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const captures = await captureDao.getCapturesForEnvironment(capture!.envId!);
+         if (!captures) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR);
+         }
+
+         let nameAvailable = true;
+
+         captures.forEach( (value, index, arr) => {
+            if (value.name && value.name! === request.body.name) {
+               nameAvailable = false;
+            }
+         });
+
+         if (nameAvailable) {
+            await captureDao.updateCaptureName(capture.id!, request.body.name);
+            response.status(http.OK).end();
+         } else {
+            throw new HttpError(http.CONFLICT, "A capture with this name already exists.");
+         }
+
+      }));
+
       this.router.post('/',
          check.validBody(schema.captureBody),
          this.handleHttpErrors(async (request, response) => {
