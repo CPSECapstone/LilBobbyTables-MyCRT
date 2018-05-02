@@ -151,7 +151,6 @@ export default class ReplayRouter extends SelfAwareRouter {
             startReplay(replayTemplate);
          }
 
-         response.json(replayTemplate);
          logger.info(`Successfully created replay!`);
 
          },
