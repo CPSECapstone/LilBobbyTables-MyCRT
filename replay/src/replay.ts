@@ -167,8 +167,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       this.stop(false); // just once for now
    }
 
-   protected async dontPanic(): Promise<void> {
-      await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED);
+   protected async dontPanic(reason: string): Promise<void> {
+      await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED, reason);
    }
 
    private async getWorkload(): Promise<IWorkload> {

@@ -16,7 +16,7 @@ function doReschedule(capture: ICapture) {
 
 async function markFailed(capture: ICapture) {
    logger.info(`Setting capture ${capture.id} status to ${ChildProgramStatus.FAILED}`);
-   await captureDao.updateCaptureStatus(capture.id!, ChildProgramStatus.FAILED);
+   await captureDao.updateCaptureStatus(capture.id!, ChildProgramStatus.FAILED, 'Server down when scheduled to start');
 }
 
 /**

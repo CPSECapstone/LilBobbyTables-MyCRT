@@ -13,7 +13,7 @@ export async function markAbandonedReplaysAsFailed() {
          `Marking them as failed.`);
       for (const replay of abandonedReplays) {
          logger.info(`Marking replay ${replay.id} as ${ChildProgramStatus.FAILED}`);
-         await replayDao.updateReplayStatus(replay.id!, ChildProgramStatus.FAILED);
+         await replayDao.updateReplayStatus(replay.id!, ChildProgramStatus.FAILED, 'Replay was abandoned by server');
       }
    } else {
       logger.error(`Failed to get abandoned replays`);

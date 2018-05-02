@@ -82,6 +82,7 @@ CREATE TABLE Capture (
    scheduledEnd DATETIME DEFAULT NULL,
    end DATETIME,
    status VARCHAR(32),
+   reason VARCHAR(100),
    envId INT(11) REFERENCES Environment(id),
    CONSTRAINT captureOwnerIdKey
       FOREIGN KEY (ownerId)
@@ -99,6 +100,7 @@ CREATE TABLE Replay (
    scheduledStart DATETIME DEFAULT NULL,
    end DATETIME,
    status VARCHAR(32),
+   reason VARCHAR(100),
    CONSTRAINT capKey
       FOREIGN KEY (captureId)
       REFERENCES Capture(id) ON DELETE CASCADE,
