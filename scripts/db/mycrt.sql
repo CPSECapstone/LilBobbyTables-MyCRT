@@ -95,6 +95,7 @@ CREATE TABLE Replay (
    dbId INT(11) REFERENCES DBReference(id),
    name VARCHAR(32),
    start DATETIME,
+   scheduledStart DATETIME DEFAULT NULL,
    end DATETIME,
    status VARCHAR(32),
    CONSTRAINT capKey
