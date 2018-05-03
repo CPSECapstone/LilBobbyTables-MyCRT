@@ -2,6 +2,7 @@ import './common';
 
 import '../../static/css/signup.css';
 import { BrowserLogger as logger } from './../logging';
+import { BasePage } from './components/base_page_comp';
 import { style, validSignupFields } from './utils/auth';
 import { mycrt } from './utils/mycrt-client';
 
@@ -31,21 +32,21 @@ class SignupApp extends React.Component<{}, State> {
             <div className="row">
                <div className="col-12 text-center">
 
-                  <div className="card text-center" style={style.signupCard}>
+                  <div className="card text-center myCRT-setup-card" style={style.signupCard}>
                      <div className="card-body">
                         <h3 style={style.cardTitle}>Create a MyCRT Account</h3>
 
                         <div className="input-group mb-3">
-                           <input type="email" className="form-control" placeholder="email"
+                           <input type="email" className="form-control" placeholder="Email"
                               value={this.state.email} onChange={this.handleEmailChange} />
                         </div>
                         <div className="input-group mb-3">
-                           <input type="password" className="form-control" placeholder="password"
+                           <input type="password" className="form-control" placeholder="Password"
                               value={this.state.password} onChange={this.handlePasswordChange} />
                         </div>
                         <div className="input-group mb-3">
                            <input type="password" className="form-control"
-                              placeholder="confirm password" value={this.state.confirmPassword}
+                              placeholder="Confirm Password" value={this.state.confirmPassword}
                               onChange={this.handleConfirmPasswordChange} />
                         </div>
                         <div className="input-group mb-3">
@@ -58,7 +59,7 @@ class SignupApp extends React.Component<{}, State> {
                      </div>
                   </div>
 
-                  <p className="text-muted">Already have an accout? <a href="/login">Login</a></p>
+                  <p className="text-muted">Already have an account? <a href="/login">Login</a></p>
 
                </div>
             </div>
@@ -108,4 +109,4 @@ class SignupApp extends React.Component<{}, State> {
 
 }
 
-ReactDom.render(<SignupApp />, document.getElementById('signup-app'));
+ReactDom.render(<BasePage page={<SignupApp />}/>, document.getElementById('signup-app'));

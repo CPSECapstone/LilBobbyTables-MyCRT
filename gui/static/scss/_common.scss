@@ -22,6 +22,11 @@ $secondary-success: #24e3be;
     border: 1px solid #2C3E50;
 }
 
+.myCRT-setup-card {
+   border: 5px solid #ced4da;
+   border-radius: 1em;
+}
+
 .myCRT-env-card {
     background-color: #3498DB;
     color: white;
@@ -43,6 +48,10 @@ $secondary-success: #24e3be;
     border-radius: 20px;
     border: 1px solid #dee2e6;
     padding: 0px 20px 20px;
+}
+
+.myCRT-nav {
+   margin-left: 25px;
 }
 
 .myCRT-search {

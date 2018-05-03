@@ -8,6 +8,7 @@ import * as ReactDom from 'react-dom';
 import { IUser } from '@lbt-mycrt/common';
 
 import { BrowserLogger as logger } from './../logging';
+import { BasePage } from './components/base_page_comp';
 import { mycrt } from './utils/mycrt-client';
 
 interface State {
@@ -49,11 +50,26 @@ class AccountApp extends React.Component<{}, State> {
    public render() {
       return (
          <div>
-            <h1>Account Page</h1>
-            <UserInfo email={this.state.user.email} />
-            <button type="button" className="btn btn-primary" onClick={this.handleSignout}>
-               Signout
-            </button>
+            <nav>
+               <ol className="breadcrumb">
+                  <li className="breadcrumb-item active"><a>Account</a></li>
+               </ol>
+            </nav>
+            <div className="container">
+               <div className="row">
+                  <div className="col-sm-12 mb-r">
+                  <div className="page-header">
+                     <h1 style={{ display: "inline"}}>Account Page</h1>
+                  </div>
+                  <br/>
+                  <UserInfo email={this.state.user.email} />
+                     <button type="button" className="btn btn-primary" onClick={this.handleSignout}>
+                        Signout
+                     </button>
+                  </div>
+               </div>
+               <br/>
+            </div>
          </div>
       );
    }
@@ -65,4 +81,4 @@ class AccountApp extends React.Component<{}, State> {
 
 }
 
-ReactDom.render(<AccountApp />, document.getElementById('account-app'));
+ReactDom.render(<BasePage page={<AccountApp />}/>, document.getElementById('account-app'));

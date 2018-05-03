@@ -9,6 +9,7 @@ import '../../static/css/index.css';
 
 import { ICapture } from '../../../common/dist/main';
 import { BrowserLogger as logger } from '../logging';
+import { BasePage } from './components/base_page_comp';
 import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
 import { DeleteModal } from './components/delete_modal_comp';
@@ -270,4 +271,4 @@ class DashboardApp extends React.Component<any, any> {
    }
 }
 
-ReactDom.render(<ErrorBoundary><DashboardApp /></ErrorBoundary>, document.getElementById('dashboard-app'));
+ReactDom.render(<BasePage page={<DashboardApp />}/>, document.getElementById('dashboard-app'));

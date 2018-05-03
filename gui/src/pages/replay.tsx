@@ -5,6 +5,8 @@ import '../../static/css/replay.css';
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import { BasePage } from './components/base_page_comp';
+
 const ReplayApp = () => {
    return (
       <div>
@@ -31,4 +33,4 @@ const ReplayApp = () => {
    );
 };
 
-ReactDom.render(<ReplayApp />, document.getElementById('replay-app'));
+ReactDom.render(<BasePage page={<ReplayApp />}/>, document.getElementById('replay-app'));

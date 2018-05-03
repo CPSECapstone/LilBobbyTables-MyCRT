@@ -3,6 +3,7 @@ import './common';
 import '../../static/css/login.css';
 
 import { BrowserLogger as logger } from './../logging';
+import { BasePage } from './components/base_page_comp';
 import { style, validLoginFields } from './utils/auth';
 import { mycrt } from './utils/mycrt-client';
 
@@ -30,17 +31,17 @@ class LoginApp extends React.Component<{}, State> {
             <div className="row">
                <div className="col-12 text-center">
 
-                  <div className="card text-center" style={style.signupCard}>
+                  <div className="card text-center myCRT-setup-card" style={style.signupCard}>
                      <div className="card-body">
                         <h3 style={style.cardTitle}>Login to MyCRT</h3>
 
                         <div className="input-group mb-3">
-                           <input type="email" className="form-control" placeholder="email"
+                           <input type="email" className="form-control" placeholder="Email"
                               onChange={this.handleEmailChange}/>
                         </div>
                         <div className="input-group mb-3">
                            <input type="password" className="form-control"
-                              placeholder="password" onChange={this.handlePasswordChange} />
+                              placeholder="Password" onChange={this.handlePasswordChange} />
                         </div>
                         <div className="input-group mb-3">
                            <button type="button" className="btn btn-primary" style={style.submit}
@@ -53,7 +54,7 @@ class LoginApp extends React.Component<{}, State> {
                   </div>
 
                   <p className="text-muted">
-                     Need to create an account? <a href="/signup">Signup</a>
+                     Need to create an account? <a href="/signup">Sign Up</a>
                   </p>
 
                </div>
@@ -92,4 +93,4 @@ class LoginApp extends React.Component<{}, State> {
 
 }
 
-ReactDom.render(<LoginApp />, document.getElementById('login-app'));
+ReactDom.render(<BasePage page={<LoginApp />}/>, document.getElementById('login-app'));
