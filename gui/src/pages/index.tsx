@@ -15,7 +15,7 @@ const IndexApp = () => {
         <div className="jumbotron jumbotron-fluid">
             <div className="container">
                 <h1 className="display-3">MyCRT</h1>
-                <p className="lead">Amazon Web Services</p>
+                <p className="lead">Scale Effortlessly.</p>
                 <p><a className="btn btn-primary btn-lg" href="/environments" role="button">Get Started</a></p>
             </div>
         </div>
