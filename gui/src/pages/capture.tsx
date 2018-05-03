@@ -123,7 +123,7 @@ class CaptureApp extends React.Component<any, any> {
    }
 
    public async deleteReplay(id: number, deleteLogs: boolean) {
-      await mycrt.deleteReplay(id);
+      await mycrt.deleteReplay(id, deleteLogs);
       window.location.assign(`./capture?id=${this.state.captureId}&envId=${this.state.envId}&view=replays`);
    }
 
@@ -284,7 +284,8 @@ class CaptureApp extends React.Component<any, any> {
                   <div className="tab-pane" id="replays" role="tabpanel">
                      {this.state.replayObj ?
                         <ReplayInfo replay={this.state.replayObj} bucket={this.state.env.bucket}
-                        envId={this.state.envId} captureId={this.state.captureId} delete={this.deleteReplay}/> : null
+                        envId={this.state.envId} captureId={this.state.captureId} prefix={this.state.env.prefix}
+                        delete={this.deleteReplay}/> : null
                      }<br/>
                      <div className="page-header">
                         <h2 style={{display: "inline"}}>Replays</h2>

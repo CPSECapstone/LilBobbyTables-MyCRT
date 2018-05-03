@@ -57,6 +57,7 @@ export interface IReplay extends IChildProgram {
    type: ChildProgramType.REPLAY;
    captureId?: number;
    dbId?: number;
+   envId?: number;
 }
 
 export interface IReplayFull extends IChildProgram {
@@ -75,7 +76,7 @@ export interface IEnvironment {
    id?: number;
    name?: string;
    ownerId?: number;
-   iamId?: number;
+   awsKeysId?: number;
    dbId?: number;
    s3Id?: number;
 }
@@ -94,14 +95,16 @@ export interface IEnvironmentFull {
    instance: string;
    parameterGroup: string;
    bucket: string;
+   prefix: string;
 }
 
-/** IAM Profile */
-export interface IIamReference {
+export interface IAwsKeys {
    id?: number;
    accessKey: string;
    secretKey: string;
    region: string;
+   name?: string;
+   userId?: number;
 }
 
 /** Database Connection */
@@ -119,6 +122,7 @@ export interface IDbReference {
 export interface IS3Reference {
    id?: number;
    bucket?: string;
+   prefix?: string;
 }
 
 /** Commands in a Workload */

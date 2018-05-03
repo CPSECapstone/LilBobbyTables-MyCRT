@@ -13,35 +13,36 @@ describe("backend-schema", () => {
    const capture: data.ICapture = {
       type: data.ChildProgramType.CAPTURE,
       id: 100,
+      envId: 100,
    };
 
    it("should get the root prefix", () => {
       const actual = path.getRootPrefix(capture);
-      const expected = "capture100/";
+      const expected = "environment100/capture100/";
       expect(actual).to.equal(expected);
    });
 
    it("should get the depot prefix", () => {
       const actual = path.getDepotPrefix(capture);
-      const expected = "capture100/depot/";
+      const expected = "environment100/capture100/depot/";
       expect(actual).to.equal(expected);
    });
 
    it("should get the done metrics key", () => {
       const actual = path.metrics.getDoneKey(capture);
-      const expected = "capture100/metrics.json";
+      const expected = "environment100/capture100/metrics.json";
       expect(actual).to.equal(expected);
    });
 
    it("should get an in-progress metrics key", () => {
       const actual = path.metrics.getInProgressKey(capture, date);
-      const expected = "capture100/metrics-100200300.json";
+      const expected = "environment100/capture100/metrics-100200300.json";
       expect(actual).to.equal(expected);
    });
 
    it("should get a single sample metrics key", () => {
       const actual = path.metrics.getSingleSampleKey(capture, date);
-      const expected = "capture100/depot/metrics-100200300.json";
+      const expected = "environment100/capture100/depot/metrics-100200300.json";
       expect(actual).to.equal(expected);
    });
 

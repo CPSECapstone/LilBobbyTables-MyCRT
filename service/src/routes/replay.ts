@@ -1,3 +1,4 @@
+import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
@@ -150,20 +151,79 @@ export default class ReplayRouter extends SelfAwareRouter {
             startReplay(replayTemplate);
          }
 
-         response.json(replayTemplate);
          logger.info(`Successfully created replay!`);
 
          },
       ));
 
+      this.router.put('/:id(\\d+)', check.validParams(schema.idParams), check.validBody(schema.putReplayBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const replay = await replayDao.getReplay(request.params.id);
+         if (!replay || !replay!.captureId) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const replays = await replayDao.getReplaysForCapture(replay!.captureId!);
+         if (!replays) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR);
+         }
+
+         let nameAvailable = true;
+
+         replays.forEach( (value, index, arr) => {
+            if (value.name && value.name! === request.body.name) {
+               nameAvailable = false;
+            }
+         });
+
+         if (nameAvailable) {
+            await replayDao.updateReplayName(replay.id!, request.body.name);
+            response.status(http.OK).end();
+         } else {
+            throw new HttpError(http.CONFLICT, "A replay with this name already exists.");
+         }
+
+      }));
+
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
-         const replay = await replayDao.deleteReplay(id);
+         const deleteLogs: boolean | undefined = request.query.deleteLogs;
+
+         const replay = await replayDao.getReplay(id);
          if (!replay) {
             throw new HttpError(http.NOT_FOUND);
+         } else if (!replay.captureId) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id} has no captureId`);
          }
+
+         const capture = await captureDao.getCapture(replay.captureId);
+         if (capture === null) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s capture does not exist`);
+         } else if (!capture.envId) {
+            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s has no envId`);
+         }
+
+         await replayDao.deleteReplay(id);
+
+         const env = await environmentDao.getEnvironmentFull(capture.envId);
+
+         if (deleteLogs === true && env) {
+
+            const storage = new S3Backend(
+               new S3({region: env.region,
+                        accessKeyId: env.accessKey,
+                        secretAccessKey: env.secretKey}),
+                     env.bucket, env.prefix,
+               );
+
+            const replayPrefix = `environment${env.id}/replay${id}/`;
+            await storage.deletePrefix(replayPrefix);
+         }
+
          response.json(replay);
 
       }));

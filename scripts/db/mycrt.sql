@@ -21,7 +21,7 @@ CREATE TABLE Environment (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
    name VARCHAR(32) UNIQUE,
    ownerId INT(11) REFERENCES User(id),
-   iamId INT(11) REFERENCES IAMReference(id),
+   awsKeysId INT(11) REFERENCES AwsKeys(id),
    dbId INT(11) REFERENCES DBReference(id),
    s3Id INT(11) REFERENCES S3Reference(id),
    CONSTRAINT ownerIdKey
@@ -48,12 +48,14 @@ CREATE TABLE EnvironmentUser (
       ON DELETE CASCADE
 );
 
-CREATE TABLE IAMReference (
+CREATE TABLE AwsKeys (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
    accessKey VARCHAR(256),
    secretKey VARCHAR(256),
    region VARCHAR(16),
-   output VARCHAR(16) DEFAULT 'json'
+   output VARCHAR(16) DEFAULT 'json',
+   name VARCHAR(32),
+   userId INT(11) REFERENCES User(id)
 );
 
 CREATE TABLE DBReference (
@@ -68,7 +70,8 @@ CREATE TABLE DBReference (
 
 CREATE TABLE S3Reference (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-   bucket VARCHAR(32)
+   bucket VARCHAR(32),
+   prefix VARCHAR(32)
 );
 
 CREATE TABLE Capture (
@@ -80,6 +83,7 @@ CREATE TABLE Capture (
    scheduledEnd DATETIME DEFAULT NULL,
    end DATETIME,
    status VARCHAR(32),
+   reason VARCHAR(100),
    envId INT(11) REFERENCES Environment(id),
    CONSTRAINT captureOwnerIdKey
       FOREIGN KEY (ownerId)
@@ -97,6 +101,7 @@ CREATE TABLE Replay (
    scheduledStart DATETIME DEFAULT NULL,
    end DATETIME,
    status VARCHAR(32),
+   reason VARCHAR(100),
    CONSTRAINT capKey
       FOREIGN KEY (captureId)
       REFERENCES Capture(id) ON DELETE CASCADE,

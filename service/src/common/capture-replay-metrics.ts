@@ -22,6 +22,7 @@ export const getMetrics = (childProgram: IChildProgram, environment: IEnvironmen
       Promise<IMetricsList | IMetricsList[]> => {
 
    logger.info(`Getting ${metricType} metrics for ${childProgram.type} ${childProgram.id}`);
+   childProgram.envId = environment.id;
 
    const validStatus = childProgram.status && [ChildProgramStatus.DONE, ChildProgramStatus.RUNNING,
    ChildProgramStatus.STOPPING].indexOf(childProgram.status) > -1;
@@ -33,14 +34,14 @@ export const getMetrics = (childProgram: IChildProgram, environment: IEnvironmen
    const mocking: boolean = settings.captures.mock && childProgram.type === ChildProgramType.CAPTURE
       || settings.replays.mock && childProgram.type === ChildProgramType.REPLAY;
    if (mocking) {
-      backend = new LocalBackend(getSandboxPath());
+      backend = new LocalBackend(getSandboxPath(), environment.prefix);
    } else {
       const awsConfig: S3.ClientConfiguration = {
          region: environment.region,
          accessKeyId: environment.accessKey,
          secretAccessKey: environment.secretKey,
       };
-      backend = new S3Backend(new S3(awsConfig), environment.bucket);
+      backend = new S3Backend(new S3(awsConfig), environment.bucket, environment.prefix);
    }
    const storage = new MetricsStorage(backend);
 

@@ -3,7 +3,7 @@ import ReactDom = require('react-dom');
 
 import * as $ from 'jquery';
 
-import { ChildProgramStatus, ChildProgramType, IEnvironmentFull, IIamReference } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType, IAwsKeys, IEnvironmentFull } from '@lbt-mycrt/common/dist/data';
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
@@ -23,8 +23,8 @@ export class EnvModal extends React.Component<any, any>  {
         this.cancelModal = this.cancelModal.bind(this);
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
-                      dbName: "", pass: "", bucket: "", dbRefs: [], invalidDBPass: false, modalPage: '1',
-                      envNameDuplicate: false,
+                      dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
+                      modalPage: '1', envNameDuplicate: false,
                       disabled: true, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid'};
         this.baseState = this.state;
     }
@@ -54,8 +54,8 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public async validateCredentials(event: any) {
-        const iamRef = {accessKey: this.state.accessKey, secretKey: this.state.secretKey, region: this.state.region};
-        const dbRefs = await mycrt.validateCredentials(iamRef);
+        const awsKeys = {accessKey: this.state.accessKey, secretKey: this.state.secretKey, region: this.state.region};
+        const dbRefs = await mycrt.validateCredentials(awsKeys);
         if (dbRefs) {
             this.setState({dbRefs});
             this.changeProgress(3);
@@ -63,7 +63,7 @@ export class EnvModal extends React.Component<any, any>  {
             this.setState({credentialsValid: 'invalid'});
             logger.error("THERE WAS AN ERROR");
         }
-        const bucketList = await mycrt.validateBuckets(iamRef);
+        const bucketList = await mycrt.validateBuckets(awsKeys);
         if (bucketList) {
             this.setState({bucketList});
         } else {
@@ -95,6 +95,10 @@ export class EnvModal extends React.Component<any, any>  {
         host: dbRef.host, user: dbRef.user, pass: "", invalidDBPass: false});
     }
 
+    public handlePrefixChange(event: any) {
+      this.setState({ prefix: event.target.value });
+    }
+
     public handleS3Ref(event: any) {
         const bucket = event.currentTarget.value;
         if (bucket === "default") {
@@ -120,7 +124,7 @@ export class EnvModal extends React.Component<any, any>  {
          this.setState({envNameValid: 'invalid', disabled: true});
       }
       this.setState({[event.target.id]: event.target.value, envNameDuplicate: false});
-  }
+    }
 
     public async createEnvironment() {
         const envObj = await mycrt.createEnvironment(this.state as IEnvironmentFull);
@@ -222,7 +226,7 @@ export class EnvModal extends React.Component<any, any>  {
                                 </div>
                                 <div className="tab-pane myCRT-tab-pane fade" id="step2">
                                     <div className="card card-body bg-light">
-                                        <label>IAM Credentials</label>
+                                        <label> AWS Keys </label>
                                         <input className="form-control input-lg" placeholder="Enter Access Key"
                                             value={this.state.accessKey} id="accessKey"
                                             onInput={this.handleInputChange.bind(this)}/> <br/>
@@ -284,6 +288,11 @@ export class EnvModal extends React.Component<any, any>  {
                                             <option value="default">Select S3 Bucket...</option>
                                             {buckets}
                                         </select>} <br/>
+                                        <label>Prefix Name (Optional):</label>
+                                        <input className="form-control input-lg"
+                                          placeholder="Enter S3 Prefix"
+                                          value={this.state.prefix} id="prefix"
+                                          onInput={this.handlePrefixChange.bind(this)}/>
                                     </div>
                                 </div>
                                 <div className="modal-footer">

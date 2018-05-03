@@ -5,6 +5,8 @@ import * as http from 'http-status-codes';
 import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import * as data from '@lbt-mycrt/common/dist/data';
 
+import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
+
 import * as session from '../auth/session';
 import { environmentDao, environmentInviteDao as inviteDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
@@ -79,13 +81,16 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, "Environment with same name already exists");
          }
 
-         let iamReference: data.IIamReference = {
+         let awsKeys: data.IAwsKeys = {
             accessKey: request.body.accessKey,
             secretKey: request.body.secretKey,
             region: request.body.region,
+            userId: request.user!.id,
+            name: request.body.name || "mykeys", // TODO remove the || "mykeys"
          };
          let s3Reference: data.IS3Reference = {
             bucket: request.body.bucket,
+            prefix: request.body.prefix,
          };
          let dbReference: data.IDbReference = {
             name: request.body.dbName,
@@ -96,17 +101,22 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             parameterGroup: request.body.parameterGroup,
          };
 
-         iamReference = await environmentDao.makeIamReference(iamReference);
+         const awsKeysRow = await environmentDao.makeAwsKeys(awsKeys);
          s3Reference = await environmentDao.makeS3Reference(s3Reference);
          const dbRef = await environmentDao.makeDbReference(dbReference);
          if (dbRef) {
             dbReference = dbRef;
          }
+         if (awsKeysRow) {
+            awsKeys = awsKeysRow;
+         }
+
+         logger.debug(JSON.stringify(request.user!.id));
 
          const environment: data.IEnvironment = {
             name: request.body.envName,
             ownerId: request.user!.id,
-            iamId: iamReference.id!,
+            awsKeysId: awsKeys.id!,
             s3Id: s3Reference.id!,
             dbId: dbReference.id!,
          };
@@ -135,23 +145,24 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          const id = request.params.id;
          const deleteLogs: boolean | undefined = request.query.deleteLogs;
 
-         const environment = await environmentDao.deleteEnvironment(id);
-         if (!environment) {
-            throw new HttpError(http.NOT_FOUND);
-         }
-
          if (deleteLogs === true) {
             const env = await environmentDao.getEnvironmentFull(id);
             if (env) {
-               // TODO: needs to be replaced by a S3StorageBackend object in the Capture Object
-               const s3 = new S3(
-                  {region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey},
+               const storage = new S3Backend(
+                  new S3({region: env.region,
+                     accessKeyId: env.accessKey,
+                     secretAccessKey: env.secretKey}),
+                  env.bucket, env.prefix,
                );
 
-               // TODO: Remove environment bucket from s3 (should just be s3.deleteBucket call)
-               const s3Params = { Bucket: env.bucket };
-               logger.info("Deleting environment bucket not implemented.");
+               const envPrefix = `environment${env.id}/`;
+               await storage.deletePrefix(envPrefix);
             }
+         }
+
+         const environment = await environmentDao.deleteEnvironment(id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND);
          }
 
          response.json(environment);

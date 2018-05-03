@@ -89,8 +89,12 @@ export class CaptureDao extends Dao {
       await this.query<void>('ALTER TABLE Capture AUTO_INCREMENT = 1');
    }
 
-   public updateCaptureStatus(id: number, status: data.ChildProgramStatus): Promise<void> {
-      return this.query('UPDATE Capture SET status = ? WHERE id = ?', [status, id]);
+   public updateCaptureStatus(id: number, status: data.ChildProgramStatus, reason?: string): Promise<void> {
+      if (reason) {
+         return this.query('UPDATE Capture SET status = ?, reason = ? WHERE id = ?', [status, reason, id]);
+      } else {
+         return this.query('UPDATE Capture SET status = ? WHERE id = ?', [status, id]);
+      }
    }
 
    public updateCaptureStartTime(id: number): Promise<void> {
@@ -99,6 +103,10 @@ export class CaptureDao extends Dao {
 
    public updateCaptureEndTime(id: number): Promise<void> {
       return this.query('UPDATE Capture SET end = NOW() WHERE id = ?', [id]);
+   }
+
+   public updateCaptureName(id: number, name: string): Promise<void> {
+      return this.query(`UPDATE Capture SET name = ? where id = ?`, [name, id]);
    }
 
    private rowToICapture(captureData: any): data.ICapture {

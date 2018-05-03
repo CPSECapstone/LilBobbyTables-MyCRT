@@ -96,8 +96,9 @@ export default class CaptureRouter extends SelfAwareRouter {
                const stopResult = await this.ipcNode.stopCapture(capture.id!);
                logger.info(`Got stopResult: ${JSON.stringify(stopResult)}`);
                if (stopResult === null) {
-                  captureDao.updateCaptureStatus(capture.id!, ChildProgramStatus.FAILED);
-                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to send the capture stop signal");
+                  const reason = "Failed to send the capture stop signal";
+                  captureDao.updateCaptureStatus(capture.id!, ChildProgramStatus.FAILED, reason);
+                  throw new HttpError(http.INTERNAL_SERVER_ERROR, reason);
                } else {
                   logger.info(`Capture ${capture.id!} stopped`);
                   response.status(http.OK).end();
@@ -118,6 +119,36 @@ export default class CaptureRouter extends SelfAwareRouter {
                throw new HttpError(http.CONFLICT, "This capture has already been stopped.");
             case ChildProgramStatus.FAILED:
                throw new HttpError(http.CONFLICT, "This capture failed and is no longer running.");
+         }
+
+      }));
+
+      this.router.put('/:id(\\d+)', check.validParams(schema.idParams), check.validBody(schema.putCaptureBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const capture = await captureDao.getCapture(request.params.id);
+         if (!capture || !capture!.envId) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const captures = await captureDao.getCapturesForEnvironment(capture!.envId!);
+         if (!captures) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR);
+         }
+
+         let nameAvailable = true;
+
+         captures.forEach( (value, index, arr) => {
+            if (value.name && value.name! === request.body.name) {
+               nameAvailable = false;
+            }
+         });
+
+         if (nameAvailable) {
+            await captureDao.updateCaptureName(capture.id!, request.body.name);
+            response.status(http.OK).end();
+         } else {
+            throw new HttpError(http.CONFLICT, "A capture with this name already exists.");
          }
 
       }));
@@ -219,11 +250,11 @@ export default class CaptureRouter extends SelfAwareRouter {
                      new S3({region: env.region,
                         accessKeyId: env.accessKey,
                         secretAccessKey: env.secretKey}),
-                     env.bucket,
+                     env.bucket, env.prefix,
                   );
 
-               const key = "capture" + id + "/";
-               await storage.deletePrefix(key);
+               const capturePrefix = `environment${env.id}/capture${id}/`;
+               await storage.deletePrefix(capturePrefix);
             }
          }
 

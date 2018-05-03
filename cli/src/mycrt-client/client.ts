@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull, IIamReference,
+import { IAwsKeys, ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull,
    IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
    } from '@lbt-mycrt/common/dist/data';
 
@@ -143,13 +143,13 @@ export class MyCrtClient {
    }
 
    /** Validate credentials when creating an environment */
-   public async validateCredentials(iamRef: IIamReference): Promise< IDbReference[]| null> {
-      return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, iamRef);
+   public async validateCredentials(awsKeys: IAwsKeys): Promise< IDbReference[]| null> {
+      return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, awsKeys);
    }
 
    /** Validate buckets when creating an environment */
-   public async validateBuckets(iamRef: IIamReference): Promise< string[]| null> {
-      return this.makeRequest<string[]>(HttpMethod.POST, `/validate/bucket`, null, iamRef);
+   public async validateBuckets(awsKeys: IAwsKeys): Promise< string[]| null> {
+      return this.makeRequest<string[]>(HttpMethod.POST, `/validate/bucket`, null, awsKeys);
    }
 
    /** Valid database credentials when creating an environment */
