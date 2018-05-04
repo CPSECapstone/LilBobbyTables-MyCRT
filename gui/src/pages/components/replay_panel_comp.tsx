@@ -108,7 +108,7 @@ export class ReplayPanel extends React.Component<any, any>  {
       if (!this.props.replay) { return (<div></div>); }
         const percent = `${((this.state.currentDuration / this.state.totalDuration) * 100).toFixed(0)}%`;
         return (
-            <div className="card myCRT-panel mt-4 myCRT-card">
+            <div className="card myCRT-panel mt-4 ml-4 mr-4 myCRT-card">
                 <div className={`card-header ${className}`}>
                     <div style={{display: "inline-block"}}>
                     <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle"}}

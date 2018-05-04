@@ -22,6 +22,24 @@ $secondary-success: #24e3be;
     border: 1px solid #2C3E50;
 }
 
+.myCRT-collapse-header {
+   background-color: white;
+   border: 1px solid #dee2e6;
+   border-radius: 20px;
+}
+
+.search-icon-hover:hover {
+   color: white;
+}
+
+.myCRT-collapse-body {
+   background-color: #ecf0f1;
+}
+
+.collapse-card-title, .collapse-card-title:hover {
+   color: inherit;
+}
+
 .myCRT-setup-card {
    border: 5px solid #ced4da;
    border-radius: 1em;

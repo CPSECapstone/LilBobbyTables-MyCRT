@@ -104,7 +104,7 @@ export class CapturePanel extends React.Component<any, any>  {
        if (!this.props.capture) { return (<div></div>); }
        const percent = `${((this.state.currentDuration / this.state.duration) * 100).toFixed(0)}%`;
         return (
-            <div className="card myCRT-panel mt-4 myCRT-card">
+            <div className="card myCRT-panel mt-4 ml-4 mr-4 myCRT-card">
                 <div className={`card-header ${className}`}>
                     <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle", cursor: "pointer"}}
                         onClick={ (e) => this.handleInfoClick(e)}>{this.props.title}</h5>
