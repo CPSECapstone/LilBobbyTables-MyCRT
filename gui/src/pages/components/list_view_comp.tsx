@@ -36,7 +36,7 @@ export class ListView extends React.Component<any, any>  {
                      data-target={`#${this.props.type}`} onClick={this.updateCollapse}>
                      <i className={`fa fa-angle-${this.state.arrow} fa-2x`} style={{paddingRight: "10px"}}></i>
                   </span>
-                  <h4 style={{padding: "0px", display: "inline-block"}}>{this.props.name}</h4>
+                  <h4 style={{padding: "0px", margin: "0px", display: "inline-block"}}>{this.props.name}</h4>
                   <h5 style={{padding: "0px", display: "inline-block"}}>&nbsp;({this.props.list.length})</h5>
                   {this.state.collapsed ? <div></div> :
                      <Search length={this.props.list.length} type={this.props.type} update={this.props.update}/>}
