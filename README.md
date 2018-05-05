@@ -4,6 +4,9 @@
 # LilBobbyTables-MyCRT
 ## (MySQL Capture and Replay Tool)
 
+#### XKCD Name Inspiration
+![Exploits Of A Mom](https://imgs.xkcd.com/comics/exploits_of_a_mom.png)
+
 ### User Guide
 
 For usage and installation instructions, see the guide below.
