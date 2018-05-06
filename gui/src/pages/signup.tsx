@@ -112,6 +112,12 @@ class SignupApp extends React.Component<{}, State> {
 
       if (!valid || user === null) {
          logger.error("Invalid Credentials");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Bad Email/Password",
+            message: "Please enter an email and password. The email must not already exist on MyCRT. "
+               + "The password must be between 8 and 64 characters.",
+         }));
       } else {
          logger.info("Done!");
          logger.info(JSON.stringify(user));
