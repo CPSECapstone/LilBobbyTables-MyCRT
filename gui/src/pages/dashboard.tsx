@@ -19,6 +19,7 @@ import { Pagination } from './components/pagination_comp';
 import { ReplayModal } from './components/replay_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 import { Search } from './components/search_comp';
+import { ShareModal } from './components/share_modal_comp';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 class DashboardApp extends React.Component<any, any> {
@@ -148,10 +149,15 @@ class DashboardApp extends React.Component<any, any> {
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
                      <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
-                           data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}
+                           data-target="#deleteEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
                            data-backdrop="static" data-keyboard={false}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
-                        </a>
+                     </a>
+                     <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
+                           data-target="#shareEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
+                           data-backdrop="static" data-keyboard={false}>
+                            <i className="fa fa-share fa-lg" aria-hidden="true"></i>
+                     </a><br/><br/>
                      <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>
                         <div className="row">
@@ -175,7 +181,8 @@ class DashboardApp extends React.Component<any, any> {
                         </div>
                      </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.envId}
-                               name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
+                           name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
+                        <ShareModal id="shareEnvModal" name={this.state.env.envName}/>
                   </div>
                </div>
                <br></br>

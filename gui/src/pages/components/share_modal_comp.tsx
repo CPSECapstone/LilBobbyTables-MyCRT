@@ -1,0 +1,60 @@
+import React = require('react');
+import ReactDom = require('react-dom');
+
+import * as $ from 'jquery';
+
+import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/data';
+import { BrowserLogger as logger } from '../../logging';
+import { mycrt } from '../utils/mycrt-client';
+
+import { WarningAlert } from './alert_warning_comp';
+
+export class ShareModal extends React.Component<any, any>  {
+
+   private baseState = {} as any;
+
+   constructor(props: any) {
+      super(props);
+      this.state = { disabled: true };
+      this.baseState = this.state;
+      this.cancelModal = this.cancelModal.bind(this);
+   }
+
+    public cancelModal(event: any) {
+      this.setState(this.baseState);
+      this.render();
+   }
+
+    public render() {
+        return (
+            <div className="modal fade" id={this.props.id} role="dialog"
+                aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog" role="document">
+                    <div className="modal-content myCRT-modal">
+                        <div className="modal-header myCRT-modal-header">
+                            <h4 className="modal-title">Share <i>{this.props.name}</i></h4>
+                            <button type="button" className="close" data-dismiss="modal"
+                              onClick={this.cancelModal} aria-label="Close">
+                                <span aria-hidden="true" style={{color: "white"}}>&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={(e) => e.preventDefault()}>
+                                <div className="form-group">
+                                    <div className="card card-body bg-light">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" id="cancelButton"
+                                    data-dismiss="modal" onClick={this.cancelModal}>Cancel</button>
+                            <button type="button" className="btn btn-info"
+                                    disabled={this.state.disabled}>Share</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+}
