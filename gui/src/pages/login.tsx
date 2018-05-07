@@ -2,6 +2,8 @@ import './common';
 
 import '../../static/css/login.css';
 
+import { showAlert } from '../actions';
+import { store } from '../store';
 import { BrowserLogger as logger } from './../logging';
 import { BasePage } from './components/base_page_comp';
 import { style, validLoginFields } from './utils/auth';
@@ -85,6 +87,11 @@ class LoginApp extends React.Component<{}, State> {
 
       if (!valid || user === null) {
          logger.error("Invalid Credentials");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Invalid Credentials",
+            message: "Please enter a correct email/password.",
+         }));
       } else {
          logger.info("Done!");
          window.location.assign('/');

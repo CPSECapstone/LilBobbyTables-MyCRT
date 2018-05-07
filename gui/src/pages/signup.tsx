@@ -1,6 +1,8 @@
 import './common';
 
 import '../../static/css/signup.css';
+import { showAlert } from '../actions';
+import { store } from '../store';
 import { BrowserLogger as logger } from './../logging';
 import { BasePage } from './components/base_page_comp';
 import { style, validSignupFields } from './utils/auth';
@@ -92,6 +94,16 @@ class SignupApp extends React.Component<{}, State> {
       logger.info("Submit!");
       const valid = validSignupFields(this.state);
 
+      if (!valid) {
+         logger.info("Showing alert");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Bad Email/Password",
+            message: "Please enter an email and password. The password must be between 8 and 64 characters.",
+         }));
+         return;
+      }
+
       const user = await mycrt.signup({
          email: this.state.email,
          password: this.state.password,
@@ -100,6 +112,12 @@ class SignupApp extends React.Component<{}, State> {
 
       if (!valid || user === null) {
          logger.error("Invalid Credentials");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Bad Email/Password",
+            message: "Please enter an email and password. The email must not already exist on MyCRT. "
+               + "The password must be between 8 and 64 characters.",
+         }));
       } else {
          logger.info("Done!");
          logger.info(JSON.stringify(user));
