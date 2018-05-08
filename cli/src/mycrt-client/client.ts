@@ -1,7 +1,7 @@
 import * as http from 'http-status-codes';
 
 import { IAwsKeys, ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull,
-   IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
+   IEnvironmentUser, IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
    } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
@@ -180,6 +180,30 @@ export class MyCrtClient {
    /** Logout */
    public async logout(): Promise<void | null> {
       return this.makeRequest<any>(HttpMethod.PUT, '/users/logout');
+   }
+
+   /**
+    * Create an invitation to an environment. The response will have an inviteCode on the body.
+    * The given user must then accept the invitation with that invite code.
+    * @param environmentId The id of the environment to invite the user to
+    * @param userEmail The email address of the user to invite
+    */
+   public async environmentInvite(environmentId: number, userEmail: string):
+         Promise<IEnvironmentUser | null> {
+      return this.makeRequest<IEnvironmentUser>(HttpMethod.POST, '/environments/invites', null, {
+         environmentId,
+         userEmail,
+      });
+   }
+
+   /**
+    * Accept an invitation to an environment. Invitation codes expire after 24 hours.
+    * @param inviteCode The invitation code (previously created).
+    */
+   public async acceptEnvironmentInvite(inviteCode: string): Promise<void> {
+      return this.makeRequest<any>(HttpMethod.PUT, '/environments/invites/accept', null, {
+         inviteCode,
+      });
    }
 
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
