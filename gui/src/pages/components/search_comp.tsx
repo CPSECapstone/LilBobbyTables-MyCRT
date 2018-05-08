@@ -33,7 +33,7 @@ export class Search extends React.Component<any, any> {
       return (
          <div className="input-group mb-3 myCRT-search" style={this.props.style}>
             <div className="input-group-append search-icon">
-               <a role="button" className="btn btn-outline-primary" onClick={this.handleSearch}
+               <a role="button" className="btn btn-outline-primary" id="myCRT-search-btn" onClick={this.handleSearch}
                   style={{borderRadius: "24px"}}>
                   <i className="fa fa-search search-icon-hover" aria-hidden="true"></i></a>
             </div>
