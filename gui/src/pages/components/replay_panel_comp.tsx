@@ -130,9 +130,10 @@ export class ReplayPanel extends React.Component<any, any>  {
                   </div> :
                   <div className={`card-footer ${statusStyle}`}>{this.state.replay.status}</div>}
                 <div className="card-body">
-                    <p><b>DB:</b><i> {this.state.db}</i></p>
-                    <p><b>Start:</b><i> {this.formatTimeStamp(this.state.replay.start)}</i></p>
-                    <p style={{margin: 0}}><b>End:</b><i> {this.formatTimeStamp(this.state.replay.end)}</i></p>
+                  {this.state.failed ? <p className="myCRT-danger-label"><i>{this.state.replay.reason}</i></p> : null}
+                  <p><b>DB:</b><i> {this.state.db}</i></p>
+                  <p><b>Start:</b><i> {this.formatTimeStamp(this.state.replay.start)}</i></p>
+                  <p style={{margin: 0}}><b>End:</b><i> {this.formatTimeStamp(this.state.replay.end)}</i></p>
                 </div>
             </div>
         );

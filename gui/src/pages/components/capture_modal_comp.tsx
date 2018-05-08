@@ -79,13 +79,13 @@ export class CaptureModal extends React.Component<any, any>  {
       }
       const captureObj = await mycrt.startCapture(capture);
       if (!captureObj) {
-         this.setState({errorMsg: "There was an error: Capture was not started"});
+         this.setState({errorMsg: "There was an error: Capture was not started."});
       } else {
          logger.info(`${captureObj.name} was made with id ${captureObj.id}`);
          const cancelBtn = document.getElementById("cancelBtn");
          this.props.update();
          if (cancelBtn) {
-               cancelBtn.click();
+            cancelBtn.click();
          }
       }
     }

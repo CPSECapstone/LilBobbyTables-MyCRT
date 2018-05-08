@@ -92,12 +92,12 @@ export class ShareModal extends React.Component<any, any>  {
                                  <br/>
                                  <h6>Please share the following invite code with <i>{this.state.email} </i>
                                      within the next 24 hours.</h6><br/>
-                                 <h6>Invite Code: <h6 style={{fontWeight: "bold", display: "inline"}}>
-                                    {this.state.inviteCode}</h6></h6>
+                                 <h6>Invite Code: <span style={{fontWeight: "bold", display: "inline"}}>
+                                    {this.state.inviteCode}</span></h6>
                               </div>
                            </div>
                            <div className="modal-footer">
-                              <button className="btn btn-secondary" data-dismiss="modal" id="cancelBtn"
+                              <button className="btn btn-secondary" data-dismiss="modal" id="cancelShareBtn"
                                     aria-hidden="true" onClick={this.cancelModal}>Close</button>
                               {this.state.step === "1" ? <button className="btn btn-info"
                                  onClick={this.handleClick.bind(this)}

@@ -156,7 +156,7 @@ class DashboardApp extends React.Component<any, any> {
                      <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
                            data-target="#shareEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
                            data-backdrop="static" data-keyboard={false}>
-                            <i className="fa fa-share fa-lg" aria-hidden="true"></i>
+                            <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i>
                      </a><br/><br/>
                      <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>

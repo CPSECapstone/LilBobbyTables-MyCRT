@@ -126,6 +126,7 @@ export class CapturePanel extends React.Component<any, any>  {
                   </div> :
                   <div className={`card-footer ${statusStyle}`}>{this.state.capture.status}</div>}
                 <div className="card-body">
+                  {this.state.failed ? <p className="myCRT-danger-label"><i>{this.state.capture.reason}</i></p> : null}
                   {this.state.scheduled ?
                      <p><b>Scheduled Start:</b><i> {this.formatTimeStamp(this.state.capture.scheduledStart)}</i></p> :
                      <p><b>Start:</b><i> {this.formatTimeStamp(this.state.capture.start)}</i></p>}
