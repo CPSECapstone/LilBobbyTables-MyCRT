@@ -182,7 +182,7 @@ class DashboardApp extends React.Component<any, any> {
                      </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.envId}
                            name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
-                        <ShareModal id="shareEnvModal" name={this.state.env.envName}/>
+                        <ShareModal id="shareEnvModal" name={this.state.env.envName} envId={this.state.envId}/>
                   </div>
                </div>
                <br></br>
