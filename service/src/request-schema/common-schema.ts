@@ -6,7 +6,7 @@ export const value = {
    id: joi.number(),
 
    /** A string suitable to name an entity. Restrict to only a few special characters */
-   nameString: joi.string().regex(/^[a-zA-Z0-9 :_\-]{4,}$/),
+   nameString: joi.string().regex(/^[a-zA-Z0-9 :_\-]{4,25}$/),
 
    /** A string that, when converted to uppercase, matches a MetricType value */
    metricType: joi.string()
