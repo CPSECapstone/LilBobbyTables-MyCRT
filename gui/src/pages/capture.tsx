@@ -66,7 +66,7 @@ class CaptureApp extends React.Component<any, any> {
 
       this.state = {envId, view, defaultReplay, replayInfo, env: null, captureId: id, capture: null,
             areaChart: false, allReplays: [], selectedReplays: [], replaySearch: "",
-            allGraphs: [], selectedGraphs: ["WRITE"], navTabs: ["Details", "Metrics", "Replays"],
+            allGraphs: [], selectedGraphs: ["WRITE IOPS"], navTabs: ["Details", "Metrics", "Replays"],
       };
    }
 
