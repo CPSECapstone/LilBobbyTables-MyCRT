@@ -168,8 +168,7 @@ class DashboardApp extends React.Component<any, any> {
                               <label>
                                  <b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>
                                  {this.state.env.parameterGroup}</label><br/>
-                              <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}
-                              </label>
+                              <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}</label>
                               <br/><br/>
                            </div>
                            <div className="col-xs-6" style={{padding: "20px 40px 0px"}}>

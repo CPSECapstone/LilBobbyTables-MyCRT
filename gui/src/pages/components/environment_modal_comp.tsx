@@ -7,6 +7,7 @@ import { ChildProgramStatus, ChildProgramType, IAwsKeys, IEnvironmentFull } from
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
+import { awsRegions } from '../utils/string-constants';
 import { WarningAlert } from './alert_warning_comp';
 
 export class EnvModal extends React.Component<any, any>  {
@@ -108,6 +109,15 @@ export class EnvModal extends React.Component<any, any>  {
         }
     }
 
+    public handleRegionChange(event: any) {
+       const value = event.target.value;
+       let disabled = this.state.disabled;
+       if (value === "default") {
+         disabled = true;
+       }
+       this.setState({region: value, credentialsValid: 'valid', disabled});
+    }
+
     public handleInputChange(event: any) {
       this.setState({[event.target.id]: event.target.value, credentialsValid: 'valid'});
       this.setState({disabled: false});
@@ -154,11 +164,16 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public cancelModal(event: any) {
-        this.setState(this.baseState);
-        this.changeProgress(1);
+      $("select#regionDrop").val('default');
+      this.setState(this.baseState);
+      this.changeProgress(1);
     }
 
     public render() {
+       const regions: JSX.Element[] = [];
+         for (const region of awsRegions) {
+            regions.push((<option value={region}>{region}</option>));
+         }
         const databases: JSX.Element[] = [];
         if (this.state.dbRefs) {
            for (const db of this.state.dbRefs) {
@@ -233,9 +248,11 @@ export class EnvModal extends React.Component<any, any>  {
                                         <input className="form-control input-lg" placeholder="Enter Secret Key"
                                             value={this.state.secretKey} id="secretKey"
                                             onInput={this.handleInputChange.bind(this)}/> <br/>
-                                        <input className="form-control input-lg" placeholder="Enter Region"
-                                            value={this.state.region} id="region"
-                                            onInput={this.handleInputChange.bind(this)}/>
+                                        {<select className="form-control" id="regionDrop"
+                                             onChange={this.handleRegionChange.bind(this)}>
+                                            <option value='default'>Enter Region...</option>
+                                            {regions}
+                                        </select>}
                                        <br></br>
                                        <div className="text-danger">
                                           {this.state.credentialsValid === 'valid' ? "" :
