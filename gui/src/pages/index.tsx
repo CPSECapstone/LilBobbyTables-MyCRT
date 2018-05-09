@@ -17,7 +17,7 @@ const IndexApp = () => {
                 <h1 className="display-3">MyCRT</h1>
                 <p className="lead">Scale Today</p>
                 <p>
-                   <a className="button" href="/environments" role="button" id="strtBtn">Get Started</a>
+                   <a className="button" href="/environments" role="button">Get Started</a>
                </p>
             </div>
         </div>

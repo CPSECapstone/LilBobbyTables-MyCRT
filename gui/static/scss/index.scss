@@ -1,27 +1,29 @@
 @import 'common';
 
 .jumbotron {
-    background-image: url('https://i.imgur.com/cGdSvj1.jpg');
-    background-size: cover;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    .container {
-        text-align: center;
-    }
+   background-image: url('https://i.imgur.com/0UnzMY7.jpg');
+   background-size: cover;
+   height: 88vh;
+   display: flex;
+   align-items: center;
+   .container {
+      text-align: center;
+   }
+   margin-bottom: 0px;
 }
 
 .button {
    border-radius: 4px;
-   background-color: #5ca1e1;
+   background-color: #2D3E4F;
    border: none;
    color: #fff;
    text-align: center;
-   font-size: 32px;
-   padding: 16px;
-   width: 220px;
+   font-size: 16px;
+   padding: 10px;
+   width: 120px;
    transition: all 0.5s;
    cursor: pointer;
+   margin-top: 16px;
    margin: 36px;
 }
 
@@ -29,6 +31,7 @@
    cursor: pointer;
    display: inline-block;
    position: relative;
+   margin-top: 16px;
    transition: 0.5s;
 }
 
@@ -36,7 +39,7 @@
    content: '»';
    position: absolute;
    opacity: 0;
-   top: 14px;
+   top: 10px;
    right: -20px;
    transition: 0.5s;
 }
@@ -44,9 +47,13 @@
 .button:hover{
    padding-right: 24px;
    padding-left:8px;
+   text-decoration: none;
+   color: #fff;
 }
 
 .button:hover:after {
    opacity: 1;
    right: 10px;
+   text-decoration: none;
+   color: #fff;
 }
