@@ -35,12 +35,12 @@ export class EnvironmentInviteDao extends Dao {
       return this.rowToInvite(rows[0]);
    }
 
-   public async inviteUser(environment: IEnvironment, user: IUser): Promise<Invite | null> {
+   public async inviteUser(environment: IEnvironment, user: IUser, isAdminUser: boolean): Promise<Invite | null> {
       const inviteCode = crypto.randomBytes(4).toString('hex');
       const invite: Invite = {
          environmentId: environment.id,
          userId: user.id,
-         isAdmin: false, // for now, might use later
+         isAdmin: isAdminUser, // for now, might use later
          inviteCode,
          accepted: false, // set to true by the user
          createdAt: new Date().getTime(),

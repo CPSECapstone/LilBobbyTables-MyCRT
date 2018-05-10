@@ -111,8 +111,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             awsKeys = awsKeysRow;
          }
 
-         logger.debug(JSON.stringify(request.user!.id));
-
          const environment: data.IEnvironment = {
             name: request.body.envName,
             ownerId: request.user!.id,
@@ -123,6 +121,9 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          const envId = await environmentDao.makeEnvironment(environment);
          // TODO make an environment user
+         environment.id = envId!.id;
+         const userInvite = await inviteDao.inviteUser(environment, request.user!, true);
+         const acceptInvite = await inviteDao.acceptInvite(userInvite!);
          response.json(envId);
       }));
 
