@@ -12,7 +12,7 @@ import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startReplay} from '../common/launching';
-import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/replay-schema';
@@ -37,30 +37,61 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const replay = await replayDao.getReplay(id);
+
          if (!replay) {
             throw new HttpError(http.NOT_FOUND);
          }
-         response.json(replay);
 
+         const capture = await captureDao.getCapture(id);
+         if (!capture) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (isUserMember.isMember) {
+            response.json(replay);
+         } else {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
       }));
 
       this.router.get('/', check.validQuery(schema.replayQuery),
             this.handleHttpErrors(async (request, response) => {
 
-            const captureId = request.query.captureId;
-            const name = request.query.name;
-            let replays;
+         const captureId = request.query.captureId;
+         const name = request.query.name;
+         let replays;
 
-            if (captureId) {
-                  logger.info(`Getting all replays for capture ${captureId}`);
-                  replays = await replayDao.getReplaysForCapture(captureId);
-                  if (name) {
-                     replays = await replayDao.getReplaysForCapByName(captureId, name);
-                  }
-            } else {
-               replays = await replayDao.getAllReplays();
+         if (captureId) {
+            const capture = await captureDao.getCapture(captureId);
+            if (!capture) {
+               throw new HttpError(http.NOT_FOUND, `Capture ${captureId} does not exist`);
             }
-            response.json(replays);
+
+            const environment = await environmentDao.getEnvironment(capture!.envId!);
+            if (!environment) {
+               throw new HttpError(http.NOT_FOUND, `Environment ${capture!.envId!} does not exist`);
+            }
+
+            const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+            if (isUserMember.isMember) {
+               if (name) {
+                  replays = await replayDao.getReplaysForCapByName(captureId, name);
+               } else {
+                  replays = await replayDao.getReplaysForCapture(captureId);
+               }
+            } else {
+               throw new HttpError(http.UNAUTHORIZED);
+            }
+         } else {
+            replays = await replayDao.getAllReplays(request.user!);
+         }
+         response.json(replays);
       }));
 
       this.router.get('/:id(\\d+)/metrics', check.validParams(schema.idParams),

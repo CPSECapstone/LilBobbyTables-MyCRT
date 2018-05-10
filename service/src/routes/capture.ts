@@ -37,6 +37,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          const envId = request.query.envId;
          const name = request.query.name;
          let captures;
+
          if (envId) {
             const environment = await environmentDao.getEnvironment(envId);
             if (!environment) {

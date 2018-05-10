@@ -8,8 +8,10 @@ const logger = defaultLogger(__dirname);
 
 export class ReplayDao extends Dao {
 
-   public async getAllReplays(): Promise<data.IReplay[]> {
-      const rawReplays = await this.query<any[]>('SELECT * FROM Replay', []);
+   public async getAllReplays(user?: data.IUser): Promise<data.IReplay[]> {
+      const rawReplays = user ?
+         await this.query<any[]>('SELECT * FROM Replay WHERE ownerId = ?', [user.id]) :
+         await this.query<any[]>('SELECT * FROM Replay', []);
       return rawReplays.map(this.resultToIReplay);
    }
 
