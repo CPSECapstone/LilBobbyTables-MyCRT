@@ -19,38 +19,51 @@ export class EnvModal extends React.Component<any, any>  {
         this.createEnvironment = this.createEnvironment.bind(this);
         this.validateCredentials = this.validateCredentials.bind(this);
         this.handleNameChange = this.handleNameChange.bind(this);
+        this.handleOptionChange = this.handleOptionChange.bind(this);
+        this.handleInviteCode = this.handleInviteCode.bind(this);
         this.validateDB = this.validateDB.bind(this);
+        this.validateName = this.validateName.bind(this);
+        this.validateInviteCode = this.validateInviteCode.bind(this);
         this.handleEvent = this.handleEvent.bind(this);
         this.cancelModal = this.cancelModal.bind(this);
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
                       dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
-                      modalPage: '1', envNameDuplicate: false,
-                      disabled: true, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid'};
+                      modalPage: '5', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
+                      disabled: false, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid'};
         this.baseState = this.state;
+    }
+
+    public handleOptionChange(event: any) {
+      this.setState({
+         newEnv: event.currentTarget.value === "newEnv",
+      });
     }
 
     public changeProgress(step: number) {
       let buttonText = 'Continue';
-      if (step === 2 || step === 3) {
+      if (step === 3 || step === 4) {
          buttonText = 'Validate & Continue';
       }
-      if (step === 4) {
+      if (step === 5) {
          buttonText = 'Save';
       }
+      if (step === 6) {
+         buttonText = "Validate & Add";
+      }
+      const percent = ((step - 1) / 4) * 100;
       this.setState({modalPage: String(step), disabled: true, buttonText});
-      const percent = (step / 4) * 100;
       $('.progress-bar').css({width: percent + '%'});
-      $('.progress-bar').text("Step " + step + " of 4");
-      $('#envWizard a[href="#step' + step + '"]').tab('show');
-    }
+      $('.progress-bar').text("Step " + (step - 1) + " of 4");
+      $('#envWizard a[href="#step' + (step - 1) + '"]').tab('show');
+   }
 
     public async validateName(event: any) {
       const result = await mycrt.validateEnvName(this.state.envName);
       if (result) {
          this.setState({envNameDuplicate: true});
       } else {
-         this.changeProgress(2);
+         this.changeProgress(3);
       }
     }
 
@@ -59,7 +72,7 @@ export class EnvModal extends React.Component<any, any>  {
         const dbRefs = await mycrt.validateCredentials(awsKeys);
         if (dbRefs) {
             this.setState({dbRefs});
-            this.changeProgress(3);
+            this.changeProgress(4);
         } else {
             this.setState({credentialsValid: 'invalid'});
             logger.error("THERE WAS AN ERROR");
@@ -78,12 +91,25 @@ export class EnvModal extends React.Component<any, any>  {
         const validate = await mycrt.validateDatabase(dbRef);
         if (validate) {
             this.setState({dbCredentialsValid: 'valid'});
-            this.changeProgress(4);
+            this.changeProgress(5);
         } else {
             this.setState({dbCredentialsValid: 'invalid'});
             logger.error("Could not validate db");
         }
     }
+
+   public async validateInviteCode(event: any) {
+      const result = await mycrt.acceptEnvironmentInvite(this.state.inviteCode);
+      if (!result) {
+         this.setState({errorMsg: "Invite code was invalid."});
+         return;
+      }
+      const cancelBtn = document.getElementById("cancelBtn");
+      this.props.update();
+      if (cancelBtn) {
+         cancelBtn.click();
+      }
+   }
 
     public handleDBName(event: any) {
         const target = event.currentTarget;
@@ -96,9 +122,18 @@ export class EnvModal extends React.Component<any, any>  {
         host: dbRef.host, user: dbRef.user, pass: "", invalidDBPass: false});
     }
 
-    public handlePrefixChange(event: any) {
-      this.setState({ prefix: event.target.value });
-    }
+   public handlePrefixChange(event: any) {
+      this.setState({prefix: event.target.value });
+   }
+
+   public handleInviteCode(event: any) {
+      const inviteCode = event.target.value;
+      let disabled = false;
+      if (inviteCode === "") {
+         disabled = true;
+      }
+      this.setState({inviteCode, disabled, errorMsg: ""});
+   }
 
     public handleS3Ref(event: any) {
         const bucket = event.currentTarget.value;
@@ -152,21 +187,30 @@ export class EnvModal extends React.Component<any, any>  {
 
     public async handleEvent(event: any) {
       const step = this.state.modalPage;
-      if (step === '1' && this.state.envNameValid === 'valid') {
+      if (step === '1') {
+         if (this.state.newEnv) {
+            this.changeProgress(2);
+         } else {
+            this.changeProgress(6);
+         }
+      } else if (step === '2' && this.state.envNameValid === 'valid') {
          this.validateName(event.target.value);
-      } else if (step === '2') {
-         this.validateCredentials(event.target.value);
       } else if (step === '3') {
-         this.validateDB(event.target.value);
+         this.validateCredentials(event.target.value);
       } else if (step === '4') {
+         this.validateDB(event.target.value);
+      } else if (step === '5') {
          this.createEnvironment();
+      } else if (step === '6') {
+         this.validateInviteCode(event.target.value);
       }
     }
 
     public cancelModal(event: any) {
       $("select#regionDrop").val('default');
-      this.setState(this.baseState);
+      $(`#newEnv`).click();
       this.changeProgress(1);
+      this.setState(this.baseState);
     }
 
     public render() {
@@ -199,131 +243,169 @@ export class EnvModal extends React.Component<any, any>  {
                             </button>
                         </div>
                         <div className="modal-body" id="envWizard">
-                            <div className="progress" style={{height: "20px", fontSize: "12px"}}>
-                                <div className="progress-bar bg-success" role="progressbar" aria-valuenow={1}
-                                    aria-valuemin={1} aria-valuemax={3} style={{width: "25%"}}>
-                                Step 1 of 4
-                                </div>
-                            </div>
+                           {parseInt(this.state.modalPage) > 1 && parseInt(this.state.modalPage) < 5 ?
+                              <div className="progress" style={{height: "20px", fontSize: "12px"}}>
+                                 <div className="progress-bar bg-success" role="progressbar" aria-valuenow={1}
+                                       aria-valuemin={1} aria-valuemax={3} style={{width: "25%"}}>
+                                 Step 1 of 4
+                                 </div>
+                              </div> : null}
                             <div className="navbar myCRT-env-navbar" style={{display: "none"}}>
                                 <div className="navbar-inner">
                                     <ul className="nav nav-pills">
-                                        <li className= "nav-item"><a className= "nav-link active"
+                                       <li className= "nav-item"><a className= "nav-link"
                                             href="#step1" data-toggle="tab" data-step="1">Step 1</a></li>
-                                        <li className= "nav-item"><a className="nav-link"
+                                       <li className= "nav-item"><a className="nav-link"
                                             href="#step2" data-toggle="tab" data-step="2">Step 2</a></li>
-                                        <li className= "nav-item"><a className="nav-link"
+                                       <li className= "nav-item"><a className="nav-link"
                                             href="#step3" data-toggle="tab" data-step="3">Step 3</a></li>
-                                        <li className= "nav-item"><a className="nav-link"
+                                       <li className= "nav-item"><a className="nav-link"
                                             href="#step4" data-toggle="tab" data-step="4">Step 4</a></li>
+                                       <li className= "nav-item"><a className="nav-link"
+                                            href="#step5" data-toggle="tab" data-step="5">Step 5</a></li>
+                                       <li className= "nav-item"><a className="nav-link"
+                                            href="#step6" data-toggle="tab" data-step="6">Step 6</a></li>
                                     </ul>
                                 </div>
                             </div>
                             <br />
                             <div className="tab-content">
-                                <div className="tab-pane myCRT-tab-pane fade show active" id="step1">
-                                    <div className="card card-body bg-light">
-                                        <label>Environment Name</label>
-                                        <input className={`form-control input-lg is-${this.state.envNameValid}`}
-                                          placeholder="Enter Name"
-                                          value={this.state.envName} id="envName"
-                                          onInput={this.handleNameChange.bind(this)}/>
-                                       <div className={`${this.state.envNameValid}-feedback`}>
-                                          {this.state.envNameValid === 'valid' ? "Looks good!" :
-                                             `Please provide a name with 4-25 alphanumeric characters.
-                                             The following characters are also allowed: -_:`}</div>
-                                        <br/>
-                                       <div className="text-danger">
-                                          {this.state.envNameDuplicate ?
-                                             `An environment already exists with this name.
-                                                Please use a different one.` : ''}</div>
+                              <div className="tab-pane myCRT-tab-pane fade show active" id="step1">
+                                 <div className="card card-body bg-light">
+                                    <label><b>Environment Options</b></label>
+                                    <div className="form-check">
+                                       <label className="form-check-label" style={{padding: "5px"}}>
+                                             <input type="radio" className="form-check-input"
+                                                   name="env options" id="newEnv" defaultChecked
+                                                   onChange={this.handleOptionChange} defaultValue="newEnv"/>
+                                             Create New
+                                       </label>
                                     </div>
+                                    <div className="form-check">
+                                       <label className="form-check-label" style={{padding: "5px"}}>
+                                             <input type="radio" className="form-check-input"
+                                                   name="env options" id="addEnv"
+                                                   onChange={this.handleOptionChange} defaultValue="oldEnv"/>
+                                             Add Existing <i>(Invite Code Required)</i>
+                                       </label>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div className="tab-pane myCRT-tab-pane fade" id="step2">
+                                 <div className="card card-body bg-light">
+                                       <label>Environment Name</label>
+                                       <input className={`form-control input-lg is-${this.state.envNameValid}`}
+                                       placeholder="Enter Name"
+                                       value={this.state.envName} id="envName"
+                                       onInput={this.handleNameChange.bind(this)}/>
+                                    <div className={`${this.state.envNameValid}-feedback`}>
+                                       {this.state.envNameValid === 'valid' ? "Looks good!" :
+                                          `Please provide a name with 4-25 alphanumeric characters.
+                                          The following characters are also allowed: -_:`}</div>
+                                       <br/>
+                                    <div className="text-danger">
+                                       {this.state.envNameDuplicate ?
+                                          `An environment already exists with this name.
+                                             Please use a different one.` : ''}</div>
+                                 </div>
                                 </div>
-                                <div className="tab-pane myCRT-tab-pane fade" id="step2">
-                                    <div className="card card-body bg-light">
-                                        <label> AWS Keys </label>
-                                        <input className="form-control input-lg" placeholder="Enter Access Key"
-                                            value={this.state.accessKey} id="accessKey"
-                                            onInput={this.handleInputChange.bind(this)}/> <br/>
-                                        <input className="form-control input-lg" placeholder="Enter Secret Key"
-                                            value={this.state.secretKey} id="secretKey"
-                                            onInput={this.handleInputChange.bind(this)}/> <br/>
-                                        {<select className="form-control" id="regionDrop"
-                                             onChange={this.handleRegionChange.bind(this)}>
-                                            <option value='default'>Enter Region...</option>
-                                            {regions}
-                                        </select>}
+                              <div className="tab-pane myCRT-tab-pane fade" id="step3">
+                                 <div className="card card-body bg-light">
+                                       <label> AWS Keys </label>
+                                       <input className="form-control input-lg" placeholder="Enter Access Key"
+                                          value={this.state.accessKey} id="accessKey"
+                                          onInput={this.handleInputChange.bind(this)}/> <br/>
+                                       <input className="form-control input-lg" placeholder="Enter Secret Key"
+                                          value={this.state.secretKey} id="secretKey"
+                                          onInput={this.handleInputChange.bind(this)}/> <br/>
+                                       {<select className="form-control" id="regionDrop"
+                                          onChange={this.handleRegionChange.bind(this)}>
+                                          <option value='default'>Enter Region...</option>
+                                          {regions}
+                                       </select>}
+                                    <br></br>
+                                    <div className="text-danger">
+                                       {this.state.credentialsValid === 'valid' ? "" :
+                                          `Credentials were invalid. Please check them and try again.`}</div>
+                                 </div>
+                              </div>
+                              <div className="tab-pane myCRT-tab-pane fade" id="step4">
+                                 <div className="card card-body bg-light">
+                                       <label><b>DB Reference</b></label>
+                                       {<select className="form-control input-lg"
+                                          onChange={this.handleDBName.bind(this)}>
+                                          <option value="default">Select Database...</option>
+                                          {databases}
+                                       </select>} <br/>
+                                       <div style={this.state.dbName !== "" ? {display: "block"} : {display: "none"}}>
+                                          <dl>
+                                             <dt><b>Instance:</b></dt>
+                                             <dd>&nbsp;&nbsp;&nbsp;{this.state.instance}</dd>
+                                          </dl>
+                                          <dl>
+                                             <dt><b>Host:</b></dt>
+                                             <dd>&nbsp;&nbsp;&nbsp;{this.state.host}</dd>
+                                          </dl>
+                                          <dl>
+                                             <dt><b>Parameter Group:</b></dt>
+                                             <dd>&nbsp;&nbsp;&nbsp;{this.state.parameterGroup}</dd>
+                                          </dl>
+                                          <dl>
+                                             <dt><b>Username:</b></dt>
+                                             <dd>&nbsp;&nbsp;&nbsp;{this.state.user}</dd>
+                                          </dl>
+                                          <br/>
+                                          <label><b>Password</b></label>
+                                          <input className="form-control" id="pass" value={this.state.pass}
+                                             placeholder="Enter Password" type="password"
+                                             onInput={this.handlePasswordChange.bind(this)}/>
+                                       </div>
                                        <br></br>
                                        <div className="text-danger">
-                                          {this.state.credentialsValid === 'valid' ? "" :
-                                             `Credentials were invalid. Please check them and try again.`}</div>
-                                    </div>
-                                </div>
-                                <div className="tab-pane myCRT-tab-pane fade" id="step3">
-                                    <div className="card card-body bg-light">
-                                        <label><b>DB Reference</b></label>
-                                        {<select className="form-control input-lg"
-                                            onChange={this.handleDBName.bind(this)}>
-                                            <option value="default">Select Database...</option>
-                                            {databases}
-                                        </select>} <br/>
-                                        <div style={this.state.dbName !== "" ? {display: "block"} : {display: "none"}}>
-                                            <dl>
-                                                <dt><b>Instance:</b></dt>
-                                                <dd>&nbsp;&nbsp;&nbsp;{this.state.instance}</dd>
-                                            </dl>
-                                            <dl>
-                                                <dt><b>Host:</b></dt>
-                                                <dd>&nbsp;&nbsp;&nbsp;{this.state.host}</dd>
-                                            </dl>
-                                            <dl>
-                                                <dt><b>Parameter Group:</b></dt>
-                                                <dd>&nbsp;&nbsp;&nbsp;{this.state.parameterGroup}</dd>
-                                            </dl>
-                                            <dl>
-                                                <dt><b>Username:</b></dt>
-                                                <dd>&nbsp;&nbsp;&nbsp;{this.state.user}</dd>
-                                            </dl>
-                                            <br/>
-                                            <label><b>Password</b></label>
-                                            <input className="form-control" id="pass" value={this.state.pass}
-                                                placeholder="Enter Password" type="password"
-                                                onInput={this.handlePasswordChange.bind(this)}/>
-                                        </div>
-                                        <br></br>
-                                        <div className="text-danger">
-                                          {this.state.dbCredentialsValid === 'valid' ? "" :
-                                             `Password was invalid. Please try again.`}</div>
-                                    </div>
+                                       {this.state.dbCredentialsValid === 'valid' ? "" :
+                                          `Password was invalid. Please try again.`}</div>
+                                 </div>
+                                 <br/>
+                              </div>
+                              <div className="tab-pane myCRT-tab-pane fade" id="step5">
+                                 <div className="card card-body bg-light">
+                                       <label>S3 Reference</label>
+                                       {<select className="form-control input-lg"
+                                          onChange={this.handleS3Ref.bind(this)}>
+                                          <option value="default">Select S3 Bucket...</option>
+                                          {buckets}
+                                       </select>} <br/>
+                                       <label>Prefix Name (Optional):</label>
+                                       <input className="form-control input-lg"
+                                       placeholder="Enter S3 Prefix"
+                                       value={this.state.prefix} id="prefix"
+                                       onInput={this.handlePrefixChange.bind(this)}/>
+                                 </div>
+                              </div>
+                              <div className="tab-pane myCRT-tab-pane fade" id="step6">
+                                 <div className="card card-body bg-light">
+                                    <label><b>Enter Invite Code:</b></label>
+                                    <input type="name" id="inviteCode" className={`form-control`}
+                                       value={this.state.inviteCode} onChange={this.handleInviteCode}
+                                       placeholder="Enter code"></input>
+                                    <small id="sharedInviteCode" className="form-text text-muted"></small>
                                     <br/>
-                                </div>
-                                <div className="tab-pane myCRT-tab-pane fade" id="step4">
-                                    <div className="card card-body bg-light">
-                                        <label>S3 Reference</label>
-                                        {<select className="form-control input-lg"
-                                            onChange={this.handleS3Ref.bind(this)}>
-                                            <option value="default">Select S3 Bucket...</option>
-                                            {buckets}
-                                        </select>} <br/>
-                                        <label>Prefix Name (Optional):</label>
-                                        <input className="form-control input-lg"
-                                          placeholder="Enter S3 Prefix"
-                                          value={this.state.prefix} id="prefix"
-                                          onInput={this.handlePrefixChange.bind(this)}/>
-                                    </div>
-                                </div>
-                                <div className="modal-footer">
-                                    <button className="btn btn-secondary" data-dismiss="modal" id="cancelBtn"
-                                        aria-hidden="true" onClick={this.cancelModal}>Close</button>
-                                    <button className="btn btn-info" onClick={this.handleEvent.bind(this)}
-                                       disabled={this.state.disabled}>
-                                       {this.state.buttonText}</button>
-                                </div>
-                            </div>
+                                    <div className="text-danger">{this.state.errorMsg}</div>
+                                 </div>
+                                 <br/>
+                              </div>
+                              <div className="modal-footer">
+                                 <button className="btn btn-secondary" data-dismiss="modal" id="cancelBtn"
+                                       aria-hidden="true" onClick={this.cancelModal}>Close</button>
+                                 <button className="btn btn-info" onClick={this.handleEvent.bind(this)}
+                                    disabled={this.state.disabled}>
+                                    {this.state.buttonText}</button>
+                              </div>
+                           </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        );
-    }
+               </div>
+         </div>
+      );
+   }
 }
