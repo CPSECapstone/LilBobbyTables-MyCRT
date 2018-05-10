@@ -38,14 +38,14 @@ export default class CaptureRouter extends SelfAwareRouter {
          const name = request.query.name;
          let captures;
          if (envId) {
+            // make sure user belongs to the environment
             captures = await captureDao.getCapturesForEnvironment(envId);
             if (name) {
                captures = await captureDao.getCapturesForEnvByName(envId, name);
             }
          } else {
-            captures = await captureDao.getAllCaptures();
+            captures = await captureDao.getAllCaptures(request.user!);
          }
-
          response.json(captures);
       }));
 
@@ -54,6 +54,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const capture = await captureDao.getCapture(id);
+         // check that user owns the capture or belongs to the environment
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);
          }
@@ -66,6 +67,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const type: MetricType | undefined = request.query.type;
          const capture = await captureDao.getCapture(request.params.id);
+         // check that user owns the capture or belongs to the environment
          if (capture === null) {
             throw new HttpError(http.NOT_FOUND);
          } else if (!capture.envId) {
@@ -86,6 +88,7 @@ export default class CaptureRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const capture = await captureDao.getCapture(request.params.id);
+         // check that user owns the capture or belongs to the environment
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);
          }
@@ -127,6 +130,7 @@ export default class CaptureRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const capture = await captureDao.getCapture(request.params.id);
+         // check that the user owns the capture or user owns the environment
          if (!capture || !capture!.envId) {
             throw new HttpError(http.NOT_FOUND);
          }
@@ -153,80 +157,78 @@ export default class CaptureRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.post('/',
-         check.validBody(schema.captureBody),
-         this.handleHttpErrors(async (request, response) => {
+      this.router.post('/', check.validBody(schema.captureBody),
+            this.handleHttpErrors(async (request, response) => {
 
-            const initialStatus: string | undefined = request.body.status;
-            let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
-            let endTime: Date | undefined;
+         const initialStatus: string | undefined = request.body.status;
+         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+         let endTime: Date | undefined;
 
-            const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
-            if (capWithSameName !== null) {
-               throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
-            }
+         // check that user owns the capture or belongs to the environment
+         const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
+         if (capWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
+         }
 
-            if (!inputTime) {
-               inputTime = new Date();
-            }
+         if (!inputTime) {
+            inputTime = new Date();
+         }
 
-            const duration = request.body.duration;
+         const duration = request.body.duration;
 
-            if (duration && duration < 60) {
-               throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
-            }
+         if (duration && duration < 60) {
+            throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
+         }
 
-            if (duration) {
-               endTime = this.createEndDate(inputTime, duration);
-            }
+         if (duration) {
+            endTime = this.createEndDate(inputTime, duration);
+         }
 
-            const env = await environmentDao.getEnvironment(request.body.envId);
-            if (!env) {
-               throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
-            }
+         const env = await environmentDao.getEnvironment(request.body.envId);
+         if (!env) {
+            throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
+         }
 
-            if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
-               throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
-            }
+         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
+         }
 
-            // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
-            let captureTemplate: ICapture | null = {
-               type: ChildProgramType.CAPTURE,
-               ownerId: request.user!.id,
-               envId: env.id,
-               status: initialStatus === ChildProgramStatus.SCHEDULED ?
-                  ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-               name: request.body.name,
-               scheduledEnd: endTime,
-            };
+         // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
+         let captureTemplate: ICapture | null = {
+            type: ChildProgramType.CAPTURE,
+            ownerId: request.user!.id,
+            envId: env.id,
+            status: initialStatus === ChildProgramStatus.SCHEDULED ?
+               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+            name: request.body.name,
+            scheduledEnd: endTime,
+         };
 
-            // if status is scheduled, start at a scheduled time
-            if (initialStatus === ChildProgramStatus.SCHEDULED) {
-               captureTemplate.scheduledStart = inputTime;
-            }
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            captureTemplate.scheduledStart = inputTime;
+         }
 
-            // assign capture, insert into db
-            captureTemplate = await captureDao.makeCapture(captureTemplate);
+         captureTemplate = await captureDao.makeCapture(captureTemplate);
 
-            if (captureTemplate === null) {
-               throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
-            }
+         if (captureTemplate === null) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
+         }
 
-            response.json(captureTemplate);
+         response.json(captureTemplate);
 
-            if (initialStatus === ChildProgramStatus.SCHEDULED) {
-               schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
-            } else {
-               startCapture(captureTemplate);
-            }
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
+         } else {
+            startCapture(captureTemplate);
+         }
 
-            logger.info(`Successfully created capture!`);
+         logger.info(`Successfully created capture!`);
 
-            if (duration) {
-               schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
-            }
-         },
-      ));
+         if (duration) {
+            schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
+         }
+      },
+   ));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             check.validQuery(schema.deleteLogsQuery),
@@ -236,6 +238,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          const deleteLogs: boolean | undefined = request.query.deleteLogs;
          const captureRow = await captureDao.getCapture(id);
 
+         // check that user owns the capture or owns the environment
          const capture = await captureDao.deleteCapture(id);
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);

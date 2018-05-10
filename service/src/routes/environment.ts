@@ -122,6 +122,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          };
 
          const envId = await environmentDao.makeEnvironment(environment);
+         // TODO make an environment user
          response.json(envId);
       }));
 
