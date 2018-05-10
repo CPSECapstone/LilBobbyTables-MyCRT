@@ -29,25 +29,10 @@ export default class EnvironmentRouter extends SelfAwareRouter {
       const logger = Logging.defaultLogger(__dirname);
 
       this.router.get('/',
-         check.validQuery(schema.envNameQuery),
          this.handleHttpErrors(async (request, response) => {
 
-            const envName = request.query.name;
             let environments;
-            if (envName) {
-               const env = await environmentDao.getEnvironmentByName(envName);
-               if (!env) {
-                  throw new HttpError(http.NOT_FOUND);
-               }
-               const membership = await inviteDao.getUserMembership(request.user!, env);
-               if (!membership.isMember) {
-                  throw new HttpError(http.NOT_FOUND);
-               }
-               environments = [env];
-            } else {
-               environments = await inviteDao.getAllEnvironmentsWithMembership(request.user!);
-            }
-
+            environments = await inviteDao.getAllEnvironmentsWithMembership(request.user!);
             response.json(environments);
          },
       ));
@@ -120,7 +105,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          };
 
          const envId = await environmentDao.makeEnvironment(environment);
-         // TODO make an environment user
          environment.id = envId!.id;
          const userInvite = await inviteDao.inviteUser(environment, request.user!, true);
          const acceptInvite = await inviteDao.acceptInvite(userInvite!);
