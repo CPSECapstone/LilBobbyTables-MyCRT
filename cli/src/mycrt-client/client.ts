@@ -200,7 +200,7 @@ export class MyCrtClient {
     * Accept an invitation to an environment. Invitation codes expire after 24 hours.
     * @param inviteCode The invitation code (previously created).
     */
-   public async acceptEnvironmentInvite(inviteCode: string): Promise<void> {
+   public async acceptEnvironmentInvite(inviteCode: string): Promise<IEnvironmentFull | null> {
       return this.makeRequest<any>(HttpMethod.PUT, '/environments/invites/accept', null, {
          inviteCode,
       });
