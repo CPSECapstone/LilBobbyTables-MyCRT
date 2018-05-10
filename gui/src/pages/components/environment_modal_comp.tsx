@@ -316,7 +316,7 @@ export class EnvModal extends React.Component<any, any>  {
                                           value={this.state.accessKey} id="accessKey"
                                           onInput={this.handleInputChange.bind(this)}/> <br/>
                                        <input className="form-control input-lg" placeholder="Enter Secret Key"
-                                          value={this.state.secretKey} id="secretKey"
+                                          value={this.state.secretKey} id="secretKey" type="password"
                                           onInput={this.handleInputChange.bind(this)}/> <br/>
                                        {<select className="form-control" id="regionDrop"
                                           onChange={this.handleRegionChange.bind(this)}>
