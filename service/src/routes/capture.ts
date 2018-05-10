@@ -88,33 +88,41 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const type: MetricType | undefined = request.query.type;
          const capture = await captureDao.getCapture(request.params.id);
-         const environment = await environmentDao.getEnvironmentFull(capture.envId);
 
-
-         // check that user owns the capture or belongs to the environment
          if (capture === null) {
             throw new HttpError(http.NOT_FOUND);
-         } else if (!capture.envId) {
-            throw new HttpError(http.CONFLICT, `Capture ${capture.id} has no envId`);
          }
 
-         const environment = await environmentDao.getEnvironmentFull(capture.envId);
-         if (environment === null) {
-            throw new HttpError(http.CONFLICT, `Capture ${capture.id}'s environment does not exist`);
+         const environment = await environmentDao.getEnvironmentFull(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
          }
 
-         const result = await getMetrics(capture, environment, type);
-         response.json(result);
-
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (isUserMember.isMember) {
+            const result = await getMetrics(capture, environment!, type);
+            response.json(result);
+         } else {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
       }));
 
       this.router.post('/:id(\\d+)/stop', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
          const capture = await captureDao.getCapture(request.params.id);
-         // check that user owns the capture or belongs to the environment
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);
+         }
+
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (request.user! !== capture!.ownerId && !isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
          }
 
          switch (capture.status) {
@@ -154,31 +162,27 @@ export default class CaptureRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const capture = await captureDao.getCapture(request.params.id);
-         // check that the user owns the capture or user owns the environment
-         if (!capture || !capture!.envId) {
+         if (!capture) {
             throw new HttpError(http.NOT_FOUND);
          }
 
-         const captures = await captureDao.getCapturesForEnvironment(capture!.envId!);
-         if (!captures) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR);
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
          }
 
-         let nameAvailable = true;
-
-         captures.forEach( (value, index, arr) => {
-            if (value.name && value.name! === request.body.name) {
-               nameAvailable = false;
-            }
-         });
-
-         if (nameAvailable) {
-            await captureDao.updateCaptureName(capture.id!, request.body.name);
-            response.status(http.OK).end();
-         } else {
-            throw new HttpError(http.CONFLICT, "A capture with this name already exists.");
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (request.user! !== capture!.ownerId && !isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
          }
 
+         const capWithSameName = await captureDao.getCapturesForEnvByName(request.params.id, request.body.name);
+         if (capWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
+         }
+
+         const updateCapture = await captureDao.updateCaptureName(capture.id!, request.body.name);
+         response.sendStatus(http.OK);
       }));
 
       this.router.post('/', check.validBody(schema.captureBody),
@@ -188,7 +192,16 @@ export default class CaptureRouter extends SelfAwareRouter {
          let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
          let endTime: Date | undefined;
 
-         // check that user owns the capture or belongs to the environment
+         const environment = await environmentDao.getEnvironment(request.body.envId);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (isUserMember.isMember) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
          const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
          if (capWithSameName !== null) {
             throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
@@ -258,35 +271,44 @@ export default class CaptureRouter extends SelfAwareRouter {
             check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
-         const id = request.params.id;
-         const deleteLogs: boolean | undefined = request.query.deleteLogs;
-         const captureRow = await captureDao.getCapture(id);
+         const isDeleteLogs: boolean | undefined = request.query.deleteLogs;
 
-         // check that user owns the capture or owns the environment
-         const capture = await captureDao.deleteCapture(id);
+         const capture = await captureDao.getCapture(request.params.id);
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);
          }
 
-         if (deleteLogs === true && captureRow && captureRow.envId) {
-            const env = await environmentDao.getEnvironmentFull(captureRow.envId);
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (request.user! !== capture!.ownerId && !isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const captureDel = await captureDao.deleteCapture(request.params.id);
+
+         if (isDeleteLogs === true && capture && capture.envId) {
+            const env = await environmentDao.getEnvironmentFull(capture.envId);
 
             if (env) {
                /* TODO: Replace with S3StorageBackend object in the Capture Object */
                const storage = new S3Backend(
-                     new S3({region: env.region,
+                  new S3({
+                        region: env.region,
                         accessKeyId: env.accessKey,
-                        secretAccessKey: env.secretKey}),
-                     env.bucket, env.prefix,
-                  );
+                        secretAccessKey: env.secretKey,
+                     }),
+                  env.bucket, env.prefix,
+               );
 
-               const capturePrefix = `environment${env.id}/capture${id}/`;
+               const capturePrefix = `environment${env.id}/capture${request.params.id}/`;
                await storage.deletePrefix(capturePrefix);
             }
          }
-
          response.json(capture);
-
       }));
    }
 
