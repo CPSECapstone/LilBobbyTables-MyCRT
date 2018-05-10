@@ -12,7 +12,7 @@ import { Template } from '@lbt-mycrt/gui/dist/main';
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startCapture } from '../common/launching';
-import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
@@ -31,17 +31,27 @@ export default class CaptureRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', check.validQuery(schema.envQuery),
+      this.router.get('/', check.validQuery(schema.capQuery),
             this.handleHttpErrors(async (request, response) => {
 
          const envId = request.query.envId;
          const name = request.query.name;
          let captures;
          if (envId) {
-            // make sure user belongs to the environment
-            captures = await captureDao.getCapturesForEnvironment(envId);
-            if (name) {
-               captures = await captureDao.getCapturesForEnvByName(envId, name);
+            const environment = await environmentDao.getEnvironment(envId);
+            if (!environment) {
+               throw new HttpError(http.NOT_FOUND, `Environment ${envId} does not exist`);
+            }
+
+            const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+            if (isUserMember.isMember) {
+               if (name) {
+                  captures = await captureDao.getCapturesForEnvByName(envId, name);
+               } else {
+                  captures = await captureDao.getCapturesForEnvironment(envId);
+               }
+            } else {
+               throw new HttpError(http.UNAUTHORIZED);
             }
          } else {
             captures = await captureDao.getAllCaptures(request.user!);
@@ -54,11 +64,17 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const id = request.params.id;
          const capture = await captureDao.getCapture(id);
-         // check that user owns the capture or belongs to the environment
-         if (!capture) {
+         const environment = await environmentDao.getEnvironment(id);
+
+         if (!capture || !environment) {
             throw new HttpError(http.NOT_FOUND);
          }
-         response.json(capture);
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (isUserMember.isMember) {
+            response.json(capture);
+         } else {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
 
       }));
 

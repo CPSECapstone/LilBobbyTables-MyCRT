@@ -11,7 +11,7 @@ const cryptr = new Cryptr(settings.settings.encryptionKey); // using aes256 encr
 import { Logging } from '../main';
 const logger = Logging.defaultLogger(__dirname);
 
-export class EnvironmentDao extends Dao {
+export  class EnvironmentDao extends Dao {
 
    public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironment[]> {
       const environmentRows = user ?

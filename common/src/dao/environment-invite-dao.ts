@@ -4,6 +4,7 @@ import { IEnvironment, IEnvironmentUser as Invite, IUser } from '../data';
 import { defaultLogger } from '../logging';
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
+import { EnvironmentDao } from './environment-dao';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -69,7 +70,6 @@ export class EnvironmentInviteDao extends Dao {
          logger.info('User owns the environment');
          isMember = true;
          isAdmin = true;
-
       } else {
          // otherwise, they were added through invite
          const query = 'SELECT userId, isAdmin FROM EnvironmentUser WHERE userId = ? '
@@ -118,5 +118,4 @@ export class EnvironmentInviteDao extends Dao {
          accepted: !!row.accepted,
       };
    }
-
 }
