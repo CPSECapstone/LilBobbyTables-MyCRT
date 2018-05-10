@@ -29,8 +29,9 @@ export class EnvModal extends React.Component<any, any>  {
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
                       dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
-                      modalPage: '5', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
-                      disabled: false, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid'};
+                      modalPage: '1', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
+                      disabled: false, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid',
+                      sharedEnv: {}};
         this.baseState = this.state;
     }
 
@@ -55,7 +56,7 @@ export class EnvModal extends React.Component<any, any>  {
       this.setState({modalPage: String(step), disabled: true, buttonText});
       $('.progress-bar').css({width: percent + '%'});
       $('.progress-bar').text("Step " + (step - 1) + " of 4");
-      $('#envWizard a[href="#step' + (step - 1) + '"]').tab('show');
+      $('#envWizard a[href="#step' + step + '"]').tab('show');
    }
 
     public async validateName(event: any) {
@@ -104,11 +105,8 @@ export class EnvModal extends React.Component<any, any>  {
          this.setState({errorMsg: "Invite code was invalid."});
          return;
       }
-      const cancelBtn = document.getElementById("cancelBtn");
-      this.props.update();
-      if (cancelBtn) {
-         cancelBtn.click();
-      }
+      this.setState({sharedEnv: result});
+      this.changeProgress(7);
    }
 
     public handleDBName(event: any) {
@@ -208,7 +206,7 @@ export class EnvModal extends React.Component<any, any>  {
 
     public cancelModal(event: any) {
       $("select#regionDrop").val('default');
-      $(`#newEnv`).click();
+      $(`#newEnvRadio`).click();
       this.changeProgress(1);
       this.setState(this.baseState);
     }
@@ -265,6 +263,8 @@ export class EnvModal extends React.Component<any, any>  {
                                             href="#step5" data-toggle="tab" data-step="5">Step 5</a></li>
                                        <li className= "nav-item"><a className="nav-link"
                                             href="#step6" data-toggle="tab" data-step="6">Step 6</a></li>
+                                       <li className= "nav-item"><a className="nav-link"
+                                            href="#step7" data-toggle="tab" data-step="7">Step 7</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -276,7 +276,7 @@ export class EnvModal extends React.Component<any, any>  {
                                     <div className="form-check">
                                        <label className="form-check-label" style={{padding: "5px"}}>
                                              <input type="radio" className="form-check-input"
-                                                   name="env options" id="newEnv" defaultChecked
+                                                   name="env options" id="newEnvRadio" defaultChecked
                                                    onChange={this.handleOptionChange} defaultValue="newEnv"/>
                                              Create New
                                        </label>
@@ -284,7 +284,7 @@ export class EnvModal extends React.Component<any, any>  {
                                     <div className="form-check">
                                        <label className="form-check-label" style={{padding: "5px"}}>
                                              <input type="radio" className="form-check-input"
-                                                   name="env options" id="addEnv"
+                                                   name="env options" id="addEnvRadio"
                                                    onChange={this.handleOptionChange} defaultValue="oldEnv"/>
                                              Add Existing <i>(Invite Code Required)</i>
                                        </label>
@@ -394,12 +394,22 @@ export class EnvModal extends React.Component<any, any>  {
                                  </div>
                                  <br/>
                               </div>
+                              <div className="tab-pane myCRT-tab-pane fade" id="step7">
+                                 <div className="card card-body bg-light">
+                                    <h5>You are now a part of</h5>
+                                    <h4 style={{paddingLeft: "20px"}}>{this.state.sharedEnv.envName}</h4>
+                                    <br/>
+                                    <h5>You may now add captures to {this.state.sharedEnv.dbName}!</h5>
+                                 </div>
+                                 <br/>
+                              </div>
                               <div className="modal-footer">
                                  <button className="btn btn-secondary" data-dismiss="modal" id="cancelBtn"
                                        aria-hidden="true" onClick={this.cancelModal}>Close</button>
-                                 <button className="btn btn-info" onClick={this.handleEvent.bind(this)}
+                                 {this.state.modalPage !== '7' ?
+                                    <button className="btn btn-info" onClick={this.handleEvent.bind(this)}
                                     disabled={this.state.disabled}>
-                                    {this.state.buttonText}</button>
+                                    {this.state.buttonText}</button> : null}
                               </div>
                            </div>
                         </div>
