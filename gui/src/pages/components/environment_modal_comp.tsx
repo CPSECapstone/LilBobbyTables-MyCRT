@@ -7,6 +7,8 @@ import { ChildProgramStatus, ChildProgramType, IAwsKeys, IEnvironmentFull } from
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
+import { showAlert } from '../../actions/index';
+import { store } from '../../store/index';
 import { awsRegions } from '../utils/string-constants';
 import { WarningAlert } from './alert_warning_comp';
 
@@ -171,15 +173,25 @@ export class EnvModal extends React.Component<any, any>  {
 
     public async createEnvironment() {
         const envObj = await mycrt.createEnvironment(this.state as IEnvironmentFull);
+        const name = this.state.envName;
+        const cancelBtn = document.getElementById("cancelBtn");
+         if (cancelBtn) {
+            cancelBtn.click();
+         }
         if (!envObj) {
-            logger.error("Could not create environment");
+            store.dispatch(showAlert({
+               show: true,
+               header: "Error",
+               message: `Environment could not be created.`,
+            }));
         } else {
-            logger.info(`${envObj.name} was made with id ${envObj.id}`);
-            const cancelBtn = document.getElementById("cancelBtn");
             this.props.update();
-            if (cancelBtn) {
-                cancelBtn.click();
-            }
+            store.dispatch(showAlert({
+               show: true,
+               header: "Success!",
+               success: true,
+               message: `${name} has been created!`,
+            }));
         }
     }
 
@@ -241,7 +253,7 @@ export class EnvModal extends React.Component<any, any>  {
                             </button>
                         </div>
                         <div className="modal-body" id="envWizard">
-                           {parseInt(this.state.modalPage) > 1 && parseInt(this.state.modalPage) < 5 ?
+                           {parseInt(this.state.modalPage) > 1 && parseInt(this.state.modalPage) <= 5 ?
                               <div className="progress" style={{height: "20px", fontSize: "12px"}}>
                                  <div className="progress-bar bg-success" role="progressbar" aria-valuenow={1}
                                        aria-valuemin={1} aria-valuemax={3} style={{width: "25%"}}>

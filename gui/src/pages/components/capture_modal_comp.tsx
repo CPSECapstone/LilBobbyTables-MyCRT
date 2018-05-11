@@ -4,7 +4,9 @@ import ReactDom = require('react-dom');
 import * as $ from 'jquery';
 import * as moment from 'moment';
 
+import { showAlert } from '../../actions';
 import { BrowserLogger as logger } from '../../logging';
+import { store } from '../../store';
 import { mycrt } from '../utils/mycrt-client';
 import { WarningAlert } from './alert_warning_comp';
 import { Duration } from './duration_comp';
@@ -31,7 +33,21 @@ export class CaptureModal extends React.Component<any, any>  {
       this.handleDayChange = this.handleDayChange.bind(this);
       this.handleHourChange = this.handleHourChange.bind(this);
       this.handleMinuteChange = this.handleMinuteChange.bind(this);
+      this.sendSuccessMsg = this.sendSuccessMsg.bind(this);
       this.baseState = this.state;
+   }
+
+   public sendSuccessMsg(captureObj: any) {
+      let msg = `${captureObj.name} is now running!`;
+      if (captureObj.scheduledStart) {
+         msg = `${captureObj.name} has been scheduled!`;
+      }
+      store.dispatch(showAlert({
+         show: true,
+         header: "Success!",
+         success: true,
+         message: msg,
+      }));
    }
 
    public calculateDuration() {
@@ -81,12 +97,12 @@ export class CaptureModal extends React.Component<any, any>  {
       if (!captureObj) {
          this.setState({errorMsg: "There was an error: Capture was not started."});
       } else {
-         logger.info(`${captureObj.name} was made with id ${captureObj.id}`);
          const cancelBtn = document.getElementById("cancelBtn");
          this.props.update();
          if (cancelBtn) {
             cancelBtn.click();
          }
+         this.sendSuccessMsg(capture);
       }
     }
 

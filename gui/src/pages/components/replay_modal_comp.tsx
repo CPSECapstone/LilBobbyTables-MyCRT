@@ -8,6 +8,8 @@ import { ChildProgramStatus, ChildProgramType, IReplayFull } from '@lbt-mycrt/co
 import { BrowserLogger as logger } from '../../logging';
 import { mycrt } from '../utils/mycrt-client';
 
+import { showAlert } from '../../actions/index';
+import { store } from '../../store/index';
 import { WarningAlert } from './alert_warning_comp';
 import { StartDateTime } from './start_date_time_comp';
 
@@ -34,6 +36,7 @@ export class ReplayModal extends React.Component<any, any>  {
       this.handleClick = this.handleClick.bind(this);
       this.handleReplayTypeChange = this.handleReplayTypeChange.bind(this);
       this.cancelModal = this.cancelModal.bind(this);
+      this.sendSuccessMsg = this.sendSuccessMsg.bind(this);
    }
 
    public async componentWillMount() {
@@ -47,6 +50,19 @@ export class ReplayModal extends React.Component<any, any>  {
       this.setState({dbRefs: filterRefs});
       this.baseState.dbRefs = filterRefs;
       }
+   }
+
+   public sendSuccessMsg(replayObj: any) {
+      let msg = `${replayObj.name} is now running!`;
+      if (replayObj.scheduledStart) {
+         msg = `${replayObj.name} has been scheduled!`;
+      }
+      store.dispatch(showAlert({
+         show: true,
+         header: "Success!",
+         success: true,
+         message: msg,
+      }));
    }
 
    public changeProgress(step: number) {
@@ -129,6 +145,7 @@ export class ReplayModal extends React.Component<any, any>  {
          if (cancelBtn) {
             cancelBtn.click();
          }
+         this.sendSuccessMsg(replay);
       }
    }
 
