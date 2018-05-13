@@ -9,6 +9,11 @@ import * as types from './types';
 
 export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELETE' }
 
+export interface ServiceError {
+   ok: boolean;
+   message: string;
+}
+
 /** General Client class for accessing the MyCRT service */
 export class MyCrtClient {
 
@@ -68,7 +73,7 @@ export class MyCrtClient {
    }
 
    /** Create a new Replay */
-   public async startReplay(replay: IReplayFull): Promise<number | null> {
+   public async startReplay(replay: IReplayFull): Promise<number | ServiceError | null> {
       return this.makeRequest<number>(HttpMethod.POST, '/replays', null, replay);
    }
 
@@ -211,6 +216,13 @@ export class MyCrtClient {
             if (json) {
                return json as T;
             }
+         } else {
+            const json = await response.json();
+            const serviceError: ServiceError = {
+               ok: false,
+               message: json.message || "There was an error",
+            };
+            return serviceError as any;
          }
       }
 

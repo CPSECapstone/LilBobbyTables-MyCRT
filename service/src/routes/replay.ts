@@ -14,6 +14,7 @@ import { getMetrics } from '../common/capture-replay-metrics';
 import { startReplay} from '../common/launching';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
+import { noReplaysOnTargetDb } from '../middleware/replay';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/replay-schema';
 import { settings } from '../settings';
@@ -91,67 +92,70 @@ export default class ReplayRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
-         const initialStatus: string | undefined = request.body.status;
-         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+      this.router.post('/',
+         check.validBody(schema.replayBody),
+         noReplaysOnTargetDb,
+         this.handleHttpErrors(async (request, response) => {
+            const initialStatus: string | undefined = request.body.status;
+            let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
 
-         if (!inputTime) {
-            inputTime = new Date();
-         }
+            if (!inputTime) {
+               inputTime = new Date();
+            }
 
-         const cap = await captureDao.getCapture(request.body.captureId);
-         if (cap == null) {
-               throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
-         }
+            const cap = await captureDao.getCapture(request.body.captureId);
+            if (cap == null) {
+                  throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
+            }
 
-         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
-            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
-         }
+            if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+               throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
+            }
 
-         const dbReference: IDbReference = {
-            name: request.body.dbName,
-            host: request.body.host,
-            user: request.body.user,
-            pass: request.body.pass,
-            instance: request.body.instance,
-            parameterGroup: request.body.parameterGroup,
-         };
+            const dbReference: IDbReference = {
+               name: request.body.dbName,
+               host: request.body.host,
+               user: request.body.user,
+               pass: request.body.pass,
+               instance: request.body.instance,
+               parameterGroup: request.body.parameterGroup,
+            };
 
-         const db = await environmentDao.makeDbReference(dbReference);
-         if (db && !db.id) {
-            throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
-         }
+            const db = await environmentDao.makeDbReference(dbReference);
+            if (db && !db.id) {
+               throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
+            }
 
-         let replayTemplate: IReplay | null = {
-            name: request.body.name,
-            captureId: request.body.captureId,
-            status: initialStatus === ChildProgramStatus.SCHEDULED ?
-               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-            dbId: db!.id,
-            type: ChildProgramType.REPLAY,
-         };
+            let replayTemplate: IReplay | null = {
+               name: request.body.name,
+               captureId: request.body.captureId,
+               status: initialStatus === ChildProgramStatus.SCHEDULED ?
+                  ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+               dbId: db!.id,
+               type: ChildProgramType.REPLAY,
+            };
 
-         // if status is scheduled, start at a scheduled time
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            replayTemplate.scheduledStart = inputTime;
-         }
+            // if status is scheduled, start at a scheduled time
+            if (initialStatus === ChildProgramStatus.SCHEDULED) {
+               replayTemplate.scheduledStart = inputTime;
+            }
 
-         replayTemplate = await replayDao.makeReplay(replayTemplate);
+            replayTemplate = await replayDao.makeReplay(replayTemplate);
 
-         if (replayTemplate === null) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating replay in db`);
-         }
+            if (replayTemplate === null) {
+               throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating replay in db`);
+            }
 
-         response.json(replayTemplate);
+            response.json(replayTemplate);
 
-         // logger.debug(initialStatus.toString());
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            schedule.scheduleJob(inputTime, () => { startReplay(replayTemplate!); });
-         } else {
-            startReplay(replayTemplate);
-         }
+            // logger.debug(initialStatus.toString());
+            if (initialStatus === ChildProgramStatus.SCHEDULED) {
+               schedule.scheduleJob(inputTime, () => { startReplay(replayTemplate!); });
+            } else {
+               startReplay(replayTemplate);
+            }
 
-         logger.info(`Successfully created replay!`);
+            logger.info(`Successfully created replay!`);
 
          },
       ));
