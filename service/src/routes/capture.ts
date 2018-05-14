@@ -63,8 +63,7 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
-         const id = request.params.id;
-         const capture = await captureDao.getCapture(id);
+         const capture = await captureDao.getCapture(request.params.id);
 
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);
@@ -72,7 +71,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const environment = await environmentDao.getEnvironment(capture!.envId!);
          if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -87,21 +86,20 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.get('/:id(\\d+)/metrics', check.validParams(schema.idParams),
             check.validQuery(schema.metricTypeQuery), this.handleHttpErrors(async (request, response) => {
 
-         const type: MetricType | undefined = request.query.type;
          const capture = await captureDao.getCapture(request.params.id);
 
-         if (capture === null) {
+         if (!capture) {
             throw new HttpError(http.NOT_FOUND);
          }
 
          const environment = await environmentDao.getEnvironmentFull(capture!.envId!);
          if (environment === null) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
          if (isUserMember.isMember) {
-            const result = await getMetrics(capture, environment!, type);
+            const result = await getMetrics(capture, environment!, request.query.type);
             response.json(result);
          } else {
             throw new HttpError(http.UNAUTHORIZED);
@@ -118,7 +116,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const environment = await environmentDao.getEnvironment(capture!.envId!);
          if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -156,7 +154,6 @@ export default class CaptureRouter extends SelfAwareRouter {
             case ChildProgramStatus.FAILED:
                throw new HttpError(http.CONFLICT, "This capture failed and is no longer running.");
          }
-
       }));
 
       this.router.put('/:id(\\d+)', check.validParams(schema.idParams), check.validBody(schema.putCaptureBody),
@@ -169,7 +166,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const environment = await environmentDao.getEnvironment(capture!.envId!);
          if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -183,7 +180,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          const updateCapture = await captureDao.updateCaptureName(capture.id!, request.body.name);
-         response.sendStatus(http.OK);
+         response.status(http.OK).end();
       }));
 
       this.router.post('/', check.validBody(schema.captureBody),
@@ -222,11 +219,6 @@ export default class CaptureRouter extends SelfAwareRouter {
             endTime = this.createEndDate(inputTime, duration);
          }
 
-         const env = await environmentDao.getEnvironment(request.body.envId);
-         if (!env) {
-            throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
-         }
-
          if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
             throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
          }
@@ -235,7 +227,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          let captureTemplate: ICapture | null = {
             type: ChildProgramType.CAPTURE,
             ownerId: request.user!.id,
-            envId: env.id,
+            envId: environment.id,
             status: initialStatus === ChildProgramStatus.SCHEDULED ?
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             name: request.body.name,
@@ -281,7 +273,7 @@ export default class CaptureRouter extends SelfAwareRouter {
 
          const environment = await environmentDao.getEnvironment(capture!.envId!);
          if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -309,7 +301,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                await storage.deletePrefix(capturePrefix);
             }
          }
-         response.json(capture);
+         response.status(http.OK).end();
       }));
    }
 

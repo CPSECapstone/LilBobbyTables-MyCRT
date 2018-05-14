@@ -230,7 +230,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
 
          const updateReplay = await replayDao.updateReplayName(replay.id!, request.body.name);
-         response.sendStatus(http.OK);
+         response.status(http.OK).end();
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
@@ -271,7 +271,7 @@ export default class ReplayRouter extends SelfAwareRouter {
             const replayPrefix = `environment${env.id}/replay${request.params.id}/`;
             await storage.deletePrefix(replayPrefix);
          }
-         response.sendStatus(http.OK);
+         response.status(http.OK).end();
       }));
    }
 }
