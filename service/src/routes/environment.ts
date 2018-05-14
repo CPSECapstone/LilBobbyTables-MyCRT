@@ -110,28 +110,45 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          response.json(envId);
       }));
 
-      // TODO: Figure out exactly what is allowed to be edited.
       this.router.put('/:id(\\d+)', check.validBody(schema.environmentBody),
             this.handleHttpErrors(async (request, response) => {
 
-         const id = request.params.id;
-         let environment: data.IEnvironment | null = {
+         const environment = await environmentDao.getEnvironment(request.params.id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${request.params.id} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (!isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const environmentEdits: data.IEnvironment | null = {
             name: request.body.envName,
          };
 
-         environment = await environmentDao.editEnvironment(id, environment);
-         response.json(environment!);
+         const editEnvironment = await environmentDao.editEnvironment(request.params.id, environment);
+         response.json(editEnvironment!);
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
-         const id = request.params.id;
-         const deleteLogs: boolean | undefined = request.query.deleteLogs;
 
-         if (deleteLogs === true) {
-            const env = await environmentDao.getEnvironmentFull(id);
+         const environment = await environmentDao.getEnvironment(request.params.id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${request.params.id} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (!isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+
+         if (request.query.deleteLogs) {
+            const env = await environmentDao.getEnvironmentFull(request.params.id);
             if (env) {
                const storage = new S3Backend(
                   new S3({region: env.region,
@@ -144,14 +161,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
                await storage.deletePrefix(envPrefix);
             }
          }
-
-         const environment = await environmentDao.deleteEnvironment(id);
-         if (!environment) {
-            throw new HttpError(http.NOT_FOUND);
-         }
-
+         const environmentDel = await environmentDao.deleteEnvironment(request.params.id);
          response.json(environment);
-
       }));
 
       // invites
