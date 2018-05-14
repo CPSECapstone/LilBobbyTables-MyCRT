@@ -54,7 +54,7 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
 
             // good to go!
             logger.info("Creating invite");
-            const invite = await inviteDao.inviteUser(environment, user, false); // isAdmin is false by default
+            const invite = await inviteDao.inviteUser(environment, user, false);
 
             logger.info("Invite created!");
             response.json(invite);
