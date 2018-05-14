@@ -95,7 +95,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          const environment = await environmentDao.getEnvironmentFull(capture!.envId!);
-         if (!environment) {
+         if (environment === null) {
             throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
          }
 
@@ -199,7 +199,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
-         if (isUserMember.isMember) {
+         if (!isUserMember.isMember) {
             throw new HttpError(http.UNAUTHORIZED);
          }
 

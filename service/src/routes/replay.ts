@@ -99,27 +99,28 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const type: MetricType | undefined = request.query.type;
          const replay = await replayDao.getReplay(request.params.id);
+
          if (replay === null) {
             throw new HttpError(http.NOT_FOUND);
-         } else if (!replay.captureId) {
-            throw new HttpError(http.CONFLICT, `Replay ${replay.id} has no captureId`);
          }
 
-         const capture = await captureDao.getCapture(replay.captureId);
+         const capture = await captureDao.getCapture(replay.captureId!);
          if (capture === null) {
             throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s capture does not exist`);
-         } else if (!capture.envId) {
-            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s has no envId`);
          }
 
-         const environment = await environmentDao.getEnvironmentFull(capture.envId);
+         const environment = await environmentDao.getEnvironmentFull(capture.envId!);
          if (environment === null) {
             throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s environment does not exist`);
          }
 
-         const result = await getMetrics(replay, environment, type);
-         response.json(result);
-
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (isUserMember.isMember) {
+            const result = await getMetrics(capture, environment!, type);
+            response.json(result);
+         } else {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
@@ -133,6 +134,21 @@ export default class ReplayRouter extends SelfAwareRouter {
          const cap = await captureDao.getCapture(request.body.captureId);
          if (cap == null) {
                throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
+         }
+
+         const environment = await environmentDao.getEnvironment(cap!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${cap.envId} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (!isUserMember.isMember) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const replayWithSameName = replayDao.getReplaysForCapByName(cap!.envId!, request.body.name);
+         if (replayWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
          }
 
          if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
@@ -162,7 +178,6 @@ export default class ReplayRouter extends SelfAwareRouter {
             type: ChildProgramType.REPLAY,
          };
 
-         // if status is scheduled, start at a scheduled time
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             replayTemplate.scheduledStart = inputTime;
          }
@@ -175,7 +190,6 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          response.json(replayTemplate);
 
-         // logger.debug(initialStatus.toString());
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             schedule.scheduleJob(inputTime, () => { startReplay(replayTemplate!); });
          } else {
@@ -195,26 +209,27 @@ export default class ReplayRouter extends SelfAwareRouter {
             throw new HttpError(http.NOT_FOUND);
          }
 
-         const replays = await replayDao.getReplaysForCapture(replay!.captureId!);
-         if (!replays) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR);
+         const capture = await captureDao.getCapture(replay!.captureId!);
+         if (!capture) {
+            throw new HttpError(http.NOT_FOUND);
          }
 
-         let nameAvailable = true;
-
-         replays.forEach( (value, index, arr) => {
-            if (value.name && value.name! === request.body.name) {
-               nameAvailable = false;
-            }
-         });
-
-         if (nameAvailable) {
-            await replayDao.updateReplayName(replay.id!, request.body.name);
-            response.status(http.OK).end();
-         } else {
-            throw new HttpError(http.CONFLICT, "A replay with this name already exists.");
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
          }
 
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (request.user! !== capture!.ownerId && !isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const replayWithSameName = replayDao.getReplaysForCapByName(capture!.envId!, request.body.name);
+         if (replayWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
+         }
+
+         const updateReplay = await replayDao.updateReplayName(replay.id!, request.body.name);
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
