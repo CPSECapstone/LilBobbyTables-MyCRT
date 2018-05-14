@@ -47,15 +47,14 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             throw new HttpError(http.NOT_FOUND);
          }
 
-         logger.info(`Getting membership for user ${request.user!.id}`);
+         environment.accessKey = "";
+         environment.secretKey = "";
+
          const membership = await inviteDao.getUserMembership(request.user!, environment);
          if (!membership.isMember) {
-            logger.info(`User ${request.user!.id} is not a member of this environment`);
-            throw new HttpError(http.NOT_FOUND);
+            throw new HttpError(http.UNAUTHORIZED);
          }
-
          response.json(environment);
-
       }));
 
       this.router.post('/', check.validBody(schema.environmentBody),
