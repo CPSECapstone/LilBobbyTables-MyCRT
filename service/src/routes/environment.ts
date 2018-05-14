@@ -31,8 +31,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
       this.router.get('/',
          this.handleHttpErrors(async (request, response) => {
 
-            let environments;
-            environments = await inviteDao.getAllEnvironmentsWithMembership(request.user!);
+            const environments = await inviteDao.getAllEnvironmentsWithMembership(request.user!);
             response.json(environments);
          },
       ));
@@ -135,17 +134,15 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
-
          const environment = await environmentDao.getEnvironment(request.params.id);
          if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${request.params.id} does not exist`);
+            throw new HttpError(http.NOT_FOUND);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
          if (!isUserMember.isAdmin) {
             throw new HttpError(http.UNAUTHORIZED);
          }
-
 
          if (request.query.deleteLogs) {
             const env = await environmentDao.getEnvironmentFull(request.params.id);
@@ -165,7 +162,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          response.json(environment);
       }));
 
-      // invites
       const inviteRouter = new InviteRouter(this.ipcNode);
       this.router.use(inviteRouter.urlPrefix, inviteRouter.router);
    }

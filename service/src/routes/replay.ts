@@ -44,12 +44,12 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const capture = await captureDao.getCapture(id);
          if (!capture) {
-            throw new HttpError(http.NOT_FOUND);
+            throw new HttpError(http.NOT_FOUND, `Replay ${replay.id}'s capture does not exist`);
          }
 
          const environment = await environmentDao.getEnvironment(capture!.envId!);
          if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Replay ${replay.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -75,7 +75,7 @@ export default class ReplayRouter extends SelfAwareRouter {
 
             const environment = await environmentDao.getEnvironment(capture!.envId!);
             if (!environment) {
-               throw new HttpError(http.NOT_FOUND, `Environment ${capture!.envId!} does not exist`);
+               throw new HttpError(http.NOT_FOUND, `Capture ${captureId}'s environment does not exist`);
             }
 
             const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -100,18 +100,18 @@ export default class ReplayRouter extends SelfAwareRouter {
          const type: MetricType | undefined = request.query.type;
          const replay = await replayDao.getReplay(request.params.id);
 
-         if (replay === null) {
+         if (!replay) {
             throw new HttpError(http.NOT_FOUND);
          }
 
          const capture = await captureDao.getCapture(replay.captureId!);
-         if (capture === null) {
-            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s capture does not exist`);
+         if (!capture) {
+            throw new HttpError(http.BAD_REQUEST, `Replay ${replay.id}'s capture does not exist`);
          }
 
          const environment = await environmentDao.getEnvironmentFull(capture.envId!);
-         if (environment === null) {
-            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s environment does not exist`);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Replay ${replay.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -132,7 +132,7 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const environment = await environmentDao.getEnvironment(cap!.envId!);
          if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${cap.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.body.captureId}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -146,7 +146,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
 
          const initialStatus: string | undefined = request.body.status;
-         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+         let inputTime: Date = request.body.scheduledStart;
 
          if (!inputTime) {
             inputTime = new Date();
@@ -166,8 +166,8 @@ export default class ReplayRouter extends SelfAwareRouter {
          };
 
          const db = await environmentDao.makeDbReference(dbReference);
-         if (db && !db.id) {
-            throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
+         if (db) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR, "DB reference was not properly created");
          }
 
          let replayTemplate: IReplay | null = {
@@ -186,7 +186,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          replayTemplate = await replayDao.makeReplay(replayTemplate);
 
          if (replayTemplate === null) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating replay in db`);
+            throw new HttpError(http.INTERNAL_SERVER_ERROR, `Replay was not properly created`);
          }
 
          response.json(replayTemplate);
@@ -205,18 +205,18 @@ export default class ReplayRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          const replay = await replayDao.getReplay(request.params.id);
-         if (!replay || !replay!.captureId) {
+         if (!replay) {
             throw new HttpError(http.NOT_FOUND);
          }
 
          const capture = await captureDao.getCapture(replay!.captureId!);
          if (!capture) {
-            throw new HttpError(http.NOT_FOUND);
+            throw new HttpError(http.NOT_FOUND, `Replay ${replay.id}'s capture does not exist`);
          }
 
          const environment = await environmentDao.getEnvironment(capture!.envId!);
          if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Replay ${replay.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
@@ -249,7 +249,7 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const env = await environmentDao.getEnvironmentFull(capture.envId!);
          if (!env) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Replay ${replay.id}'s environment does not exist`);
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, env!);
@@ -271,7 +271,7 @@ export default class ReplayRouter extends SelfAwareRouter {
             const replayPrefix = `environment${env.id}/replay${request.params.id}/`;
             await storage.deletePrefix(replayPrefix);
          }
-         response.json(replay);
+         response.sendStatus(http.OK);
       }));
    }
 }
