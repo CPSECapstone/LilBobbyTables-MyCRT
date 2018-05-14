@@ -124,12 +124,6 @@ export default class ReplayRouter extends SelfAwareRouter {
       }));
 
       this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
-         const initialStatus: string | undefined = request.body.status;
-         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
-
-         if (!inputTime) {
-            inputTime = new Date();
-         }
 
          const cap = await captureDao.getCapture(request.body.captureId);
          if (cap == null) {
@@ -149,6 +143,13 @@ export default class ReplayRouter extends SelfAwareRouter {
          const replayWithSameName = replayDao.getReplaysForCapByName(cap!.envId!, request.body.name);
          if (replayWithSameName !== null) {
             throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
+         }
+
+         const initialStatus: string | undefined = request.body.status;
+         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+
+         if (!inputTime) {
+            inputTime = new Date();
          }
 
          if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
@@ -197,9 +198,8 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
 
          logger.info(`Successfully created replay!`);
-
-         },
-      ));
+      },
+   ));
 
       this.router.put('/:id(\\d+)', check.validParams(schema.idParams), check.validBody(schema.putReplayBody),
             this.handleHttpErrors(async (request, response) => {
@@ -230,34 +230,36 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
 
          const updateReplay = await replayDao.updateReplayName(replay.id!, request.body.name);
+         response.sendStatus(http.OK);
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
-         const id = request.params.id;
-         const deleteLogs: boolean | undefined = request.query.deleteLogs;
-
-         const replay = await replayDao.getReplay(id);
+         const replay = await replayDao.getReplay(request.params.id);
          if (!replay) {
             throw new HttpError(http.NOT_FOUND);
-         } else if (!replay.captureId) {
-            throw new HttpError(http.CONFLICT, `Replay ${replay.id} has no captureId`);
          }
 
-         const capture = await captureDao.getCapture(replay.captureId);
+         const capture = await captureDao.getCapture(replay.captureId!);
          if (capture === null) {
-            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s capture does not exist`);
-         } else if (!capture.envId) {
-            throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s has no envId`);
+            throw new HttpError(http.BAD_REQUEST, `Replay ${replay.id}'s capture does not exist`);
          }
 
-         await replayDao.deleteReplay(id);
+         const env = await environmentDao.getEnvironmentFull(capture.envId!);
+         if (!env) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${capture.envId} does not exist`);
+         }
 
-         const env = await environmentDao.getEnvironmentFull(capture.envId);
+         const isUserMember = await inviteDao.getUserMembership(request.user!, env!);
+         if (request.user! !== capture!.ownerId && !isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
 
-         if (deleteLogs === true && env) {
+         const replayDel = await replayDao.deleteReplay(request.params.id);
+
+         if (request.query.deleteLogs === true && env) {
 
             const storage = new S3Backend(
                new S3({region: env.region,
@@ -266,12 +268,10 @@ export default class ReplayRouter extends SelfAwareRouter {
                      env.bucket, env.prefix,
                );
 
-            const replayPrefix = `environment${env.id}/replay${id}/`;
+            const replayPrefix = `environment${env.id}/replay${request.params.id}/`;
             await storage.deletePrefix(replayPrefix);
          }
-
          response.json(replay);
-
       }));
    }
 }
