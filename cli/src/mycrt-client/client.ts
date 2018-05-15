@@ -29,7 +29,7 @@ export class MyCrtClient {
 
    /** Create a new Capture */
    public async startCapture(capture: IChildProgram): Promise<IChildProgram | null> {
-      return this.makeRequest<IChildProgram>(HttpMethod.POST, '/captures', {envId: capture.envId}, capture);
+      return this.makeRequest<IChildProgram>(HttpMethod.POST, '/captures', null, capture);
    }
 
    /** Stop a specific capture */

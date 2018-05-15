@@ -86,18 +86,6 @@ export default class ReplayRouter extends SelfAwareRouter {
             throw new HttpError(http.CONFLICT, `Replay ${replay.id}'s environment does not exist`);
          }
 
-         const storage = new S3Backend(
-            new S3({region: environment.region,
-               accessKeyId: environment.accessKey,
-               secretAccessKey: environment.secretKey}),
-               environment.bucket, environment.prefix,
-         );
-
-         const bucketExists = await storage.bucketExists();
-         if (!bucketExists) {
-            throw new HttpError(http.BAD_REQUEST, `S3 Bucket ${environment.bucket} does not exist`);
-         }
-
          const result = await getMetrics(replay, environment, type);
          response.json(result);
 
@@ -114,25 +102,6 @@ export default class ReplayRouter extends SelfAwareRouter {
          const cap = await captureDao.getCapture(request.body.captureId);
          if (cap == null) {
                throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
-         }
-
-         if (cap.envId) {
-            const env = await environmentDao.getEnvironmentFull(cap.envId);
-            if (!env) {
-               throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
-            }
-
-            const storage = new S3Backend(
-               new S3({region: env.region,
-                  accessKeyId: env.accessKey,
-                  secretAccessKey: env.secretKey}),
-               env.bucket, env.prefix,
-            );
-
-            const bucketExists = await storage.bucketExists();
-            if (!bucketExists) {
-               throw new HttpError(http.BAD_REQUEST, `S3 Bucket ${env.bucket} does not exist`);
-            }
          }
 
          if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
