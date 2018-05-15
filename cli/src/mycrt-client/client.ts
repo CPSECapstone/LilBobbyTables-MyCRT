@@ -29,7 +29,7 @@ export class MyCrtClient {
 
    /** Create a new Capture */
    public async startCapture(capture: IChildProgram): Promise<IChildProgram | null> {
-      return this.makeRequest<IChildProgram>(HttpMethod.POST, '/captures', null, capture);
+      return this.makeRequest<IChildProgram>(HttpMethod.POST, '/captures', {envId: capture.envId}, capture);
    }
 
    /** Stop a specific capture */
@@ -145,6 +145,21 @@ export class MyCrtClient {
    /** Validate credentials when creating an environment */
    public async validateCredentials(awsKeys: IAwsKeys): Promise< IDbReference[]| null> {
       return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, awsKeys);
+   }
+
+   /** Validate the associated S3 Storage for an environment */
+   public async validateStorage(envId: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/validate/bucket/`, {envId});
+   }
+
+   /** Validate that the associated metrics file can be found in S3 */
+   public async validateMetricsFile(envId: number, type: string, id: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/validate/bucket/metrics`, {envId, id, type});
+   }
+
+   /** Validate that the associated workload file can be found in S3 */
+   public async validateWorkloadFile(envId: number, id: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/validate/bucket/workload`, {envId, id});
    }
 
    /** Validate buckets when creating an environment */

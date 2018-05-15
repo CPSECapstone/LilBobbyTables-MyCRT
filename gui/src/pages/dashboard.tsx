@@ -8,7 +8,9 @@ import './common';
 import '../../static/css/index.css';
 
 import { ICapture } from '../../../common/dist/main';
+import { showAlert } from '../actions';
 import { BrowserLogger as logger } from '../logging';
+import { store } from '../store';
 import { BasePage } from './components/base_page_comp';
 import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
@@ -88,6 +90,17 @@ class DashboardApp extends React.Component<any, any> {
          });
       }
       this.setCaptures();
+      const bucketExists = await mycrt.validateStorage(this.state.envId);
+      if (!bucketExists) {
+         logger.error("Bucket no longer exists.");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Missing Storage Bucket",
+            message: "The bucket associated with this environment does not exist. "
+                     + "Please create a bucket in S3 named " + this.state.env.bucket
+                     + " before creating a capture or running a replay.",
+         }));
+      }
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
@@ -192,7 +205,8 @@ class DashboardApp extends React.Component<any, any> {
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
-                        <CaptureModal id="captureModal" envId={this.state.envId} update={this.componentWillMount}/>
+                        <CaptureModal id="captureModal" envId={this.state.envId} bucket={this.state.env.bucket}
+                        update={this.componentWillMount}/>
                      </div>
                      <br></br>
                      <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>

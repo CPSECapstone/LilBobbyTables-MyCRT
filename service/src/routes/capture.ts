@@ -77,6 +77,18 @@ export default class CaptureRouter extends SelfAwareRouter {
             throw new HttpError(http.CONFLICT, `Capture ${capture.id}'s environment does not exist`);
          }
 
+         const storage = new S3Backend(
+            new S3({region: environment.region,
+               accessKeyId: environment.accessKey,
+               secretAccessKey: environment.secretKey}),
+               environment.bucket, environment.prefix,
+         );
+
+         const bucketExists = await storage.bucketExists();
+         if (!bucketExists) {
+            throw new HttpError(http.BAD_REQUEST, `S3 Bucket ${environment.bucket} does not exist`);
+         }
+
          const result = await getMetrics(capture, environment, type);
          response.json(result);
 
@@ -180,9 +192,21 @@ export default class CaptureRouter extends SelfAwareRouter {
                endTime = this.createEndDate(inputTime, duration);
             }
 
-            const env = await environmentDao.getEnvironment(request.body.envId);
+            const env = await environmentDao.getEnvironmentFull(request.body.envId);
             if (!env) {
                throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
+            }
+
+            const storage = new S3Backend(
+               new S3({region: env.region,
+                  accessKeyId: env.accessKey,
+                  secretAccessKey: env.secretKey}),
+               env.bucket, env.prefix,
+            );
+
+            const bucketExists = await storage.bucketExists();
+            if (!bucketExists) {
+               throw new HttpError(http.BAD_REQUEST, `S3 Bucket ${env.bucket} does not exist`);
             }
 
             if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {

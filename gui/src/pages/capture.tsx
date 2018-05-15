@@ -10,6 +10,9 @@ import { ChildProgramStatus, IChildProgram, IMetricsList, IReplay, MetricType } 
 import { BrowserLogger as logger } from './../logging';
 import { mycrt } from './utils/mycrt-client';
 
+import { showAlert } from '../actions';
+import { store } from '../store';
+
 import { BasePage } from './components/base_page_comp';
 import { Breadcrumbs } from './components/breadcrumbs_comp';
 import { CaptureInfo } from './components/capture_info_comp';
@@ -77,7 +80,31 @@ class CaptureApp extends React.Component<any, any> {
             this.setState({env});
          }
       }
+
+      const bucketExists = await mycrt.validateStorage(this.state.envId);
+      if (!bucketExists) {
+         logger.error("Bucket no longer exists.");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Missing Storage Bucket",
+            message: "Capture and replay data cannot be found because the bucket associated "
+            + "with this environment does not exist.",
+         }));
+      }
+
       if (this.state.captureId) {
+         const metricsFileExists = await mycrt.validateMetricsFile(this.state.envId,
+            'capture', this.state.captureId);
+         if (bucketExists && !metricsFileExists) {
+            logger.error("Metrics file no longer exists.");
+            store.dispatch(showAlert({
+               show: true,
+               header: "Missing metrics.json File",
+               message: "Capture metrics cannot be displayed because the metrics.json file associated "
+               + "with this capture does not exist in the assigned S3 bucket.",
+            }));
+         }
+
          const capture = await mycrt.getCapture(this.state.captureId);
          if (capture) {
             this.setState({capture});
@@ -86,13 +113,16 @@ class CaptureApp extends React.Component<any, any> {
          if (replays) {
             this.setState({allReplays: this.makeObject(replays, "id")});
          }
-         const metrics = await mycrt.getAllCaptureMetrics(this.state.captureId);
-         if (metrics) {
-            this.setState({allGraphs: this.makeObject(metrics, "type")});
-            if (this.state.defaultReplay) {
-               this.updateReplays(true, this.state.defaultReplay, true);
-            } else {
-               this.setWorkloadData(true);
+
+         if (bucketExists && metricsFileExists) {
+            const metrics = await mycrt.getAllCaptureMetrics(this.state.captureId);
+            if (metrics) {
+               this.setState({allGraphs: this.makeObject(metrics, "type")});
+               if (this.state.defaultReplay) {
+                  this.updateReplays(true, this.state.defaultReplay, true);
+               } else {
+                  this.setWorkloadData(true);
+               }
             }
          }
       }
