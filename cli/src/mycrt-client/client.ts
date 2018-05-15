@@ -162,6 +162,10 @@ export class MyCrtClient {
       return this.makeRequest<IDbReference>(HttpMethod.GET, `/dbReferences/${id}`);
    }
 
+   public async getAWSKeys(): Promise<any[] | null> {
+      return this.makeRequest<any[]>(HttpMethod.GET, '/awsKeys', null);
+   }
+
    /** Signup to MyCRT */
    public async signup(user: types.SignupBody): Promise<IUser | null> {
       return this.makeRequest<IUser>(HttpMethod.POST, '/users/signup', null, user);

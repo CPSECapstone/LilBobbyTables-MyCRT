@@ -9,6 +9,7 @@ import { mycrt } from '../utils/mycrt-client';
 
 import { showAlert } from '../../actions/index';
 import { store } from '../../store/index';
+import { AWSKeys } from '../components/aws_keys_comp';
 import { awsRegions } from '../utils/string-constants';
 import { WarningAlert } from './alert_warning_comp';
 
@@ -22,8 +23,11 @@ export class EnvModal extends React.Component<any, any>  {
         this.validateCredentials = this.validateCredentials.bind(this);
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleOptionChange = this.handleOptionChange.bind(this);
+        this.handleRegionChange = this.handleRegionChange.bind(this);
         this.handleInviteCode = this.handleInviteCode.bind(this);
         this.validateDB = this.validateDB.bind(this);
+        this.accessKeyChange = this.accessKeyChange.bind(this);
+        this.secretKeyChange = this.secretKeyChange.bind(this);
         this.validateName = this.validateName.bind(this);
         this.validateInviteCode = this.validateInviteCode.bind(this);
         this.handleEvent = this.handleEvent.bind(this);
@@ -33,8 +37,15 @@ export class EnvModal extends React.Component<any, any>  {
                       dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
                       modalPage: '1', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
                       disabled: false, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid',
-                      sharedEnv: {}};
+                      sharedEnv: {}, awsKeyList: []};
         this.baseState = this.state;
+    }
+
+    public async componentDidMount() {
+      const awsKeyList = await mycrt.getAWSKeys();
+      if (awsKeyList) {
+         this.setState({awsKeyList});
+      }
     }
 
     public handleOptionChange(event: any) {
@@ -144,23 +155,25 @@ export class EnvModal extends React.Component<any, any>  {
         }
     }
 
-    public handleRegionChange(event: any) {
-       const value = event.target.value;
-       let disabled = this.state.disabled;
-       if (value === "default") {
+    public handleRegionChange(region: string) {
+      let disabled = this.state.disabled;
+      if (region === "default") {
          disabled = true;
-       }
-       this.setState({region: value, credentialsValid: 'valid', disabled});
-    }
-
-    public handleInputChange(event: any) {
-      this.setState({[event.target.id]: event.target.value, credentialsValid: 'valid'});
-      this.setState({disabled: false});
+      }
+      this.setState({region, credentialsValid: 'valid', disabled});
     }
 
     public handlePasswordChange(event: any) {
        this.setState({[event.target.id]: event.target.value, dbCredentialsValid: 'valid', disabled: false});
     }
+
+    public accessKeyChange(accessKey: string) {
+       this.setState({accessKey, credentialsValid: 'valid', disabled: false});
+    }
+
+    public secretKeyChange(secretKey: string) {
+      this.setState({secretKey, credentialsValid: 'valid', disabled: false});
+   }
 
     public handleNameChange(event: any) {
       if (/^[a-zA-Z0-9][a-zA-Z0-9 :_-]{3,24}$/.test(event.target.value)) {
@@ -323,19 +336,9 @@ export class EnvModal extends React.Component<any, any>  {
                                 </div>
                               <div className="tab-pane myCRT-tab-pane fade" id="step3">
                                  <div className="card card-body bg-light">
-                                       <label> AWS Keys </label>
-                                       <input className="form-control input-lg" placeholder="Enter Access Key"
-                                          value={this.state.accessKey} id="accessKey"
-                                          onInput={this.handleInputChange.bind(this)}/> <br/>
-                                       <input className="form-control input-lg" placeholder="Enter Secret Key"
-                                          value={this.state.secretKey} id="secretKey" type="password"
-                                          onInput={this.handleInputChange.bind(this)}/> <br/>
-                                       {<select className="form-control" id="regionDrop"
-                                          onChange={this.handleRegionChange.bind(this)}>
-                                          <option value='default'>Enter Region...</option>
-                                          {regions}
-                                       </select>}
-                                    <br></br>
+                                    <AWSKeys accessKeyChange={this.accessKeyChange} regions={regions}
+                                       awsKeys={this.state.awsKeyList}
+                                       secretKeyChange={this.secretKeyChange} regionChange={this.handleRegionChange}/>
                                     <div className="text-danger">
                                        {this.state.credentialsValid === 'valid' ? "" :
                                           `Credentials were invalid. Please check them and try again.`}</div>
