@@ -18,13 +18,13 @@ export const replayTests = (mycrt: MyCrtServiceTestClient) => function() {
       expect(response.body.id).to.equal(1);
    });
 
+   // fail posts
    it("should fail to schedule a replay without a start time", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
       const response = await mycrt.post(http.BAD_REQUEST, '/api/replays/', badScheduledReplay);
    });
 
-   // fail posts
    it("should fail to create a replay because of a bad db reference", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
@@ -35,6 +35,18 @@ export const replayTests = (mycrt: MyCrtServiceTestClient) => function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
       const response = await mycrt.post(http.BAD_REQUEST, '/api/replays', anotherBadReplayBody);
+   });
+
+   it("should fail to create multiple replays on the same DB", async function() {
+      await mycrt.post(http.OK, '/api/environments', newEnvBody);
+      await mycrt.post(http.OK, '/api/captures', liveCaptureBody);
+      await mycrt.post(http.OK, '/api/replays', replayBody);
+
+      const failedResponse = await mycrt.post(http.BAD_REQUEST, '/api/replays', {
+         ...replayBody,
+         name: "otherReplay",
+      });
+      expect(failedResponse.body.message).to.contain("already at least 1 replay running on that database");
    });
 
    // get
