@@ -31,13 +31,16 @@ export class EnvModal extends React.Component<any, any>  {
         this.validateName = this.validateName.bind(this);
         this.validateInviteCode = this.validateInviteCode.bind(this);
         this.handleEvent = this.handleEvent.bind(this);
+        this.updateKeyType = this.updateKeyType.bind(this);
+        this.keyChange = this.keyChange.bind(this);
+        this.keyNameChange = this.keyNameChange.bind(this);
         this.cancelModal = this.cancelModal.bind(this);
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
                       dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
                       modalPage: '1', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
                       disabled: false, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid',
-                      sharedEnv: {}, awsKeyList: []};
+                      sharedEnv: {}, awsKeyList: [], keyName: "", oldKeyName: "", customKeyName: "", newKeys: false};
         this.baseState = this.state;
     }
 
@@ -82,21 +85,26 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public async validateCredentials(event: any) {
-        const awsKeys = {accessKey: this.state.accessKey, secretKey: this.state.secretKey, region: this.state.region};
-        const dbRefs = await mycrt.validateCredentials(awsKeys);
-        if (dbRefs) {
-            this.setState({dbRefs});
-            this.changeProgress(4);
-        } else {
-            this.setState({credentialsValid: 'invalid'});
-            logger.error("THERE WAS AN ERROR");
-        }
-        const bucketList = await mycrt.validateBuckets(awsKeys);
-        if (bucketList) {
-            this.setState({bucketList});
-        } else {
-            logger.error("THERE WAS AN ERROR");
-        }
+      const awsKeys = {accessKey: this.state.accessKey, secretKey: this.state.secretKey,
+         region: this.state.region} as any;
+      const dbRefs = await mycrt.validateCredentials(awsKeys);
+      if (dbRefs) {
+         if (this.state.newKeys) {
+            this.setState({dbRefs, keyName: this.state.customKeyName});
+         } else {
+            this.setState({dbRefs, keyName: this.state.oldKeyName});
+         }
+         this.changeProgress(4);
+      } else {
+         this.setState({credentialsValid: 'invalid'});
+         logger.error("THERE WAS AN ERROR");
+      }
+      const bucketList = await mycrt.validateBuckets(awsKeys);
+      if (bucketList) {
+         this.setState({bucketList});
+      } else {
+         logger.error("THERE WAS AN ERROR");
+      }
     }
 
     public async validateDB(event: any) {
@@ -163,16 +171,29 @@ export class EnvModal extends React.Component<any, any>  {
       this.setState({region, credentialsValid: 'valid', disabled});
     }
 
-    public handlePasswordChange(event: any) {
-       this.setState({[event.target.id]: event.target.value, dbCredentialsValid: 'valid', disabled: false});
-    }
+   public handlePasswordChange(event: any) {
+      this.setState({[event.target.id]: event.target.value, dbCredentialsValid: 'valid', disabled: false});
+   }
 
-    public accessKeyChange(accessKey: string) {
-       this.setState({accessKey, credentialsValid: 'valid', disabled: false});
-    }
+   public accessKeyChange(accessKey: string) {
+      this.setState({accessKey, credentialsValid: 'valid', disabled: false});
+   }
 
-    public secretKeyChange(secretKey: string) {
-      this.setState({secretKey, credentialsValid: 'valid', disabled: false});
+   public secretKeyChange(secretKey: string) {
+   this.setState({secretKey, credentialsValid: 'valid', disabled: false});
+   }
+
+   public keyNameChange(customKeyName: string) {
+      this.setState({customKeyName, credentialsValid: 'valid', disabled: false});
+   }
+
+   public keyChange(awsKeyObj: any) {
+      this.setState({oldKeyName: awsKeyObj.name, accessKey: awsKeyObj.accessKey, secretKey: awsKeyObj.secretKey,
+         region: awsKeyObj.region, credentialsValid: 'valid', disabled: false});
+   }
+
+   public updateKeyType(newKeys: boolean) {
+      this.setState({newKeys, credentialsValid: 'valid', disabled: false});
    }
 
     public handleNameChange(event: any) {
@@ -337,7 +358,8 @@ export class EnvModal extends React.Component<any, any>  {
                               <div className="tab-pane myCRT-tab-pane fade" id="step3">
                                  <div className="card card-body bg-light">
                                     <AWSKeys accessKeyChange={this.accessKeyChange} regions={regions}
-                                       awsKeys={this.state.awsKeyList}
+                                       awsKeys={this.state.awsKeyList} keyNameChange={this.keyNameChange}
+                                       keyChange={this.keyChange} updateType={this.updateKeyType}
                                        secretKeyChange={this.secretKeyChange} regionChange={this.handleRegionChange}/>
                                     <div className="text-danger">
                                        {this.state.credentialsValid === 'valid' ? "" :
