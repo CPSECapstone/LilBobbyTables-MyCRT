@@ -154,6 +154,7 @@ export class EnvironmentDao extends Dao {
          id: row.id,
          envName: row.envName,
          ownerId: row.ownerId,
+         keysName: row.keysName,
          accessKey: cryptr.decrypt(row.accessKey),
          secretKey: cryptr.decrypt(row.secretKey),
          region: row.region,

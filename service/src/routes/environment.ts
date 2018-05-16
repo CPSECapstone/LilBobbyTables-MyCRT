@@ -86,7 +86,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             secretKey: request.body.secretKey,
             region: request.body.region,
             userId: request.user!.id,
-            name: request.body.name || "mykeys", // TODO remove the || "mykeys"
+            name: request.body.keysName || "mykeys", // TODO remove the || "mykeys"
          };
          let s3Reference: data.IS3Reference = {
             bucket: request.body.bucket,
@@ -111,8 +111,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             awsKeys = awsKeysRow;
          }
 
-         logger.debug(JSON.stringify(request.user!.id));
-
          const environment: data.IEnvironment = {
             name: request.body.envName,
             ownerId: request.user!.id,
@@ -125,7 +123,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          response.json(envId);
       }));
 
-      // TODO: Figure out exactly what is allowed to be edited.
       this.router.put('/:id(\\d+)', check.validBody(schema.environmentBody),
             this.handleHttpErrors(async (request, response) => {
 
