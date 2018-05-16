@@ -76,6 +76,13 @@ export default class EnvironmentRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.environmentBody),
             this.handleHttpErrors(async (request, response) => {
 
+         if (request.body.keysName) {
+            const keysWithSameName = await environmentDao.getAllAwsKeysByName(request.body.keysName, request.user!);
+            if (keysWithSameName !== null) {
+               throw new HttpError(http.BAD_REQUEST, "Keys with same name already exists");
+            }
+         }
+
          const envWithSameName = await environmentDao.getEnvironmentByName(request.body.envName);
          if (envWithSameName !== null) {
             throw new HttpError(http.BAD_REQUEST, "Environment with same name already exists");

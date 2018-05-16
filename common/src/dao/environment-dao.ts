@@ -92,6 +92,17 @@ export class EnvironmentDao extends Dao {
       return keysRows.map(this.rowToAwsKeys);
    }
 
+   public async getAllAwsKeysByName(name: string, user?: data.IUser): Promise<data.IAwsKeys | null> {
+      const keysRows = user ?
+         await this.query<any[]>('SELECT * FROM AwsKeys WHERE userId = ? AND name = ?', [user.id, name]) :
+         await this.query<any[]>('SELECT * FROM AwsKyes WHERE name = ?', [name]);
+
+      if (keysRows.length === 0) {
+            return null;
+      }
+      return this.rowToAwsKeys(keysRows[0]);
+   }
+
    public async getAwsKeys(id: number): Promise<data.IAwsKeys | null> {
       const rows = await this.query<any[]>('SELECT * FROM AwsKeys WHERE id = ?', [id]);
       return rows.length ? this.rowToAwsKeys(rows[0]) : null;

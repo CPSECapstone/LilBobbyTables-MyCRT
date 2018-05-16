@@ -6,6 +6,7 @@ export const credentialsBody: joi.ObjectSchema = joi.object().keys({
    accessKey: value.accessKey.required(),
    secretKey: value.secretKey.required(),
    region: value.region.required(),
+   keysName: value.nameString.optional(),
 });
 
 export const databaseBody: joi.ObjectSchema = joi.object().keys({
