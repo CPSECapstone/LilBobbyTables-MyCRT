@@ -83,15 +83,14 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
          let awsKeys: data.IAwsKeys;
          if (request.body.keysId) {
-            if (request.body.keysId === request.user!.id) {
-               const awsKeysOrNull = await environmentDao.getAwsKeys(request.body.keysId);
-               if (!awsKeysOrNull) {
-                  throw new HttpError(http.NOT_FOUND, "Keys no longer exist");
-               } else {
-                  awsKeys = awsKeysOrNull;
-               }
+            const awsKeysOrNull = await environmentDao.getAwsKeys(request.body.keysId);
+            if (!awsKeysOrNull) {
+               throw new HttpError(http.NOT_FOUND, "Keys do not exist");
             } else {
-               throw new HttpError(http.FORBIDDEN, "Keys don't belong to user");
+               awsKeys = awsKeysOrNull;
+               if (awsKeys.userId !== request.user!.id) {
+                  throw new HttpError(http.FORBIDDEN, "Keys don't belong to user");
+               }
             }
          } else {
             let newKeysName: string;
