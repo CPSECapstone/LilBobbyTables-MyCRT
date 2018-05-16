@@ -59,7 +59,8 @@ export class AWSKeys extends React.Component<any, any>  {
 
     public render() {
       const awsKeys: JSX.Element[] = [];
-      for (const key of this.props.awsKeys) {
+      const keys = this.props.awsKeys.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      for (const key of keys) {
          awsKeys.push((<option value={JSON.stringify(key)}>{key.name}</option>));
       }
         return (

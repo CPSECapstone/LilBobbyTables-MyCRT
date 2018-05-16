@@ -73,6 +73,7 @@ export class CapturePanel extends React.Component<any, any>  {
     public async stopCapture(event: any) {
       const capture = this.state.capture;
       capture.status = ChildProgramStatus.STOPPING;
+      capture.end = new Date();
       this.setState({ capture, active: false, live: false });
       let result = await mycrt.stopCapture(this.state.capture.id);
       if (!result) {
