@@ -40,7 +40,7 @@ export class EnvModal extends React.Component<any, any>  {
         this.validateKeyName = this.validateKeyName.bind(this);
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
-                      dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
+                      dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false, keysId: 0,
                       modalPage: '1', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
                       disabled: false, buttonText: 'Continue', credentialsError: "", dbCredentialsValid: 'valid',
                       sharedEnv: {}, awsKeyList: [], keysName: "", oldKeyName: "", customKeyName: "", newKeys: true};
@@ -206,7 +206,7 @@ export class EnvModal extends React.Component<any, any>  {
    }
 
    public keyChange(awsKeyObj: any) {
-      this.setState({keyId: awsKeyObj.id, oldKeyName: awsKeyObj.name, accessKey: awsKeyObj.accessKey,
+      this.setState({keysId: awsKeyObj.id, oldKeyName: awsKeyObj.name, accessKey: awsKeyObj.accessKey,
          secretKey: awsKeyObj.secretKey, region: awsKeyObj.region, credentialsError: '', disabled: false});
    }
 
@@ -225,8 +225,8 @@ export class EnvModal extends React.Component<any, any>  {
 
     public async createEnvironment() {
       const envObj = this.state as IEnvironmentFull;
-      if (!this.state.newKeys) {
-         envObj.keysId = this.state.keyId;
+      if (this.state.newKeys) {
+         delete envObj.keysId;
       }
       const result = await mycrt.createEnvironment(envObj);
       const name = this.state.envName;
