@@ -131,6 +131,7 @@ export  class EnvironmentDao extends Dao {
       dbRef.user = cryptr.encrypt(dbRef.user);
       dbRef.pass = cryptr.encrypt(dbRef.pass);
       const row = await this.query<any>('INSERT INTO DBReference SET ?', dbRef);
+
       return await this.getDbReference(row.insertId);
    }
 

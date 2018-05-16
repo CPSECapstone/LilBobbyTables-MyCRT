@@ -65,7 +65,7 @@ export const captureTests = (mycrt: MyCrtServiceTestClient) => function() {
    it("should reject the edit of a capture name if the new name is already in use", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', scheduledCaptureBody);
-      const response = await mycrt.put(http.CONFLICT, '/api/captures/1', scheduledCaptureBody);
+      const response = await mycrt.put(http.BAD_REQUEST, '/api/captures/1', scheduledCaptureBody);
    });
 
    it("should successfully delete an existing capture", async function() {

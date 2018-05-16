@@ -140,8 +140,8 @@ export default class ReplayRouter extends SelfAwareRouter {
             throw new HttpError(http.UNAUTHORIZED);
          }
 
-         const replayWithSameName = replayDao.getReplaysForCapByName(cap!.envId!, request.body.name);
-         if (replayWithSameName !== null) {
+         const replayWithSameName = replayDao.getReplaysForCapByName(cap!.id!, request.body.name);
+         if (Object.keys(replayWithSameName).length) {
             throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
          }
 
@@ -166,7 +166,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          };
 
          const db = await environmentDao.makeDbReference(dbReference);
-         if (db) {
+         if (!db) {
             throw new HttpError(http.INTERNAL_SERVER_ERROR, "DB reference was not properly created");
          }
 
