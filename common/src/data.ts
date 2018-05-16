@@ -85,6 +85,7 @@ export interface IEnvironmentFull {
    id?: number;
    envName: string;
    ownerId?: number;
+   keysId?: number;
    keysName: string;
    accessKey: string;
    secretKey: string;
