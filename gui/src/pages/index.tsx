@@ -15,8 +15,10 @@ const IndexApp = () => {
         <div className="jumbotron jumbotron-fluid">
             <div className="container">
                 <h1 className="display-3">MyCRT</h1>
-                <p className="lead">Scale Effortlessly.</p>
-                <p><a className="btn btn-primary btn-lg" href="/environments" role="button">Get Started</a></p>
+                <p className="lead">Scale Today</p>
+                <p>
+                   <a className="button" href="/environments" role="button">Get Started</a>
+               </p>
             </div>
         </div>
     );

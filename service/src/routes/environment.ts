@@ -76,6 +76,13 @@ export default class EnvironmentRouter extends SelfAwareRouter {
       this.router.post('/', check.validBody(schema.environmentBody),
             this.handleHttpErrors(async (request, response) => {
 
+         if (request.body.keysName) {
+            const keysWithSameName = await environmentDao.getAllAwsKeysByName(request.body.keysName, request.user!);
+            if (keysWithSameName !== null) {
+               throw new HttpError(http.BAD_REQUEST, "Keys with same name already exists");
+            }
+         }
+
          const envWithSameName = await environmentDao.getEnvironmentByName(request.body.envName);
          if (envWithSameName !== null) {
             throw new HttpError(http.BAD_REQUEST, "Environment with same name already exists");
@@ -86,7 +93,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             secretKey: request.body.secretKey,
             region: request.body.region,
             userId: request.user!.id,
-            name: request.body.name || "mykeys", // TODO remove the || "mykeys"
+            name: request.body.keysName || "mykeys", // TODO remove the || "mykeys"
          };
          let s3Reference: data.IS3Reference = {
             bucket: request.body.bucket,
@@ -110,8 +117,6 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          if (awsKeysRow) {
             awsKeys = awsKeysRow;
          }
-
-         logger.debug(JSON.stringify(request.user!.id));
 
          const environment: data.IEnvironment = {
             name: request.body.envName,
