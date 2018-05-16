@@ -36,12 +36,14 @@ export class EnvModal extends React.Component<any, any>  {
         this.keyChange = this.keyChange.bind(this);
         this.keyNameChange = this.keyNameChange.bind(this);
         this.cancelModal = this.cancelModal.bind(this);
+        this.validateIAMCreds = this.validateIAMCreds.bind(this);
+        this.validateKeyName = this.validateKeyName.bind(this);
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
                       dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
                       modalPage: '1', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
                       disabled: false, buttonText: 'Continue', credentialsError: "", dbCredentialsValid: 'valid',
-                      sharedEnv: {}, awsKeyList: [], oldKeyName: "", customKeyName: "", newKeys: true};
+                      sharedEnv: {}, awsKeyList: [], keysName: "", oldKeyName: "", customKeyName: "", newKeys: true};
         this.baseState = this.state;
     }
 
@@ -78,21 +80,26 @@ export class EnvModal extends React.Component<any, any>  {
       }
     }
 
-   public async validateCredentials(event: any) {
+   public async validateKeyName(): Promise<boolean> {
+      let keysName = this.state.oldKeyName;
       if (this.state.newKeys) {
-         const keysName = this.state.customKeyName;
+         keysName = this.state.customKeyName;
          if (!/^[a-zA-Z0-9 :_-]{4,25}$/.test(keysName)) {
             this.setState({credentialsError: `Please provide a name with 4-25 alphanumeric characters.
                The following characters are also allowed: -_:.`});
-            return;
+            return false;
          }
          const result = await mycrt.validateAWSKeyName(keysName);
          if (!result) {
             this.setState({credentialsError: 'This key name already exists. Please use a different one.'});
-            return;
+            return false;
          }
-         this.setState({keysName});
       }
+      this.setState({keysName});
+      return true;
+   }
+
+   public async validateIAMCreds() {
       const awsKeys = {accessKey: this.state.accessKey, secretKey: this.state.secretKey,
          region: this.state.region} as any;
       const dbRefs = await mycrt.validateCredentials(awsKeys);
@@ -108,6 +115,13 @@ export class EnvModal extends React.Component<any, any>  {
          this.setState({bucketList});
       } else {
          logger.error("Error getting S3 buckets.");
+      }
+   }
+
+   public async validateCredentials(event: any) {
+      const valid = await this.validateKeyName();
+      if (valid) {
+         this.validateIAMCreds();
       }
    }
 
@@ -192,7 +206,7 @@ export class EnvModal extends React.Component<any, any>  {
    }
 
    public keyChange(awsKeyObj: any) {
-      this.setState({accessKey: awsKeyObj.accessKey, secretKey: awsKeyObj.secretKey,
+      this.setState({oldKeysName: awsKeyObj.name, accessKey: awsKeyObj.accessKey, secretKey: awsKeyObj.secretKey,
          region: awsKeyObj.region, credentialsError: '', disabled: false});
    }
 
