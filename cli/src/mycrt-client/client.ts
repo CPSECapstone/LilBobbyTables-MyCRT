@@ -148,12 +148,12 @@ export class MyCrtClient {
    }
 
    /** Validate credentials when creating an environment */
-   public async validateCredentials(awsKeys: IAwsKeys): Promise< IDbReference[]| null> {
+   public async validateCredentials(awsKeys: IAwsKeys): Promise<IDbReference[] | null> {
       return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, awsKeys);
    }
 
    /** Validate buckets when creating an environment */
-   public async validateBuckets(awsKeys: IAwsKeys): Promise< string[]| null> {
+   public async validateBuckets(awsKeys: IAwsKeys): Promise< string[] | null> {
       return this.makeRequest<string[]>(HttpMethod.POST, `/validate/bucket`, null, awsKeys);
    }
 
@@ -169,6 +169,10 @@ export class MyCrtClient {
 
    public async getAWSKeys(): Promise<any[] | null> {
       return this.makeRequest<any[]>(HttpMethod.GET, '/awsKeys', null);
+   }
+
+   public validateAWSKeyName(keysName: string): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.POST, '/validate/credentials/name', null, {keysName});
    }
 
    /** Signup to MyCRT */
@@ -244,14 +248,15 @@ export class MyCrtClient {
             if (json) {
                return json as T;
             }
-         } else {
-            const json = await response.json();
-            const serviceError: ServiceError = {
-               ok: false,
-               message: json.message || "There was an error",
-            };
-            return serviceError as any;
          }
+         // } else {
+         //    const json = await response.json();
+         //    const serviceError: ServiceError = {
+         //       ok: false,
+         //       message: json.message || "There was an error",
+         //    };
+         //    return serviceError as any;
+         // }
       }
 
       return null;

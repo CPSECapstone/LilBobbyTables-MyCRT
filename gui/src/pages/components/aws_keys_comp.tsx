@@ -11,12 +11,13 @@ export class AWSKeys extends React.Component<any, any>  {
 
     public constructor(props: any) {
         super(props);
-        this.state = {newKeys: false};
+        this.state = {newKeys: true};
         this.handleOptionChange = this.handleOptionChange.bind(this);
         this.accessKeyChange = this.accessKeyChange.bind(this);
         this.awsKeyNameChange = this.awsKeyNameChange.bind(this);
         this.secretKeyChange = this.secretKeyChange.bind(this);
         this.awsKeyChange = this.awsKeyChange.bind(this);
+        this.reset = this.reset.bind(this);
         this.regionChange = this.regionChange.bind(this);
     }
 
@@ -48,6 +49,14 @@ export class AWSKeys extends React.Component<any, any>  {
         this.props.updateType(isNewKey);
     }
 
+    public reset() {
+      $('#newKeys').click();
+      $('#awsKeyName').val("");
+      $('#accessKey').val("");
+      $('#secretKey').val("");
+      $("select#regionDrop").val('default');
+    }
+
     public render() {
       const awsKeys: JSX.Element[] = [];
       for (const key of this.props.awsKeys) {
@@ -55,25 +64,26 @@ export class AWSKeys extends React.Component<any, any>  {
       }
         return (
             <div>
-               <div className="form-check">
+               <div className="form-check"
+                  style={this.props.awsKeys.length > 0 ? {display: "block"} : {display: "none"}}>
                   <label className="form-check-label" style={{padding: "5px"}}>
                   <input type="radio" className="form-check-input" name="aws keys"
                      onChange={this.handleOptionChange}
-                     defaultValue="existingKeys" defaultChecked/>
+                     defaultValue="existingKeys"/>
                      Existing AWS Key
                   </label>
                </div>
                <div className="form-check">
                   <label className="form-check-label" style={{padding: "5px"}}>
                   <input type="radio" className="form-check-input" name="aws keys"
-                     onChange={this.handleOptionChange}
-                     defaultValue="newKeys"/>
+                     onChange={this.handleOptionChange} id="newKeys"
+                     defaultValue="newKeys" defaultChecked/>
                      New AWS Key
                   </label>
                   <br></br><br></br>
                   {this.state.newKeys ?
                      <div>
-                        <input className="form-control input-lg" placeholder="Enter Name (Optional)"
+                        <input className="form-control input-lg" placeholder="Enter Name"
                            id="awsKeyName"
                            onInput={this.awsKeyNameChange}/> <br/>
                         <input className="form-control input-lg" placeholder="Enter Access Key"
@@ -88,8 +98,7 @@ export class AWSKeys extends React.Component<any, any>  {
                            {this.props.regions}
                         </select>}
                      </div> :
-                     <div>{this.props.awsKeys.length === 0 ?
-                        <label>No previous AWS Keys</label> :
+                     <div>{this.props.awsKeys.length === 0 ? null :
                         <select className="form-control" id="keyDrop"
                            onChange={this.awsKeyChange.bind(this)}>
                            <option value='default'>Select Previous Key...</option>

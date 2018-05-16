@@ -16,6 +16,7 @@ import { WarningAlert } from './alert_warning_comp';
 export class EnvModal extends React.Component<any, any>  {
 
     private baseState = {} as any;
+    private awsKeysRef = {} as any;
 
     constructor(props: any) {
         super(props);
@@ -39,16 +40,9 @@ export class EnvModal extends React.Component<any, any>  {
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
                       dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
                       modalPage: '1', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
-                      disabled: false, buttonText: 'Continue', credentialsValid: 'valid', dbCredentialsValid: 'valid',
-                      sharedEnv: {}, awsKeyList: [], keyName: "", oldKeyName: "", customKeyName: "", newKeys: false};
+                      disabled: false, buttonText: 'Continue', credentialsError: "", dbCredentialsValid: 'valid',
+                      sharedEnv: {}, awsKeyList: [], oldKeyName: "", customKeyName: "", newKeys: true};
         this.baseState = this.state;
-    }
-
-    public async componentDidMount() {
-      const awsKeyList = await mycrt.getAWSKeys();
-      if (awsKeyList) {
-         this.setState({awsKeyList});
-      }
     }
 
     public handleOptionChange(event: any) {
@@ -84,28 +78,38 @@ export class EnvModal extends React.Component<any, any>  {
       }
     }
 
-    public async validateCredentials(event: any) {
+   public async validateCredentials(event: any) {
+      if (this.state.newKeys) {
+         const keysName = this.state.customKeyName;
+         if (!/^[a-zA-Z0-9 :_-]{4,25}$/.test(keysName)) {
+            this.setState({credentialsError: `Please provide a name with 4-25 alphanumeric characters.
+               The following characters are also allowed: -_:.`});
+            return;
+         }
+         const result = await mycrt.validateAWSKeyName(keysName);
+         if (!result) {
+            this.setState({credentialsError: 'This key name already exists. Please use a different one.'});
+            return;
+         }
+         this.setState({keysName});
+      }
       const awsKeys = {accessKey: this.state.accessKey, secretKey: this.state.secretKey,
          region: this.state.region} as any;
       const dbRefs = await mycrt.validateCredentials(awsKeys);
       if (dbRefs) {
-         if (this.state.newKeys) {
-            this.setState({dbRefs, keyName: this.state.customKeyName});
-         } else {
-            this.setState({dbRefs, keyName: this.state.oldKeyName});
-         }
+         this.setState({dbRefs});
          this.changeProgress(4);
       } else {
-         this.setState({credentialsValid: 'invalid'});
-         logger.error("THERE WAS AN ERROR");
+         this.setState({credentialsError: 'Credentials were invalid. Please check them and try again.'});
+         return;
       }
       const bucketList = await mycrt.validateBuckets(awsKeys);
       if (bucketList) {
          this.setState({bucketList});
       } else {
-         logger.error("THERE WAS AN ERROR");
+         logger.error("Error getting S3 buckets.");
       }
-    }
+   }
 
     public async validateDB(event: any) {
         const dbRef = {dbName: this.state.dbName, host: this.state.host,
@@ -168,7 +172,7 @@ export class EnvModal extends React.Component<any, any>  {
       if (region === "default") {
          disabled = true;
       }
-      this.setState({region, credentialsValid: 'valid', disabled});
+      this.setState({region, credentialsError: '', disabled});
     }
 
    public handlePasswordChange(event: any) {
@@ -176,24 +180,24 @@ export class EnvModal extends React.Component<any, any>  {
    }
 
    public accessKeyChange(accessKey: string) {
-      this.setState({accessKey, credentialsValid: 'valid', disabled: false});
+      this.setState({accessKey, credentialsError: '', disabled: false});
    }
 
    public secretKeyChange(secretKey: string) {
-   this.setState({secretKey, credentialsValid: 'valid', disabled: false});
+   this.setState({secretKey, credentialsError: '', disabled: false});
    }
 
    public keyNameChange(customKeyName: string) {
-      this.setState({customKeyName, credentialsValid: 'valid', disabled: false});
+      this.setState({customKeyName, credentialsError: '', disabled: false});
    }
 
    public keyChange(awsKeyObj: any) {
-      this.setState({oldKeyName: awsKeyObj.name, accessKey: awsKeyObj.accessKey, secretKey: awsKeyObj.secretKey,
-         region: awsKeyObj.region, credentialsValid: 'valid', disabled: false});
+      this.setState({accessKey: awsKeyObj.accessKey, secretKey: awsKeyObj.secretKey,
+         region: awsKeyObj.region, credentialsError: '', disabled: false});
    }
 
    public updateKeyType(newKeys: boolean) {
-      this.setState({newKeys, credentialsValid: 'valid', disabled: false});
+      this.setState({newKeys, credentialsError: '', disabled: false});
    }
 
     public handleNameChange(event: any) {
@@ -206,32 +210,36 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public async createEnvironment() {
-        const envObj = await mycrt.createEnvironment(this.state as IEnvironmentFull);
-        const name = this.state.envName;
-        const cancelBtn = document.getElementById("cancelBtn");
-         if (cancelBtn) {
-            cancelBtn.click();
-         }
-        if (!envObj) {
-            store.dispatch(showAlert({
-               show: true,
-               header: "Error",
-               message: `Environment could not be created.`,
-            }));
-        } else {
-            this.props.update();
-            store.dispatch(showAlert({
-               show: true,
-               header: "Success!",
-               success: true,
-               message: `${name} has been created!`,
-            }));
-        }
+      const envObj = await mycrt.createEnvironment(this.state as IEnvironmentFull);
+      const name = this.state.envName;
+      const cancelBtn = document.getElementById("cancelBtn");
+      if (cancelBtn) {
+         cancelBtn.click();
+      }
+      if (!envObj) {
+         store.dispatch(showAlert({
+            show: true,
+            header: "Error",
+            message: `Environment could not be created.`,
+         }));
+      } else {
+         this.props.update();
+         store.dispatch(showAlert({
+            show: true,
+            header: "Success!",
+            success: true,
+            message: `${name} has been created!`,
+         }));
+      }
     }
 
     public async handleEvent(event: any) {
       const step = this.state.modalPage;
       if (step === '1') {
+         const awsKeyList = await mycrt.getAWSKeys();
+         if (awsKeyList) {
+            this.setState({awsKeyList});
+         }
          if (this.state.newEnv) {
             this.changeProgress(2);
          } else {
@@ -251,9 +259,9 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public cancelModal(event: any) {
-      $("select#regionDrop").val('default');
       $(`#newEnvRadio`).click();
       this.changeProgress(1);
+      this.awsKeysRef.reset();
       this.setState(this.baseState);
     }
 
@@ -358,12 +366,11 @@ export class EnvModal extends React.Component<any, any>  {
                               <div className="tab-pane myCRT-tab-pane fade" id="step3">
                                  <div className="card card-body bg-light">
                                     <AWSKeys accessKeyChange={this.accessKeyChange} regions={regions}
+                                       ref={(instance) => { this.awsKeysRef = instance; }}
                                        awsKeys={this.state.awsKeyList} keyNameChange={this.keyNameChange}
                                        keyChange={this.keyChange} updateType={this.updateKeyType}
                                        secretKeyChange={this.secretKeyChange} regionChange={this.handleRegionChange}/>
-                                    <div className="text-danger">
-                                       {this.state.credentialsValid === 'valid' ? "" :
-                                          `Credentials were invalid. Please check them and try again.`}</div>
+                                    <div className="text-danger">{this.state.credentialsError}</div>
                                  </div>
                               </div>
                               <div className="tab-pane myCRT-tab-pane fade" id="step4">
