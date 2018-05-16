@@ -22,4 +22,27 @@ export const envNameQuery: joi.ObjectSchema = joi.object().keys({
    name: value.nameString.optional(),
 });
 
+export const putEnvironmentBody: joi.ObjectSchema = joi.object().keys({
+   envName: value.nameString.optional(),
+
+   accessKey: value.accessKey.optional(),
+   secretKey: value.secretKey.optional(),
+   region: value.region.optional(),
+   keysName: value.nameString.optional(),
+
+   awsKeysId: value.awsKeysId.optional(),
+
+   dbName: value.dbName.optional(),
+   host: value.host.optional(),
+   user: value.user.optional(),
+   pass: value.password.optional(),
+   instance: value.instance.optional(),
+   parameterGroup: value.parameterGroup.optional(),
+
+   dbId: value.dbId.optional(),
+}).and('accessKey', 'secretKey', 'region', 'keysName')
+.without('awsKeysId', 'accessKey')
+.and('dbName', 'host', 'user', 'pass', 'instance', 'parameterGroup')
+.without('dbId', 'dbName');
+
 export * from './common-schema';

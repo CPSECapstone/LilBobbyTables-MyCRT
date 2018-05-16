@@ -125,14 +125,61 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          response.json(envId);
       }));
 
-      // TODO: Figure out exactly what is allowed to be edited.
-      this.router.put('/:id(\\d+)', check.validBody(schema.environmentBody),
+      this.router.put('/:id(\\d+)', check.validBody(schema.putEnvironmentBody),
             this.handleHttpErrors(async (request, response) => {
 
          const id = request.params.id;
          let environment: data.IEnvironment | null = {
             name: request.body.envName,
          };
+
+         if (request.body.envName) {
+            const envWithSameName = await environmentDao.getEnvironmentByName(request.body.envName);
+            if (envWithSameName !== null) {
+               throw new HttpError(http.BAD_REQUEST, "Environment with same name already exists");
+            } else { environment.name = request.body.envName; }
+         }
+
+         // TODO: Make sure user has access to these keys?
+         if (request.body.awsKeysId) {
+            environment.awsKeysId = request.body.awsKeysId;
+         }
+
+         if (request.body.accessKey) {
+            const awsKeys: data.IAwsKeys = {
+               accessKey: request.body.accessKey,
+               secretKey: request.body.secretKey,
+               region: request.body.region,
+               userId: request.user!.id,
+               name: request.body.keysName,
+            };
+
+            const newKeys = await environmentDao.makeAwsKeys(awsKeys);
+            if (newKeys) {
+               environment.awsKeysId = newKeys.id;
+            }
+         }
+
+         // TODO: Make sure user has access to this DB?
+         if (request.body.dbId) {
+            environment.dbId = request.body.dbId;
+         }
+
+         if (request.body.dbName) {
+            const dbReference: data.IDbReference = {
+               name: request.body.dbName,
+               host: request.body.host,
+               user: request.body.user,
+               pass: request.body.pass,
+               instance: request.body.instance,
+               parameterGroup: request.body.parameterGroup,
+            };
+
+            const newDbRef = await environmentDao.makeDbReference(dbReference);
+            if (newDbRef) {
+               environment.dbId = newDbRef.id;
+            }
+         }
 
          environment = await environmentDao.editEnvironment(id, environment);
          response.json(environment!);

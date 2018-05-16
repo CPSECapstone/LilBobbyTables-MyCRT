@@ -45,6 +45,7 @@ export const editEnvBody = {
    accessKey: "ACCESSKEY",
    secretKey: "SECRETKEY",
    region: "us-east-2",
+   keysName: "NAMEOFKEYS",
    bucket: "nfllogbucket",
    dbName: "NFL",
    host: "nfl2015.c7m7t1xyrt7v.us-east-2.rds.amazonaws.com",
