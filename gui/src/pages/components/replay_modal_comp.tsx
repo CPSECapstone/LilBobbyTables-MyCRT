@@ -90,7 +90,7 @@ export class ReplayModal extends React.Component<any, any>  {
 
     public async validateDB(event: any) {
       const duplicateName = await mycrt.validateReplayName(this.state.name, this.state.captureId);
-      if (duplicateName) {
+      if (duplicateName && duplicateName.length > 0) {
          this.setState({errorMsg: 'This replay name already exists within this capture. Please use a different one.'});
          return;
       }
