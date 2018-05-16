@@ -54,13 +54,12 @@ export class CaptureModal extends React.Component<any, any>  {
       const daysInSecs = this.state.endDuration.days * 86400;
       const hoursInSecs = this.state.endDuration.hours * 3600;
       const minutesInSecs = this.state.endDuration.minutes * 60;
-      logger.info(String(daysInSecs + hoursInSecs + minutesInSecs));
       return daysInSecs + hoursInSecs + minutesInSecs;
    }
 
    public async handleClick(event: any) {
       const duplicateName = await mycrt.validateCaptureName(this.state.captureName, this.props.envId);
-      if (duplicateName && duplicateName.length > 0) {
+      if (duplicateName) {
          this.setState({errorMsg: `This capture name already exists within this environment.
             Please use a different one.`});
          return;

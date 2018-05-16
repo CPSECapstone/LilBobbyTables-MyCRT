@@ -41,7 +41,7 @@ export class EnvModal extends React.Component<any, any>  {
         this.changeProgress = this.changeProgress.bind(this);
         this.state = {envName: "", accessKey: "", secretKey: "", region: "", bucketList: [], envNameValid: 'invalid',
                       dbName: "", pass: "", bucket: "", prefix: "MyCRT", dbRefs: [], invalidDBPass: false,
-                      modalPage: '1', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "",
+                      modalPage: '1', envNameDuplicate: false, newEnv: true, inviteCode: "", errorMsg: "", keyId: "",
                       disabled: false, buttonText: 'Continue', credentialsError: "", dbCredentialsValid: 'valid',
                       sharedEnv: {}, awsKeyList: [], keysName: "", oldKeyName: "", customKeyName: "", newKeys: true};
         this.baseState = this.state;
@@ -73,7 +73,7 @@ export class EnvModal extends React.Component<any, any>  {
 
     public async validateName(event: any) {
       const result = await mycrt.validateEnvName(this.state.envName);
-      if (result && result.length > 0) {
+      if (result) {
          this.setState({envNameDuplicate: true});
       } else {
          this.changeProgress(3);
@@ -206,8 +206,8 @@ export class EnvModal extends React.Component<any, any>  {
    }
 
    public keyChange(awsKeyObj: any) {
-      this.setState({oldKeysName: awsKeyObj.name, accessKey: awsKeyObj.accessKey, secretKey: awsKeyObj.secretKey,
-         region: awsKeyObj.region, credentialsError: '', disabled: false});
+      this.setState({keyId: awsKeyObj.id, oldKeysName: awsKeyObj.name, accessKey: awsKeyObj.accessKey,
+         secretKey: awsKeyObj.secretKey, region: awsKeyObj.region, credentialsError: '', disabled: false});
    }
 
    public updateKeyType(newKeys: boolean) {
@@ -224,13 +224,17 @@ export class EnvModal extends React.Component<any, any>  {
     }
 
     public async createEnvironment() {
-      const envObj = await mycrt.createEnvironment(this.state as IEnvironmentFull);
+      const envObj = this.state as IEnvironmentFull;
+      if (this.state.oldKeys) {
+         envObj.awsKeysId = this.state.keyId;
+      }
+      const result = await mycrt.createEnvironment(envObj);
       const name = this.state.envName;
       const cancelBtn = document.getElementById("cancelBtn");
       if (cancelBtn) {
          cancelBtn.click();
       }
-      if (!envObj) {
+      if (!result) {
          store.dispatch(showAlert({
             show: true,
             header: "Error",
