@@ -60,7 +60,7 @@ export class CaptureModal extends React.Component<any, any>  {
 
    public async handleClick(event: any) {
       const duplicateName = await mycrt.validateCaptureName(this.state.captureName, this.props.envId);
-      if (duplicateName) {
+      if (duplicateName && duplicateName.length > 0) {
          this.setState({errorMsg: `This capture name already exists within this environment.
             Please use a different one.`});
          return;
