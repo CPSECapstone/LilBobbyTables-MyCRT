@@ -27,6 +27,17 @@ export default class ValidateRouter extends SelfAwareRouter {
 
    protected mountRoutes(): void {
 
+      this.router.post('/credentials/name', check.validBody(schema.credentialsNameBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const keysWithSameName = await environmentDao.getAllAwsKeysByName(request.body.keysName, request.user!);
+         if (keysWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Keys with same name already exists");
+         } else {
+            response.json({status: http.OK}).end();
+         }
+      }));
+
       this.router.post('/credentials', check.validBody(schema.credentialsBody),
             this.handleHttpErrors(async (request, response) => {
 

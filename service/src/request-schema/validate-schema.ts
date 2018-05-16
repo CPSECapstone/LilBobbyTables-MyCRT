@@ -2,6 +2,10 @@ import * as joi from 'joi';
 
 import { value } from './common-schema';
 
+export const credentialsNameBody: joi.ObjectSchema = joi.object().keys({
+   keysName: value.nameString.required(),
+});
+
 export const credentialsBody: joi.ObjectSchema = joi.object().keys({
    accessKey: value.accessKey.required(),
    secretKey: value.secretKey.required(),
