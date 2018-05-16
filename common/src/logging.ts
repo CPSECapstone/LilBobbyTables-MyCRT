@@ -60,7 +60,7 @@ export const getLogger = (console?: boolean, consoleFormat?: FormatFunction, log
          colorize: true,
          formatter: consoleFormat,
          level: 'silly',
-         silent: process.env.NODE_ENV === 'test',
+         // silent: process.env.NODE_ENV === 'test',
       }));
    }
 
@@ -72,7 +72,7 @@ export const getLogger = (console?: boolean, consoleFormat?: FormatFunction, log
          formatter: logFormat,
          json: false,
          level: 'info',
-         silent: process.env.NODE_ENV === 'test',
+         // silent: process.env.NODE_ENV === 'test',
          timestamp: tsFormat,
          label: name || ' -- ',
       }));

@@ -126,7 +126,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             name: request.body.envName,
          };
 
-         const editEnvironment = await environmentDao.editEnvironment(request.params.id, environment);
+         const editEnvironment = await environmentDao.editEnvironment(request.params.id, environmentEdits);
          response.json(editEnvironment!);
       }));
 
@@ -159,7 +159,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             }
          }
          const environmentDel = await environmentDao.deleteEnvironment(request.params.id);
-         response.json(environment);
+         response.json(environmentDel);
       }));
 
       const inviteRouter = new InviteRouter(this.ipcNode);

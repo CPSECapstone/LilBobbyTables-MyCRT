@@ -23,7 +23,7 @@ export const captureTests = (mycrt: MyCrtServiceTestClient) => function() {
 
    it("should reject the post of a capture with invalid status", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
-      const response = await mycrt.post(http.BAD_REQUEST, '/api/captures/', captureBadStatus);
+      const response = await mycrt.post(http.NOT_FOUND, '/api/captures/', captureBadStatus);
    });
 
    it("should reject the post of a capture with bad environment", async function() {
