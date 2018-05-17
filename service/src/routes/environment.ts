@@ -1,13 +1,15 @@
-import { S3 } from 'aws-sdk';
+import { RDS, S3 } from 'aws-sdk';
 
 import * as http from 'http-status-codes';
 
-import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
+import { IAwsKeys, Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import * as data from '@lbt-mycrt/common/dist/data';
 
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
+import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
+import { getDbInstances } from '../common/rdsInstances';
 import { environmentDao, environmentInviteDao as inviteDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -55,6 +57,38 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          }
          response.json(environment);
       }));
+
+      this.router.get('/:id(\\d+)/dbs',
+         check.validParams(schema.idParams),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.params.id)),
+         this.handleHttpErrors(async (request, response) => {
+
+            const envId: number = request.params.id;
+            logger.info(`Getting environment ${envId}`);
+            const environment = await environmentDao.getEnvironmentFull(envId);
+            if (!environment) {
+               logger.warn(`Environment not found`);
+               throw new HttpError(http.NOT_FOUND);
+            }
+
+            const keys = await environmentDao.getAwsKeys(environment.keysId!);
+            if (!keys) {
+               logger.error(`There was a problem getting the environment keys`);
+               throw new HttpError(http.INTERNAL_SERVER_ERROR);
+            }
+
+            // TODO
+            const rds = new RDS({
+               region: keys.region,
+               accessKeyId: keys.accessKey,
+               secretAccessKey: keys.secretKey,
+            });
+
+            const dbs = await getDbInstances(rds, {});
+            response.json(dbs);
+
+         }),
+      );
 
       this.router.post('/', check.validBody(schema.environmentBody),
             this.handleHttpErrors(async (request, response) => {

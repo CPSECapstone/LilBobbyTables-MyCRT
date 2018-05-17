@@ -40,9 +40,7 @@ export class ReplayModal extends React.Component<any, any>  {
    }
 
    public async componentWillMount() {
-      const iamRef = {accessKey: this.state.env.accessKey, secretKey: this.state.env.secretKey,
-         region: this.state.env.region};
-      const dbRefs = await mycrt.validateCredentials(iamRef);
+      const dbRefs = await mycrt.getEnvironmentDbs(this.state.env.id);
       if (dbRefs) {
          const filterRefs = dbRefs.filter((db) => {
          return db.name !== this.state.env.dbName;

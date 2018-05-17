@@ -10,11 +10,14 @@ import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
 import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
+import { getDbInstances } from '../common/rdsInstances';
 import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/validate-schema';
 import SelfAwareRouter from './self-aware-router';
+
+const logger = Logging.defaultLogger(__dirname);
 
 export default class ValidateRouter extends SelfAwareRouter {
 
@@ -58,23 +61,8 @@ export default class ValidateRouter extends SelfAwareRouter {
             secretAccessKey: request.body.secretKey,
          });
 
-         try {
-            const data = await this.getDBInstances(rds, {});
-            const instances: any = [];
-            data.DBInstances.forEach((dbInstance: RDS.DBInstance) => {
-               instances.push({
-                  instance: dbInstance.DBInstanceIdentifier,
-                  name: dbInstance.DBName || dbInstance.DBInstanceIdentifier,
-                  user: dbInstance.MasterUsername,
-                  host: dbInstance.Endpoint ? dbInstance.Endpoint.Address : "",
-                  parameterGroup: dbInstance.DBParameterGroups ?
-                     dbInstance.DBParameterGroups[0].DBParameterGroupName : "",
-               });
-            });
-            response.json(instances);
-         } catch (e) {
-            throw new HttpError(http.BAD_REQUEST, "Credentials are invalid");
-         }
+         const instances = await getDbInstances(rds, {});
+         response.json(instances);
       }));
 
       this.router.post('/database', check.validBody(schema.databaseBody),
@@ -96,7 +84,7 @@ export default class ValidateRouter extends SelfAwareRouter {
 
       this.router.get('/bucket',
          check.validQuery(schema.bucketQuery),
-         this.handleHttpErrors(makeSureUserIsEnvironmentMember),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.query.envId)),
          this.handleHttpErrors(async (request, response) => {
             const envId = request.query.envId;
             const environment = await environmentDao.getEnvironmentFull(envId);
@@ -120,7 +108,7 @@ export default class ValidateRouter extends SelfAwareRouter {
 
       this.router.get('/bucket/metrics',
          check.validQuery(schema.bucketMetricsQuery),
-         this.handleHttpErrors(makeSureUserIsEnvironmentMember),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.query.envId)),
          this.handleHttpErrors(async (request, response) => {
             const envId = request.query.envId;
             const id = request.query.id;
@@ -148,7 +136,7 @@ export default class ValidateRouter extends SelfAwareRouter {
 
       this.router.get('/bucket/workload',
          check.validQuery(schema.bucketWorkloadQuery),
-         this.handleHttpErrors(makeSureUserIsEnvironmentMember),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.query.envId)),
          this.handleHttpErrors(async (request, response) => {
             const envId = request.query.envId;
             const id = request.query.id;
@@ -204,18 +192,6 @@ export default class ValidateRouter extends SelfAwareRouter {
          },
       ));
 
-   }
-
-   private getDBInstances(rds: RDS, params: any): Promise<any> {
-      return new Promise((resolve, reject) => {
-         rds.describeDBInstances(params, (err, data) => {
-            if (err) {
-               reject(err);
-            } else {
-               resolve(data);
-            }
-         });
-      });
    }
 
    private getDBConnection(connection: mysql.Connection): Promise<any> {

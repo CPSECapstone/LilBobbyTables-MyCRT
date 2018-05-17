@@ -123,6 +123,11 @@ export class MyCrtClient {
       return this.makeRequest<IEnvironment[]>(HttpMethod.GET, '/environments');
    }
 
+   /** Get all of the DB references for this environment */
+   public async getEnvironmentDbs(id: number): Promise<IDbReference[] | null> {
+      return this.makeRequest<IDbReference[]>(HttpMethod.GET, `/environments/${id}/dbs`);
+   }
+
    /** Edit an environment given the envId and the desired changes */
    public async editEnvironment(id: number, changes: IEnvironment): Promise<IEnvironment | null> {
       return this.makeRequest<IEnvironment>(HttpMethod.PUT, `/environments/${id}`, null, changes);
