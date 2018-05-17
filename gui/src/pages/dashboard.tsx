@@ -161,12 +161,17 @@ class DashboardApp extends React.Component<any, any> {
                <div className="row">
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
-                     <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
+                     <a role="button" className="btn btn-outline-danger" data-toggle="modal" href="#"
                            data-target="#deleteEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
                            data-backdrop="static" data-keyboard={false}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
                      </a>
-                     <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
+                     <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
+                           data-target="#" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
+                           data-backdrop="static" data-keyboard={false}>
+                            <i className="fa fa-users fa-lg" aria-hidden="true"></i>
+                     </a>
+                     <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
                            data-target="#shareEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
                            data-backdrop="static" data-keyboard={false}>
                             <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i>
@@ -202,7 +207,7 @@ class DashboardApp extends React.Component<any, any> {
                   <div className="col-xs-12 col-md-5 mb-r">
                      <div><br/>
                         <h2 style={{display: "inline"}}>Captures</h2>
-                        <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
+                        <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
                            data-backdrop="static" data-keyboard={false}
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
@@ -222,7 +227,7 @@ class DashboardApp extends React.Component<any, any> {
                   <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
                      <div><br/>
                         <h2 style={{display: "inline"}}>Replays</h2>
-                        <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
+                        <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
                            data-backdrop="static" data-keyboard={false}
                            data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
