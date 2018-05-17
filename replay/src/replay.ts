@@ -74,6 +74,9 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          if (this.capture) {
             logger.info(`Found a capture for the replay with environment ${this.capture.envId}`);
             this.envId = this.capture.envId;
+         } else {
+            logger.error("Could not retrieve capture from environment");
+            throw new Error("Could not retrieve capture from environment");
          }
 
          this.targetDb = this.config.mock ? mycrtDbConfig : { database: this.dbRef.name,
@@ -117,7 +120,8 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
             try {
                await this.processQuery(currentQuery);
             } catch (error) {
-               logger.info(`Error while processing query with index ${currentIndex}: ${error}`);
+               logger.info(`Error while processing query with index ${currentIndex}:\n ${error}`);
+               throw new Error(`Error while processing query: ${error}`);
             }
          }, delay);
          logger.info(`      scheduled!`);
@@ -178,7 +182,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
       await replayDao.updateReplayStatus(this.id, ChildProgramStatus.FAILED, reason);
    }
 
-   private async getWorkload(): Promise<IWorkload> {
+   private async getWorkload(): Promise<IWorkload | undefined> {
 
       logger.info(`Getting workload from storage`);
       this.workloadPath = schema.workload.getDoneKey({
@@ -187,17 +191,24 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
          envId: this.capture!.envId,
       });
 
-      const temp: IWorkload = await this.storage.readJson<IWorkload>(this.workloadPath);
+      try {
+         const temp: IWorkload = await this.storage.readJson<IWorkload>(this.workloadPath);
 
-      if (temp) {
-        logger.info(`Workload Retrieved`);
-        this.workloadStart = moment(new Date(temp.start));
-        this.workloadEnd = moment(new Date(temp.end));
+         if (temp) {
+            logger.info(`Workload Retrieved`);
+            this.workloadStart = moment(new Date(temp.start));
+            this.workloadEnd = moment(new Date(temp.end));
 
-        logger.info(`workloadStart: ${this.workloadStart.format()}`);
-        logger.info(`workloadEnd:   ${this.workloadEnd.format()}`);
+            logger.info(`workloadStart: ${this.workloadStart.format()}`);
+            logger.info(`workloadEnd:   ${this.workloadEnd.format()}`);
+         } else {
+            logger.info(`Retrieved null workload`);
+            throw new Error("Retrieved null workload");
+         }
+         return temp;
+      } catch (error) {
+         throw error;
       }
-      return temp;
    }
 
    private indexInInterval(currentIndex: number): boolean {
@@ -231,7 +242,7 @@ export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
 
          return delay;
       } else {
-         return 0;
+         throw new Error("Tried to get delay for invalid workload index");
       }
    }
 

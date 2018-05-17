@@ -57,7 +57,7 @@ export abstract class Subprocess {
             this.tryTwice(action, desc, false);
          } else {
             logger.error(`Failed to ${desc} the second time: ${error}`);
-            // TODO: handle?
+            throw new Error(`Failed to ${desc}: ${error}`);
          }
       }
    }
@@ -79,7 +79,11 @@ export abstract class Subprocess {
    }
 
    private runLoop(): void {
-      this.loop();
+      try {
+         this.loop();
+      } catch (error) {
+         this.selfDestruct(error);
+      }
    }
 
    private getUptime() {
