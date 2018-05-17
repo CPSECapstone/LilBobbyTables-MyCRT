@@ -14,6 +14,7 @@ import { getMetrics } from '../common/capture-replay-metrics';
 import { startReplay} from '../common/launching';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
+import { noReplaysOnTargetDb } from '../middleware/replay';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/replay-schema';
 import { settings } from '../settings';
@@ -123,7 +124,8 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
       }));
 
-      this.router.post('/', check.validBody(schema.replayBody), this.handleHttpErrors(async (request, response) => {
+      this.router.post('/', check.validBody(schema.replayBody), noReplaysOnTargetDb,
+            this.handleHttpErrors(async (request, response) => {
 
          const cap = await captureDao.getCapture(request.body.captureId);
          if (cap == null) {
@@ -184,12 +186,9 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
 
          replayTemplate = await replayDao.makeReplay(replayTemplate);
-
          if (replayTemplate === null) {
             throw new HttpError(http.INTERNAL_SERVER_ERROR, `Replay was not properly created`);
          }
-
-         response.json(replayTemplate);
 
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             schedule.scheduleJob(inputTime, () => { startReplay(replayTemplate!); });

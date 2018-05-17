@@ -37,6 +37,15 @@ export class ReplayDao extends Dao {
       return rawReplays.map(this.resultToIReplay);
    }
 
+   public async anyReplaysCurrentlyOnDb(name: string, host: string): Promise<boolean> {
+      const query = "SELECT COUNT(*) AS count FROM Replay AS r JOIN DBReference AS db ON r.dbId = db.id "
+         + " WHERE r.status in ('SCHEDULED', 'STARTED', 'STARTING', 'RUNNING', 'STOPPING') "
+         + " AND db.name = ? AND db.host = ?";
+      const countRow = (await this.query<any[]>(query, [name, host]))[0];
+      const count: number = parseInt(countRow.count);
+      return count > 0;
+   }
+
    public async getAbandonedReplays(): Promise<data.IReplay[] | null> {
       const status = data.ChildProgramStatus;
       try {

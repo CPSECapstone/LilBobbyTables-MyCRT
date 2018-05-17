@@ -71,22 +71,26 @@ export class ReplayModal extends React.Component<any, any>  {
       this.setState({name: event.target.value, errorMsg: ''});
     }
 
-    public async startReplay(replay: IReplayFull) {
-       const replayObj = await mycrt.startReplay(replay);
-        if (!replayObj) {
-            this.setState({errorMsg: "There was an error: Replay was not started"});
-        } else {
-            const cancelBtn = document.getElementById("cancelReplayBtn");
-            this.props.update();
-            if (cancelBtn) {
-                cancelBtn.click();
-            }
-        }
-    }
+   public async startReplay(replay: IReplayFull) {
+      const replayObj = await mycrt.startReplay(replay);
+      if (!replayObj) {
+         this.setState({ errorMsg: "There was an error: Replay was not started" });
+      } else if ((replayObj as any).ok === false) {
+         this.setState({
+            errorMsg: (replayObj as any).message,
+         });
+      } else {
+         const cancelBtn = document.getElementById("cancelReplayBtn");
+         this.props.update();
+         if (cancelBtn) {
+            cancelBtn.click();
+         }
+      }
+   }
 
     public async validateDB(event: any) {
       const duplicateName = await mycrt.validateReplayName(this.state.name, this.state.captureId);
-      if (duplicateName) {
+      if (duplicateName && duplicateName.length > 0) {
          this.setState({errorMsg: 'This replay name already exists within this capture. Please use a different one.'});
          return;
       }

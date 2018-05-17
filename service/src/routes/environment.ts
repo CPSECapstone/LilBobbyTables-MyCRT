@@ -64,13 +64,42 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, "Environment with same name already exists");
          }
 
-         let awsKeys: data.IAwsKeys = {
-            accessKey: request.body.accessKey,
-            secretKey: request.body.secretKey,
-            region: request.body.region,
-            userId: request.user!.id,
-            name: request.body.name || "mykeys", // TODO remove the || "mykeys"
-         };
+         let awsKeys: data.IAwsKeys;
+         if (request.body.keysId) {
+            const awsKeysOrNull = await environmentDao.getAwsKeys(request.body.keysId);
+            if (!awsKeysOrNull) {
+               throw new HttpError(http.NOT_FOUND, "Keys do not exist");
+            } else {
+               awsKeys = awsKeysOrNull;
+               if (awsKeys.userId !== request.user!.id) {
+                  throw new HttpError(http.FORBIDDEN, "Keys don't belong to user");
+               }
+            }
+         } else {
+            let newKeysName: string;
+            if (request.body.keysName) {
+               const keysWithSameName = await environmentDao.getAllAwsKeysByName(request.body.keysName, request.user!);
+               if (keysWithSameName !== null) {
+                  throw new HttpError(http.BAD_REQUEST, "Keys with same name already exists");
+               }
+               newKeysName = request.body.keysName;
+            } else {
+               newKeysName = "myKeys"; // autogenerate a name here
+            }
+            awsKeys = {
+               accessKey: request.body.accessKey,
+               secretKey: request.body.secretKey,
+               region: request.body.region,
+               userId: request.user!.id,
+               name: newKeysName,
+            };
+            const awsKeysRow = await environmentDao.makeAwsKeys(awsKeys);
+            if (awsKeysRow) {
+               awsKeys = awsKeysRow;
+            } else {
+               throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to store aws keys");
+            }
+         }
          let s3Reference: data.IS3Reference = {
             bucket: request.body.bucket,
             prefix: request.body.prefix,
@@ -84,14 +113,10 @@ export default class EnvironmentRouter extends SelfAwareRouter {
             parameterGroup: request.body.parameterGroup,
          };
 
-         const awsKeysRow = await environmentDao.makeAwsKeys(awsKeys);
          s3Reference = await environmentDao.makeS3Reference(s3Reference);
          const dbRef = await environmentDao.makeDbReference(dbReference);
          if (dbRef) {
             dbReference = dbRef;
-         }
-         if (awsKeysRow) {
-            awsKeys = awsKeysRow;
          }
 
          const environment: data.IEnvironment = {
