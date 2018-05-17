@@ -94,74 +94,80 @@ export default class ValidateRouter extends SelfAwareRouter {
       }));
 
       this.router.get('/bucket',
+         check.validQuery(schema.bucketQuery),
          this.handleHttpErrors(async (request, response) => {
-         const envId = request.query.envId;
-         const environment = await environmentDao.getEnvironmentFull(envId);
-         if (!environment) {
-            throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
-         }
-         const storage = new S3Backend(
-            new S3({region: environment.region,
-               accessKeyId: environment.accessKey,
-               secretAccessKey: environment.secretKey}),
-               environment.bucket, environment.prefix,
-         );
+            const envId = request.query.envId;
+            const environment = await environmentDao.getEnvironmentFull(envId);
+            if (!environment) {
+               throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
+            }
+            const storage = new S3Backend(
+               new S3({region: environment.region,
+                  accessKeyId: environment.accessKey,
+                  secretAccessKey: environment.secretKey}),
+                  environment.bucket, environment.prefix,
+            );
 
-         const bucketExists = await storage.bucketExists();
-         if (!bucketExists) {
-            throw new HttpError(http.BAD_REQUEST, `S3 Bucket ${environment.bucket} does not exist`);
-         }
-         response.json(environment.bucket);
-      }));
+            const bucketExists = await storage.bucketExists();
+            if (!bucketExists) {
+               throw new HttpError(http.BAD_REQUEST, `S3 Bucket ${environment.bucket} does not exist`);
+            }
+            response.json(environment.bucket);
+         },
+      ));
 
       this.router.get('/bucket/metrics',
+         check.validQuery(schema.bucketMetricsQuery),
          this.handleHttpErrors(async (request, response) => {
-         const envId = request.query.envId;
-         const id = request.query.id;
-         const type = request.query.type;
+            const envId = request.query.envId;
+            const id = request.query.id;
+            const type = request.query.type;
 
-         const environment = await environmentDao.getEnvironmentFull(envId);
-         if (!environment) {
-            throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
-         }
-         const storage = new S3Backend(
-            new S3({region: environment.region,
-               accessKeyId: environment.accessKey,
-               secretAccessKey: environment.secretKey}),
-               environment.bucket, environment.prefix,
-         );
+            const environment = await environmentDao.getEnvironmentFull(envId);
+            if (!environment) {
+               throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
+            }
+            const storage = new S3Backend(
+               new S3({region: environment.region,
+                  accessKeyId: environment.accessKey,
+                  secretAccessKey: environment.secretKey}),
+                  environment.bucket, environment.prefix,
+            );
 
-         const key = `environment${envId}/${type}${id}/metrics.json`;
-         const metricsExist = await storage.exists(key);
-         if (!metricsExist) {
-            throw new HttpError(http.BAD_REQUEST, `Associated metrics file does not exist`);
-         }
-         response.json(environment.bucket);
-      }));
+            const key = `environment${envId}/${type}${id}/metrics.json`;
+            const metricsExist = await storage.exists(key);
+            if (!metricsExist) {
+               throw new HttpError(http.BAD_REQUEST, `Associated metrics file does not exist`);
+            }
+            response.json(environment.bucket);
+         },
+      ));
 
       this.router.get('/bucket/workload',
+         check.validQuery(schema.bucketWorkloadQuery),
          this.handleHttpErrors(async (request, response) => {
-         const envId = request.query.envId;
-         const id = request.query.id;
+            const envId = request.query.envId;
+            const id = request.query.id;
 
-         const environment = await environmentDao.getEnvironmentFull(envId);
-         if (!environment) {
-            throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
-         }
-         const storage = new S3Backend(
-            new S3({region: environment.region,
-               accessKeyId: environment.accessKey,
-               secretAccessKey: environment.secretKey}),
-               environment.bucket, environment.prefix,
-         );
+            const environment = await environmentDao.getEnvironmentFull(envId);
+            if (!environment) {
+               throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
+            }
+            const storage = new S3Backend(
+               new S3({region: environment.region,
+                  accessKeyId: environment.accessKey,
+                  secretAccessKey: environment.secretKey}),
+                  environment.bucket, environment.prefix,
+            );
 
-         const key = `environment${envId}/capture${id}/workload.json`;
-         const workloadExists = await storage.exists(key);
-         if (!workloadExists) {
-            throw new HttpError(http.BAD_REQUEST, `Associated workload.json file does not exist`);
-         }
-         response.json(environment.bucket);
-      }));
+            const key = `environment${envId}/capture${id}/workload.json`;
+            const workloadExists = await storage.exists(key);
+            if (!workloadExists) {
+               throw new HttpError(http.BAD_REQUEST, `Associated workload.json file does not exist`);
+            }
+            response.json(environment.bucket);
+         },
+      ));
 
       this.router.post('/bucket', check.validBody(schema.credentialsBody),
          this.handleHttpErrors(async (request, response) => {
