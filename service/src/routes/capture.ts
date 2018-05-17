@@ -16,6 +16,7 @@ import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
+import { CaptureCreator } from './capture-creator';
 import SelfAwareRouter from './self-aware-router';
 
 export default class CaptureRouter extends SelfAwareRouter {
@@ -156,75 +157,9 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/',
          check.validBody(schema.captureBody),
          this.handleHttpErrors(async (request, response) => {
-
-            const initialStatus: string | undefined = request.body.status;
-            let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
-            let endTime: Date | undefined;
-
-            const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
-            if (capWithSameName !== null) {
-               throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
-            }
-
-            if (!inputTime) {
-               inputTime = new Date();
-            }
-
-            const duration = request.body.duration;
-
-            if (duration && duration < 60) {
-               throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
-            }
-
-            if (duration) {
-               endTime = this.createEndDate(inputTime, duration);
-            }
-
-            const env = await environmentDao.getEnvironment(request.body.envId);
-            if (!env) {
-               throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
-            }
-
-            if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
-               throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
-            }
-
-            // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
-            let captureTemplate: ICapture | null = {
-               type: ChildProgramType.CAPTURE,
-               ownerId: request.user!.id,
-               envId: env.id,
-               status: initialStatus === ChildProgramStatus.SCHEDULED ?
-                  ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-               name: request.body.name,
-               scheduledEnd: endTime,
-            };
-
-            // if status is scheduled, start at a scheduled time
-            if (initialStatus === ChildProgramStatus.SCHEDULED) {
-               captureTemplate.scheduledStart = inputTime;
-            }
-
-            // assign capture, insert into db
-            captureTemplate = await captureDao.makeCapture(captureTemplate);
-
-            if (captureTemplate === null) {
-               throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
-            }
-
-            response.json(captureTemplate);
-
-            if (initialStatus === ChildProgramStatus.SCHEDULED) {
-               schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
-            } else {
-               startCapture(captureTemplate);
-            }
-
-            logger.info(`Successfully created capture!`);
-
-            if (duration) {
-               schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
-            }
+            const captureCreator = new CaptureCreator(request, response, this.ipcNode);
+            captureCreator.scheduledChecks();
+            captureCreator.createCaptureTemplate(request, response);
          },
       ));
 
