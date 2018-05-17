@@ -3,11 +3,13 @@ import * as mysql from 'mysql';
 
 import http = require('http-status-codes');
 
-import { Check, Logging, ServerIpcNode } from '@lbt-mycrt/common';
+import { Check, ChildProgramType, IEnvironment, IEnvironmentFull, Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
+import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
+import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
 import { getDbInstances } from '../common/rdsInstances';
@@ -15,6 +17,7 @@ import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/validate-schema';
+import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
 
 const logger = Logging.defaultLogger(__dirname);
@@ -91,12 +94,8 @@ export default class ValidateRouter extends SelfAwareRouter {
             if (!environment) {
                throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
             }
-            const storage = new S3Backend(
-               new S3({region: environment.region,
-                  accessKeyId: environment.accessKey,
-                  secretAccessKey: environment.secretKey}),
-                  environment.bucket, environment.prefix,
-            );
+
+            const storage = this.getStorage(environment);
 
             const bucketExists = await storage.bucketExists();
             if (!bucketExists) {
@@ -118,12 +117,8 @@ export default class ValidateRouter extends SelfAwareRouter {
             if (!environment) {
                throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
             }
-            const storage = new S3Backend(
-               new S3({region: environment.region,
-                  accessKeyId: environment.accessKey,
-                  secretAccessKey: environment.secretKey}),
-                  environment.bucket, environment.prefix,
-            );
+            const progType: ChildProgramType = type === 'capture' ? ChildProgramType.CAPTURE : ChildProgramType.REPLAY;
+            const storage = this.getStorage(environment, progType);
 
             const key = `environment${envId}/${type}${id}/metrics.json`;
             const metricsExist = await storage.exists(key);
@@ -145,12 +140,7 @@ export default class ValidateRouter extends SelfAwareRouter {
             if (!environment) {
                throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
             }
-            const storage = new S3Backend(
-               new S3({region: environment.region,
-                  accessKeyId: environment.accessKey,
-                  secretAccessKey: environment.secretKey}),
-                  environment.bucket, environment.prefix,
-            );
+            const storage = this.getStorage(environment, ChildProgramType.CAPTURE);
 
             const key = `environment${envId}/capture${id}/workload.json`;
             const workloadExists = await storage.exists(key);
@@ -216,5 +206,29 @@ export default class ValidateRouter extends SelfAwareRouter {
             }
          });
       });
+   }
+
+   private getStorage(env: IEnvironmentFull, type?: ChildProgramType): StorageBackend {
+      let backend: StorageBackend;
+      let mocking: boolean;
+      if (type) {
+         mocking = (type === ChildProgramType.CAPTURE && settings.captures.mock)
+            || (type === ChildProgramType.REPLAY && settings.replays.mock);
+      } else {
+         mocking = settings.captures.mock && settings.replays.mock;
+      }
+
+      if (mocking) {
+         backend = new LocalBackend(getSandboxPath(), env.prefix);
+      } else {
+         const awsConfig: S3.ClientConfiguration = {
+            region: env.region,
+            accessKeyId: env.accessKey,
+            secretAccessKey: env.secretKey,
+         };
+         backend = new S3Backend(new S3(awsConfig), env.bucket, env.prefix);
+      }
+
+      return backend;
    }
 }

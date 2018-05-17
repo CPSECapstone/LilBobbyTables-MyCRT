@@ -117,7 +117,7 @@ export default class ReplayRouter extends SelfAwareRouter {
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
          if (isUserMember.isMember) {
-            const result = await getMetrics(capture, environment!, type);
+            const result = await getMetrics(replay, environment!, type);
             response.json(result);
          } else {
             throw new HttpError(http.UNAUTHORIZED);
