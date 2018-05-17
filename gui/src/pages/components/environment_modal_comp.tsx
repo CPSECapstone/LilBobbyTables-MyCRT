@@ -72,11 +72,11 @@ export class EnvModal extends React.Component<any, any>  {
    }
 
     public async validateName(event: any) {
-      const result = await mycrt.validateEnvName(this.state.envName);
-      if (result) {
-         this.setState({envNameDuplicate: true});
-      } else {
+      const nameExists = await mycrt.validateUniqueEnvironmentName(this.state.envName);
+      if (nameExists === true) {
          this.changeProgress(3);
+      } else {
+         this.setState({envNameDuplicate: true});
       }
     }
 

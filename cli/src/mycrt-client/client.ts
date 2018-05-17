@@ -1,5 +1,6 @@
 import * as http from 'http-status-codes';
 
+import { Check } from '@lbt-mycrt/common';
 import { IAwsKeys, ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull,
    IEnvironmentUser, IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
    } from '@lbt-mycrt/common/dist/data';
@@ -132,11 +133,6 @@ export class MyCrtClient {
       return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`, {deleteLogs: removeLogs});
    }
 
-   /** Validate environment name when creating an environment */
-   public async validateEnvName(name: string): Promise<any | null> {
-      return this.makeRequest<any>(HttpMethod.GET, '/environments/', {name});
-   }
-
    /** Validate capture name when creating a capture */
    public async validateCaptureName(name: string, envId: number): Promise<any | null> {
       return this.makeRequest<any>(HttpMethod.GET, '/captures/', {envId, name});
@@ -160,6 +156,16 @@ export class MyCrtClient {
    /** Valid database credentials when creating an environment */
    public async validateDatabase(dbRef: IDbReference): Promise<any | null> {
      return this.makeRequest<any>(HttpMethod.POST, '/validate/database', null, dbRef);
+   }
+
+   /** Validate environment name uniqueness */
+   public async validateUniqueEnvironmentName(name: string): Promise<boolean | null> {
+      const check: Check | null = await this.makeRequest<Check>(HttpMethod.POST,
+         '/validate/environmentName', null, {name});
+      if (check === null) {
+         return check;
+      }
+      return check.value;
    }
 
    /** Get database credentials for a replay */

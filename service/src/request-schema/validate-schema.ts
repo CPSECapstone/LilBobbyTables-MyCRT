@@ -19,3 +19,7 @@ export const databaseBody: joi.ObjectSchema = joi.object().keys({
    user: value.user.required(),
    pass: value.password.required(),
 });
+
+export const environmentNameBody: joi.ObjectSchema = joi.object().keys({
+   name: value.nameString.required(),
+});
