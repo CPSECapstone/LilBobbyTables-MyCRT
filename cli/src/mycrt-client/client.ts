@@ -154,7 +154,7 @@ export class MyCrtClient {
 
    /** Validate the associated S3 Storage for an environment */
    public async validateStorage(envId: number): Promise<any | null> {
-      return this.makeRequest<any>(HttpMethod.GET, `/validate/bucket/`, {envId});
+      return this.makeRequest<any>(HttpMethod.GET, `/validate/bucket`, {envId});
    }
 
    /** Validate that the associated metrics file can be found in S3 */

@@ -93,7 +93,7 @@ export default class ValidateRouter extends SelfAwareRouter {
          }
       }));
 
-      this.router.get('/bucket/',
+      this.router.get('/bucket',
          this.handleHttpErrors(async (request, response) => {
          const envId = request.query.envId;
          const environment = await environmentDao.getEnvironmentFull(envId);
@@ -114,7 +114,7 @@ export default class ValidateRouter extends SelfAwareRouter {
          response.json(environment.bucket);
       }));
 
-      this.router.get('/bucket/metrics/',
+      this.router.get('/bucket/metrics',
          this.handleHttpErrors(async (request, response) => {
          const envId = request.query.envId;
          const id = request.query.id;
@@ -139,7 +139,7 @@ export default class ValidateRouter extends SelfAwareRouter {
          response.json(environment.bucket);
       }));
 
-      this.router.get('/bucket/workload/',
+      this.router.get('/bucket/workload',
          this.handleHttpErrors(async (request, response) => {
          const envId = request.query.envId;
          const id = request.query.id;
