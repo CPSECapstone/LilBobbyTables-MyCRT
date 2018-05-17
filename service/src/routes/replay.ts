@@ -186,9 +186,12 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
 
          replayTemplate = await replayDao.makeReplay(replayTemplate);
+
          if (replayTemplate === null) {
             throw new HttpError(http.INTERNAL_SERVER_ERROR, `Replay was not properly created`);
          }
+
+         response.json(replayTemplate);
 
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
             schedule.scheduleJob(inputTime, () => { startReplay(replayTemplate!); });
