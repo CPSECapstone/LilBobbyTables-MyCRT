@@ -17,9 +17,9 @@ export const captureBody: joi.ObjectSchema = joi.object().keys({
    duration: captureValue.duration.optional(),
 });
 
-export const envQuery: joi.ObjectSchema = joi.object().keys({
-    envId: value.envId.optional(),
-    name: value.nameString.optional(),
+export const capQuery: joi.ObjectSchema = joi.object().keys({
+   envId: value.envId.optional(),
+   name: value.nameString.optional(),
 });
 
 export const putCaptureBody: joi.ObjectSchema = joi.object().keys({

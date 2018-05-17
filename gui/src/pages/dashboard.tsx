@@ -8,16 +8,20 @@ import './common';
 import '../../static/css/index.css';
 
 import { ICapture } from '../../../common/dist/main';
+import { showAlert } from '../actions';
 import { BrowserLogger as logger } from '../logging';
+import { store } from '../store';
 import { BasePage } from './components/base_page_comp';
 import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
 import { DeleteModal } from './components/delete_modal_comp';
 import { ErrorBoundary } from './components/error_boundary_comp';
+import { ListView } from './components/list_view_comp';
 import { Pagination } from './components/pagination_comp';
 import { ReplayModal } from './components/replay_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 import { Search } from './components/search_comp';
+import { ShareModal } from './components/share_modal_comp';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 class DashboardApp extends React.Component<any, any> {
@@ -26,7 +30,6 @@ class DashboardApp extends React.Component<any, any> {
         super(props);
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
-        this.filterSearch = this.filterSearch.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
         let id: any = null;
@@ -88,15 +91,22 @@ class DashboardApp extends React.Component<any, any> {
          });
       }
       this.setCaptures();
+      const bucketExists = await mycrt.validateStorage(this.state.envId);
+      if (!bucketExists) {
+         logger.error("Bucket no longer exists.");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Missing Storage Bucket",
+            message: "The bucket associated with this environment does not exist. "
+                     + "Please create a bucket in S3 named " + this.state.env.bucket
+                     + " before creating a capture or running a replay.",
+         }));
+      }
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
       const result = await mycrt.deleteEnvironment(id, deleteLogs);
       window.location.assign('./environments');
-    }
-
-    public filterSearch(text: string) {
-       return (val: any) => val.props.title.toLowerCase().search(text.toLowerCase()) >= 0;
     }
 
     public render() {
@@ -152,10 +162,15 @@ class DashboardApp extends React.Component<any, any> {
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
                      <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
-                           data-target="#deleteEnvModal" style={{marginBottom: "20px", marginLeft: "12px"}}
+                           data-target="#deleteEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
                            data-backdrop="static" data-keyboard={false}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
-                        </a>
+                     </a>
+                     <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
+                           data-target="#shareEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
+                           data-backdrop="static" data-keyboard={false}>
+                            <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i>
+                     </a><br/><br/>
                      <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>
                         <div className="row">
@@ -166,20 +181,20 @@ class DashboardApp extends React.Component<any, any> {
                               <label>
                                  <b>&nbsp;&nbsp;&nbsp;Parameter Group: </b>
                                  {this.state.env.parameterGroup}</label><br/>
-                              <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}
-                              </label>
+                              <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}</label>
                               <br/><br/>
                            </div>
                            <div className="col-xs-6" style={{padding: "20px 40px 0px"}}>
                               <h5>S3 File Storage:</h5>
-                              <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label>
+                              <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label><br/>
                               <label><b>&nbsp;&nbsp;&nbsp;Prefix: </b>{this.state.env.prefix +
                                  "/environment" + this.state.env.id}</label>
                            </div>
                         </div>
                      </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.envId}
-                               name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
+                           name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
+                        <ShareModal id="shareEnvModal" name={this.state.env.envName} envId={this.state.envId}/>
                   </div>
                </div>
                <br></br>
@@ -192,37 +207,17 @@ class DashboardApp extends React.Component<any, any> {
                            data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
                             <i className="fa fa-plus" aria-hidden="true"></i>
                         </a>
-                        <CaptureModal id="captureModal" envId={this.state.envId} update={this.componentWillMount}/>
+                        <CaptureModal id="captureModal" envId={this.state.envId} bucket={this.state.env.bucket}
+                        update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>
-                     <Search length={liveCaptures.length} type="liveCSearch" update={this.updateSearch}/>
-                     <br/>
-                     <div className="myCRT-overflow-col">
-                     {liveCaptures.length ? <Pagination
-                        list={liveCaptures.filter(this.filterSearch(this.state.liveCSearch))}
-                        limit={4}/> :
-                        <p className="myCRT-empty-col">No currently active captures</p>}
-                    </div>
-                     <br></br>
-                     <h4 style={{padding: "10px", display: "inline-block"}}>Scheduled</h4>
-                     <Search length={scheduledCaptures.length} type="scheduleCSearch" update={this.updateSearch}/>
-                     <div className="myCRT-overflow-col">
-                     {scheduledCaptures.length ?
-                        <Pagination list={scheduledCaptures.filter(this.filterSearch(this.state.scheduleCSearch))}
-                           limit={4}/> : <p className="myCRT-empty-col">
-                            No currently scheduled captures</p>}
-                    </div>
-                     <br></br>
-                     <h4 style={{padding: "10px", display: "inline-block"}}>Past</h4>
-                     <Search length={pastCaptures.length} type="pastCSearch" update={this.updateSearch}/>
-                     <div className="myCRT-overflow-col">
-                        {pastCaptures.length ? <Pagination
-                           list={pastCaptures.filter(this.filterSearch(this.state.pastCSearch))}
-                           limit={4}/> :
-                           <p className="myCRT-empty-col">No past captures exist</p>}
-                    </div>
-                     <br></br>
+                     <ListView name="Active" list={liveCaptures} update={this.updateSearch}
+                        display="No currently active captures." type="liveCSearch" stateVar={this.state.liveCSearch}/>
+                     <ListView name="Scheduled" list={scheduledCaptures} update={this.updateSearch}
+                        display="No currently scheduled captures." type="scheduleCSearch"
+                        stateVar={this.state.scheduleCSearch}/>
+                     <ListView name="Past" list={pastCaptures} update={this.updateSearch}
+                        display="No past captures exist." type="pastCSearch" stateVar={this.state.pastCSearch}/>
                   </div>
                   <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
                      <div><br/>
@@ -236,33 +231,13 @@ class DashboardApp extends React.Component<any, any> {
                             env = {this.state.env} update={this.componentWillMount}/>
                      </div>
                      <br></br>
-                     <h4 style={{padding: "10px", display: "inline-block"}}>Active</h4>
-                     <Search length={liveReplays.length} type="liveRSearch" update={this.updateSearch}/>
-                     <div className="myCRT-overflow-col">
-                        {liveReplays.length ? <Pagination
-                           list={liveReplays.filter(this.filterSearch(this.state.liveRSearch))}
-                           limit={4}/> :
-                           <p className="myCRT-empty-col">No currently active replays</p>}
-                    </div>
-                     <br></br>
-                     <h4 style={{padding: "10px", display: "inline-block"}}>Scheduled</h4>
-                     <Search length={scheduledReplays.length} type="scheduleRSearch" update={this.updateSearch}/>
-                     <div className="myCRT-overflow-col">
-                        {scheduledReplays.length ?
-                           <Pagination list={scheduledReplays.filter(this.filterSearch(this.state.scheduleRSearch))}
-                              limit={4}/> : <p className="myCRT-empty-col">
-                              No currently scheduled replays</p>}
-                    </div>
-                     <br></br>
-                     <h4 style={{padding: "10px", display: "inline-block"}}>Past</h4>
-                     <Search length={pastReplays.length} type="pastRSearch" update={this.updateSearch}/>
-                     <div className="myCRT-overflow-col">
-                     {pastReplays.length ? <Pagination
-                        list={pastReplays.filter(this.filterSearch(this.state.pastRSearch))}
-                        limit={4}/> :
-                        <p className="myCRT-empty-col">No past replays exist</p>}
-                    </div>
-                     <br></br>
+                     <ListView name="Active" list={liveReplays} update={this.updateSearch}
+                        display="No currently active replays." type="liveRSearch" stateVar={this.state.liveRSearch}/>
+                     <ListView name="Scheduled" list={scheduledReplays} update={this.updateSearch}
+                        display="No currently scheduled replays." type="scheduleRSearch"
+                        stateVar={this.state.scheduleRSearch}/>
+                     <ListView name="Past" list={pastReplays} update={this.updateSearch}
+                        display="No past replays exist." type="pastRSearch" stateVar={this.state.pastRSearch}/>
                   </div>
                </div>
             </div>
