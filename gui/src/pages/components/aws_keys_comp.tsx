@@ -95,7 +95,7 @@ export class AWSKeys extends React.Component<any, any>  {
                            onInput={this.secretKeyChange}/> <br/>
                         {<select className="form-control" id="regionDrop"
                            onChange={this.regionChange.bind(this)}>
-                           <option value='default'>Enter Region...</option>
+                           <option value='default'>Select Region...</option>
                            {this.props.regions}
                         </select>}
                      </div> :

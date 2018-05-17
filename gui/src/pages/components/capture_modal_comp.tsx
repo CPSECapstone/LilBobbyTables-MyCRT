@@ -64,6 +64,14 @@ export class CaptureModal extends React.Component<any, any>  {
             Please use a different one.`});
          return;
       }
+
+      const bucketExists = await mycrt.validateStorage(this.props.envId);
+      if (!bucketExists) {
+         this.setState({errorMsg: `The bucket associated with this environment does not exist.
+            Please create a bucket in S3 named ${this.props.bucket}.`});
+         return;
+      }
+
       const capture = {name: this.state.captureName, envId: this.props.envId} as any;
       if (this.state.captureType === "specific") {
          capture.status = ChildProgramStatus.SCHEDULED;

@@ -33,6 +33,25 @@ export class S3Backend extends StorageBackend {
       });
    }
 
+   public bucketExists(): Promise<boolean> {
+
+      const params: S3.HeadBucketRequest = {
+         Bucket: this.bucket,
+      };
+
+      return new Promise<boolean>((resolve, reject) => {
+         this.s3.headBucket(params, (err: AWSError, data: S3.HeadObjectOutput) => {
+            if (err && err.code === 'NotFound') {
+               resolve(false);
+            } else if (!err) {
+               resolve(true);
+            } else {
+               reject(err);
+            }
+         });
+      });
+   }
+
    public async allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
       dirPrefix = this.attachPrefix(dirPrefix);
       const keys = await this.listObjects(dirPrefix);

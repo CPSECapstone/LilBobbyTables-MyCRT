@@ -40,9 +40,7 @@ export class ReplayModal extends React.Component<any, any>  {
    }
 
    public async componentWillMount() {
-      const iamRef = {accessKey: this.state.env.accessKey, secretKey: this.state.env.secretKey,
-         region: this.state.env.region};
-      const dbRefs = await mycrt.validateCredentials(iamRef);
+      const dbRefs = await mycrt.getEnvironmentDbs(this.state.env.id);
       if (dbRefs) {
          const filterRefs = dbRefs.filter((db) => {
          return db.name !== this.state.env.dbName;
@@ -153,7 +151,28 @@ export class ReplayModal extends React.Component<any, any>  {
       }
    }
 
-   public async validateDB(event: any) {
+    public async validateDB(event: any) {
+      const duplicateName = await mycrt.validateReplayName(this.state.name, this.state.captureId);
+      if (duplicateName) {
+         this.setState({errorMsg: 'This replay name already exists within this capture. Please use a different one.'});
+         return;
+      }
+
+      const bucketExists = await mycrt.validateStorage(this.state.env.id);
+      if (!bucketExists) {
+         this.setState({errorMsg: `The bucket associated with this environment does not exist.
+            Please create a bucket in S3 named ${this.state.env.bucket}.`});
+         return;
+      }
+
+      const workloadFileExists = await mycrt.validateWorkloadFile(this.state.env.id, this.state.captureId);
+      if (!workloadFileExists) {
+         const capture = this.props.captures[this.state.captureId];
+         this.setState({errorMsg: `Cannot run a replay on capture ${capture.name} because the `
+                                 + `workload.json file associated with this capture does not exist in S3.`});
+         return;
+      }
+
       const replay = {name: this.state.name, captureId: this.state.captureId, type: this.state.type,
          host: this.state.host, parameterGroup: this.state.parameterGroup, user: this.state.user,
          pass: this.state.pass, instance: this.state.instance, dbName: this.state.dbName} as IReplayFull;
