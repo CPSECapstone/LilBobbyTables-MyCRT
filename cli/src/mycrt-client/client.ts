@@ -227,11 +227,12 @@ export class MyCrtClient {
     * @param environmentId The id of the environment to invite the user to
     * @param userEmail The email address of the user to invite
     */
-   public async environmentInvite(environmentId: number, userEmail: string):
+   public async environmentInvite(environmentId: number, userEmail: string, isAdmin: boolean):
          Promise<IEnvironmentUser | null> {
       return this.makeRequest<IEnvironmentUser>(HttpMethod.POST, '/environments/invites', null, {
          environmentId,
          userEmail,
+         isAdmin,
       });
    }
 

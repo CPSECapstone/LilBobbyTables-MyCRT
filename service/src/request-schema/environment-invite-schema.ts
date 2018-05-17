@@ -5,6 +5,7 @@ import { value } from './common-schema';
 export const inviteBody: joi.ObjectSchema = joi.object().keys({
    environmentId: value.id.required(),
    userEmail: value.email.required(),
+   isAdmin: value.isAdmin.required(),
 });
 
 export const acceptBody: joi.ObjectSchema = joi.object().keys({

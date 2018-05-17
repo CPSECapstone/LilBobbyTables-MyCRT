@@ -41,7 +41,7 @@ export class EnvironmentInviteDao extends Dao {
       const invite: Invite = {
          environmentId: environment.id,
          userId: user.id,
-         isAdmin: isAdminUser, // for now, might use later
+         isAdmin: isAdminUser,
          inviteCode,
          accepted: false, // set to true by the user
          createdAt: new Date().getTime(),
