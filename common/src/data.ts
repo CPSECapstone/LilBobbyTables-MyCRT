@@ -43,6 +43,7 @@ export interface IChildProgram {
    name?: string;
    start?: Date;
    end?: Date;
+   reason?: string;
    scheduledStart?: Date;
    scheduledEnd?: Date;
    status?: ChildProgramStatus;

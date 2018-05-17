@@ -8,6 +8,7 @@ export import Logging = require('./logging');
 
 /* Common Data Structures */
 export * from './data';
+export * from './otherData';
 
 /* IPC Nodes */
 export * from './ipc/ipc-node';

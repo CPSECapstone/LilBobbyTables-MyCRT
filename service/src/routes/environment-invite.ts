@@ -90,7 +90,10 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
             }
 
             logger.info("Done");
-            response.status(http.OK).end();
+
+            logger.info("Getting environment to return");
+            const environment = await environmentDao.getEnvironmentFull(invite.environmentId!);
+            response.json(environment);
 
          },
       ));

@@ -1,7 +1,8 @@
 import * as http from 'http-status-codes';
 
+import { Check } from '@lbt-mycrt/common';
 import { IAwsKeys, ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull,
-   IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
+   IEnvironmentUser, IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
    } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
@@ -132,11 +133,6 @@ export class MyCrtClient {
       return this.makeRequest<any>(HttpMethod.DELETE, `/environments/${id}`, {deleteLogs: removeLogs});
    }
 
-   /** Validate environment name when creating an environment */
-   public async validateEnvName(name: string): Promise<any | null> {
-      return this.makeRequest<any>(HttpMethod.GET, '/environments/', {name});
-   }
-
    /** Validate capture name when creating a capture */
    public async validateCaptureName(name: string, envId: number): Promise<any | null> {
       return this.makeRequest<any>(HttpMethod.GET, '/captures/', {envId, name});
@@ -148,12 +144,12 @@ export class MyCrtClient {
    }
 
    /** Validate credentials when creating an environment */
-   public async validateCredentials(awsKeys: IAwsKeys): Promise< IDbReference[]| null> {
+   public async validateCredentials(awsKeys: IAwsKeys): Promise<IDbReference[] | null> {
       return this.makeRequest<IDbReference[]>(HttpMethod.POST, `/validate/credentials`, null, awsKeys);
    }
 
    /** Validate buckets when creating an environment */
-   public async validateBuckets(awsKeys: IAwsKeys): Promise< string[]| null> {
+   public async validateBuckets(awsKeys: IAwsKeys): Promise< string[] | null> {
       return this.makeRequest<string[]>(HttpMethod.POST, `/validate/bucket`, null, awsKeys);
    }
 
@@ -162,9 +158,27 @@ export class MyCrtClient {
      return this.makeRequest<any>(HttpMethod.POST, '/validate/database', null, dbRef);
    }
 
+   /** Validate environment name uniqueness */
+   public async validateUniqueEnvironmentName(name: string): Promise<boolean | null> {
+      const check: Check | null = await this.makeRequest<Check>(HttpMethod.POST,
+         '/validate/environmentName', null, {name});
+      if (check === null) {
+         return check;
+      }
+      return check.value;
+   }
+
    /** Get database credentials for a replay */
    public async getReplayDB(id: number): Promise<IDbReference | null> {
       return this.makeRequest<IDbReference>(HttpMethod.GET, `/dbReferences/${id}`);
+   }
+
+   public async getAWSKeys(): Promise<any[] | null> {
+      return this.makeRequest<any[]>(HttpMethod.GET, '/awsKeys', null);
+   }
+
+   public validateAWSKeyName(keysName: string): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.POST, '/validate/credentials/name', null, {keysName});
    }
 
    /** Signup to MyCRT */
@@ -185,6 +199,30 @@ export class MyCrtClient {
    /** Logout */
    public async logout(): Promise<void | null> {
       return this.makeRequest<any>(HttpMethod.PUT, '/users/logout');
+   }
+
+   /**
+    * Create an invitation to an environment. The response will have an inviteCode on the body.
+    * The given user must then accept the invitation with that invite code.
+    * @param environmentId The id of the environment to invite the user to
+    * @param userEmail The email address of the user to invite
+    */
+   public async environmentInvite(environmentId: number, userEmail: string):
+         Promise<IEnvironmentUser | null> {
+      return this.makeRequest<IEnvironmentUser>(HttpMethod.POST, '/environments/invites', null, {
+         environmentId,
+         userEmail,
+      });
+   }
+
+   /**
+    * Accept an invitation to an environment. Invitation codes expire after 24 hours.
+    * @param inviteCode The invitation code (previously created).
+    */
+   public async acceptEnvironmentInvite(inviteCode: string): Promise<IEnvironmentFull | null> {
+      return this.makeRequest<any>(HttpMethod.PUT, '/environments/invites/accept', null, {
+         inviteCode,
+      });
    }
 
    private async makeRequest<T>(method: HttpMethod, url: string, params?: any, body?: any): Promise<T | null> {
@@ -216,14 +254,15 @@ export class MyCrtClient {
             if (json) {
                return json as T;
             }
-         } else {
-            const json = await response.json();
-            const serviceError: ServiceError = {
-               ok: false,
-               message: json.message || "There was an error",
-            };
-            return serviceError as any;
          }
+         // } else {
+         //    const json = await response.json();
+         //    const serviceError: ServiceError = {
+         //       ok: false,
+         //       message: json.message || "There was an error",
+         //    };
+         //    return serviceError as any;
+         // }
       }
 
       return null;

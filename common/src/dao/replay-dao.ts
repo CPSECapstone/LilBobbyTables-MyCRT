@@ -118,6 +118,7 @@ export class ReplayDao extends Dao {
          end: replayData.end,
          status: replayData.status,
          type: data.ChildProgramType.REPLAY,
+         reason: replayData.reason,
       };
    }
 }

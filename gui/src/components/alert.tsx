@@ -21,14 +21,18 @@ class AlertComponent extends React.Component<AlertProps> {
    }
 
    public render() {
+      let type = "danger";
+      if (this.props.success) {
+         type = "success";
+      }
       return (
          <div style={{
             position: 'absolute',
             top: '7em', right: '2em',
             width: '20em', zIndex: 99999,
          }} hidden={!this.props.show}>
-            <div className="card border-danger">
-               <div className="card-header text-white bg-danger">
+            <div className={`card border-${type}`}>
+               <div className={`card-header text-white bg-${type}`}>
                   {this.props.header || "Alert"}
                   <i className="fa fa-close" style={{
                      position: 'absolute', right: '1em', cursor: 'pointer',
