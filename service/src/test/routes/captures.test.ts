@@ -28,7 +28,7 @@ export const captureTests = (mycrt: MyCrtServiceTestClient) => function() {
 
    it("should reject the post of a capture with bad environment", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
-      const response = await mycrt.post(http.BAD_REQUEST, '/api/captures/', captureBadEnv);
+      const response = await mycrt.post(http.NOT_FOUND, '/api/captures/', captureBadEnv);
    });
 
    it("should get all captures", async function() {
@@ -65,7 +65,7 @@ export const captureTests = (mycrt: MyCrtServiceTestClient) => function() {
    it("should reject the edit of a capture name if the new name is already in use", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', scheduledCaptureBody);
-      const response = await mycrt.put(http.CONFLICT, '/api/captures/1', scheduledCaptureBody);
+      const response = await mycrt.put(http.BAD_REQUEST, '/api/captures/1', scheduledCaptureBody);
    });
 
    it("should successfully delete an existing capture", async function() {
