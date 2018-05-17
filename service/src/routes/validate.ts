@@ -8,6 +8,7 @@ import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
+import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
 import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
@@ -95,6 +96,7 @@ export default class ValidateRouter extends SelfAwareRouter {
 
       this.router.get('/bucket',
          check.validQuery(schema.bucketQuery),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember),
          this.handleHttpErrors(async (request, response) => {
             const envId = request.query.envId;
             const environment = await environmentDao.getEnvironmentFull(envId);
@@ -118,6 +120,7 @@ export default class ValidateRouter extends SelfAwareRouter {
 
       this.router.get('/bucket/metrics',
          check.validQuery(schema.bucketMetricsQuery),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember),
          this.handleHttpErrors(async (request, response) => {
             const envId = request.query.envId;
             const id = request.query.id;
@@ -145,6 +148,7 @@ export default class ValidateRouter extends SelfAwareRouter {
 
       this.router.get('/bucket/workload',
          check.validQuery(schema.bucketWorkloadQuery),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember),
          this.handleHttpErrors(async (request, response) => {
             const envId = request.query.envId;
             const id = request.query.id;
