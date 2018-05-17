@@ -4,6 +4,7 @@ import { IEnvironment, IEnvironmentUser as Invite, IUser } from '../data';
 import { defaultLogger } from '../logging';
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
+import { EnvironmentDao } from './environment-dao';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -35,12 +36,12 @@ export class EnvironmentInviteDao extends Dao {
       return this.rowToInvite(rows[0]);
    }
 
-   public async inviteUser(environment: IEnvironment, user: IUser): Promise<Invite | null> {
+   public async inviteUser(environment: IEnvironment, user: IUser, isAdminUser: boolean): Promise<Invite | null> {
       const inviteCode = crypto.randomBytes(4).toString('hex');
       const invite: Invite = {
          environmentId: environment.id,
          userId: user.id,
-         isAdmin: false, // for now, might use later
+         isAdmin: isAdminUser, // for now, might use later
          inviteCode,
          accepted: false, // set to true by the user
          createdAt: new Date().getTime(),
@@ -69,7 +70,6 @@ export class EnvironmentInviteDao extends Dao {
          logger.info('User owns the environment');
          isMember = true;
          isAdmin = true;
-
       } else {
          // otherwise, they were added through invite
          const query = 'SELECT userId, isAdmin FROM EnvironmentUser WHERE userId = ? '
@@ -94,17 +94,12 @@ export class EnvironmentInviteDao extends Dao {
    }
 
    public async getAllEnvironmentsWithMembership(user: IUser): Promise<IEnvironment[]> {
-
-      // get owned environments
-      const owned = await this.query<any[]>('SELECT * FROM Environment WHERE ownerId = ?',
-         [user.id]);
-
       // get invited environments
       const invited = await this.query<any[]>(
          'SELECT e.* FROM Environment as e JOIN EnvironmentUser as eu ON e.id = eu.environmentId '
          + 'WHERE eu.accepted = 1 AND eu.userId = ?', [user.id]);
 
-      return owned.concat(invited).map(this.rowtoIEnvironment);
+      return invited.map(this.rowtoIEnvironment);
    }
 
    private rowtoIEnvironment(row: any): IEnvironment {
@@ -118,5 +113,4 @@ export class EnvironmentInviteDao extends Dao {
          accepted: !!row.accepted,
       };
    }
-
 }

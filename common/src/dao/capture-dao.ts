@@ -8,8 +8,10 @@ const logger = Logging.defaultLogger(__dirname);
 export class CaptureDao extends Dao {
 
    // TODO: should we paginate this?
-   public async getAllCaptures(): Promise<data.ICapture[]> {
-      const rawCaptures = await this.query<any[]>('SELECT * FROM Capture', []);
+   public async getAllCaptures(user?: data.IUser): Promise<data.ICapture[]> {
+      const rawCaptures = user ?
+         await this.query<any[]>('SELECT * FROM Capture WHERE ownerId = ?', [user.id]) :
+         await this.query<any[]>('SELECT * FROM Capture', []);
       return rawCaptures.map(this.rowToICapture);
    }
 
