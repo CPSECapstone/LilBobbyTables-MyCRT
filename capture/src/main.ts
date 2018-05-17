@@ -42,41 +42,47 @@ async function validCapture(config: CaptureConfig): Promise<boolean> {
 
 async function runCapture(): Promise<void> {
    const logger = Logging.defaultLogger(__dirname);
-
    logger.info("Configuring MyCRT Capture Program");
-   const config = CaptureConfig.fromCmdArgs();
-   logger.info(config.toString());
 
-   const valid = await validCapture(config);
-   if (!valid) {
-      logger.info(`This Capture is invalid....`);
-      process.exit();
+   try {
+      const config = CaptureConfig.fromCmdArgs();
+      logger.info(config.toString());
+
+      const valid = await validCapture(config);
+      if (!valid) {
+         logger.info(`This Capture is invalid....`);
+         process.exit(1);
+      }
+
+      const env = await environmentDao.getEnvironmentFull(config.envId);
+      if (env) {
+         const buildCapture = (): Capture => {
+            const awsConfig = {region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey};
+            const storage = new S3Backend(new S3(awsConfig), env.bucket, env.prefix);
+            const metrics = new CloudWatchMetricsBackend(new CloudWatch(awsConfig), DBIdentifier, env.instance, period,
+               statistics);
+            const workloadLogger: WorkloadLogger = new AwsWorkloadLogger(ChildProgramType.CAPTURE, config.id,
+               new RDS(awsConfig), storage, env);
+            return new Capture(config, workloadLogger, storage, metrics, env);
+         };
+
+         const buildMockCapture = (): Capture => {
+            const storage = new LocalBackend(getSandboxPath(), env.prefix);
+            const metrics = new MockMetricsBackend(5);
+            const workloadLogger = new LocalWorkloadLogger(ChildProgramType.CAPTURE, config.id, storage, env);
+            return new Capture(config, workloadLogger, storage, metrics, env);
+         };
+
+         const capture = config.mock ? buildMockCapture() : buildCapture();
+
+         logger.info("Running MyCRT Capture Program");
+         capture.run();
+      }
+   } catch (error) {
+      logger.info(`${error}`);
+      process.exit(1);
    }
 
-   const env = await environmentDao.getEnvironmentFull(config.envId);
-   if (env) {
-      const buildCapture = (): Capture => {
-         const awsConfig = {region: env.region, accessKeyId: env.accessKey, secretAccessKey: env.secretKey};
-         const storage = new S3Backend(new S3(awsConfig), env.bucket, env.prefix);
-         const metrics = new CloudWatchMetricsBackend(new CloudWatch(awsConfig), DBIdentifier, env.instance, period,
-            statistics);
-         const workloadLogger: WorkloadLogger = new AwsWorkloadLogger(ChildProgramType.CAPTURE, config.id,
-            new RDS(awsConfig), storage, env);
-         return new Capture(config, workloadLogger, storage, metrics, env);
-      };
-
-      const buildMockCapture = (): Capture => {
-         const storage = new LocalBackend(getSandboxPath(), env.prefix);
-         const metrics = new MockMetricsBackend(5);
-         const workloadLogger = new LocalWorkloadLogger(ChildProgramType.CAPTURE, config.id, storage, env);
-         return new Capture(config, workloadLogger, storage, metrics, env);
-      };
-
-      const capture = config.mock ? buildMockCapture() : buildCapture();
-
-      logger.info("Running MyCRT Capture Program");
-      capture.run();
-   }
 }
 
 if (typeof(require) !== 'undefined' && require.main === module) {
