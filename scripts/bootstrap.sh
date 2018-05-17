@@ -114,23 +114,6 @@ echo -e "${GREEN}Successfully setup common module${RESTORE}\n"
 cd ..
 
 ########################################################################################################################
-# setup the capture module
-CAPTURE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/capture"
-echo -e "${BLUE}Setting up capture (${CAPTURE_MODULE_DIR})${RESTORE}"
-cd "$CAPTURE_MODULE_DIR"
-echo "installing npm dependencies"
-if ! npm install 1>>"$LOG_FILE" 2>&1; then
-   echo -e "${RED}Failed to install npm dependencies for capture module${RESTORE}"; exit 1
-fi
-echo "building capture"
-cd "$SCRIPTS_MODULE_DIR"
-if ! npm run build-capture 1>>"$LOG_FILE" 2>&1; then
-   echo -e "${RED}Failed to build capture${RESTORE}"; exit 1
-fi
-echo -e "${GREEN}Successfully setup capture module${RESTORE}\n"
-cd ..
-
-########################################################################################################################
 # setup the replay module
 REPLAY_MODULE_DIR="${REPOSITORY_ROOT_DIR}/replay"
 echo -e "${BLUE}Setting up replay (${REPLAY_MODULE_DIR})${RESTORE}"
@@ -145,6 +128,23 @@ if ! npm run build-replay 1>>"$LOG_FILE" 2>&1; then
    echo -e "${RED}Failed to build replay${RESTORE}"; exit 1
 fi
 echo -e "${GREEN}Successfully setup replay module${RESTORE}\n"
+cd ..
+
+########################################################################################################################
+# setup the capture module
+CAPTURE_MODULE_DIR="${REPOSITORY_ROOT_DIR}/capture"
+echo -e "${BLUE}Setting up capture (${CAPTURE_MODULE_DIR})${RESTORE}"
+cd "$CAPTURE_MODULE_DIR"
+echo "installing npm dependencies"
+if ! npm install 1>>"$LOG_FILE" 2>&1; then
+   echo -e "${RED}Failed to install npm dependencies for capture module${RESTORE}"; exit 1
+fi
+echo "building capture"
+cd "$SCRIPTS_MODULE_DIR"
+if ! npm run build-capture 1>>"$LOG_FILE" 2>&1; then
+   echo -e "${RED}Failed to build capture${RESTORE}"; exit 1
+fi
+echo -e "${GREEN}Successfully setup capture module${RESTORE}\n"
 cd ..
 
 ########################################################################################################################

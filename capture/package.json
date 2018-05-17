@@ -16,6 +16,7 @@
   "scripts": {},
   "dependencies": {
     "@lbt-mycrt/common": "file:../common",
+    "@lbt-mycrt/replay": "file:../replay",
     "@types/node": "8.0.53",
     "aws-sdk": "^2.188.0",
     "command-line-args": "^5.0.1",
