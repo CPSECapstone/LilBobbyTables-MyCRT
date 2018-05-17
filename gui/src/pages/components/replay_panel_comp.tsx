@@ -108,7 +108,7 @@ export class ReplayPanel extends React.Component<any, any>  {
       if (!this.props.replay) { return (<div></div>); }
         const percent = `${((this.state.currentDuration / this.state.totalDuration) * 100).toFixed(0)}%`;
         return (
-            <div className="card myCRT-panel mt-4 myCRT-card">
+            <div className="card myCRT-panel mt-4 ml-4 mr-4 myCRT-card">
                 <div className={`card-header ${className}`}>
                     <div style={{display: "inline-block"}}>
                     <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle"}}
@@ -130,9 +130,10 @@ export class ReplayPanel extends React.Component<any, any>  {
                   </div> :
                   <div className={`card-footer ${statusStyle}`}>{this.state.replay.status}</div>}
                 <div className="card-body">
-                    <p><b>DB:</b><i> {this.state.db}</i></p>
-                    <p><b>Start:</b><i> {this.formatTimeStamp(this.state.replay.start)}</i></p>
-                    <p style={{margin: 0}}><b>End:</b><i> {this.formatTimeStamp(this.state.replay.end)}</i></p>
+                  {this.state.failed ? <p className="myCRT-danger-label"><i>{this.state.replay.reason}</i></p> : null}
+                  <p><b>DB:</b><i> {this.state.db}</i></p>
+                  <p><b>Start:</b><i> {this.formatTimeStamp(this.state.replay.start)}</i></p>
+                  <p style={{margin: 0}}><b>End:</b><i> {this.formatTimeStamp(this.state.replay.end)}</i></p>
                 </div>
             </div>
         );

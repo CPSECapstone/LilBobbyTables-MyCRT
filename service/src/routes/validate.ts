@@ -3,7 +3,7 @@ import * as mysql from 'mysql';
 
 import http = require('http-status-codes');
 
-import { Logging, ServerIpcNode } from '@lbt-mycrt/common/dist/main';
+import { Check, Logging, ServerIpcNode } from '@lbt-mycrt/common';
 import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
@@ -182,6 +182,18 @@ export default class ValidateRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, "Credentials are invalid");
          }
       }));
+
+      this.router.post('/environmentName',
+         check.validBody(schema.environmentNameBody),
+         this.handleHttpErrors(async (request, response) => {
+            const environment = await environmentDao.getEnvironmentByName(request.body.name);
+            const result: Check = {
+               value: environment === null,
+            };
+            response.json(result);
+         },
+      ));
+
    }
 
    private getDBInstances(rds: RDS, params: any): Promise<any> {

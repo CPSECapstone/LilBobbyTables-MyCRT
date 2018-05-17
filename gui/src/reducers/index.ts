@@ -6,6 +6,7 @@ export interface AlertState {
    show: boolean;
    header: string;
    message: string;
+   success?: boolean;
 }
 
 export interface PageState {

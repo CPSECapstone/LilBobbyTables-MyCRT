@@ -24,6 +24,7 @@ export class CaptureInfo extends React.Component<any, any>  {
             </div>
             <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
                paddingLeft: "20px", width: "1050px"}}>
+               <h5 style={{padding: "0px 7px", margin: "0px"}}>Creator: {this.props.capture.ownerId}</h5>
                <div className="row">
                   <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
                      <h5>General:</h5>
