@@ -9,6 +9,7 @@ import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 import { Template } from '@lbt-mycrt/gui/dist/main';
 
+import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startCapture } from '../common/launching';
@@ -182,6 +183,14 @@ export default class CaptureRouter extends SelfAwareRouter {
          const updateCapture = await captureDao.updateCaptureName(capture.id!, request.body.name);
          response.status(http.OK).end();
       }));
+
+      this.router.post('/mimic',
+         check.validBody(schema.mimicBody),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.body.envId)),
+         this.handleHttpErrors(async (request, response) => {
+            response.status(http.OK).end();
+         }),
+      );
 
       this.router.post('/', check.validBody(schema.captureBody),
             this.handleHttpErrors(async (request, response) => {

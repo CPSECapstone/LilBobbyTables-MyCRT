@@ -21,7 +21,7 @@ export interface IEnvironmentUser {
    createdAt?: number;
 }
 
-export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
+export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY', MIMIC = 'MIMIC' }
 
 /** The status of a capture/replay */
 export enum ChildProgramStatus {

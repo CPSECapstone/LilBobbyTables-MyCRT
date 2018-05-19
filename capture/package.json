@@ -7,13 +7,16 @@
   "author": "",
   "license": "MIT",
   "bin": {
-    "mycrt-capture": "./dist/main.js"
+    "mycrt-capture": "./dist/main.js",
+    "mycrt-mimic": "./dist/mimic/main.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
   },
-  "scripts": {},
+  "scripts": {
+     "mimic": "node ./dist/mimic/main.js"
+  },
   "dependencies": {
     "@lbt-mycrt/common": "file:../common",
     "@lbt-mycrt/replay": "file:../replay",

@@ -23,7 +23,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
    public env: IEnvironmentFull;
 
-   private ipcNode: IpcNode;
+   protected ipcNode: IpcNode;
 
    constructor(public config: CaptureConfig, private workloadLogger: WorkloadLogger, storage: StorageBackend,
          metrics: MetricsBackend, env: IEnvironmentFull) {
