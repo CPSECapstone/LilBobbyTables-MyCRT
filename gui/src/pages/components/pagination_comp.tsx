@@ -48,9 +48,10 @@ export class Pagination extends React.Component<any, any>  {
             {totalPages > 1 ?
             <div style={{marginTop: "20px"}}>
                <button type="button" className={`btn btn-outline-primary float-left ${prev ? "" : "invisible"}`}
+                  style={{marginLeft: "25px"}}
                   onClick={this.prevPage}>Previous</button>
                <button type="button" className={`btn btn-outline-primary float-right ${next ? "" : "invisible"}`}
-                  style={{marginLeft: "20px"}}
+                  style={{marginLeft: "20px", marginRight: "25px"}}
                   onClick={this.nextPage}>Next</button>
                {totalPages > 1 ?
                      <div style={{textAlign: "center", paddingTop: "10px"}}>

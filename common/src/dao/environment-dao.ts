@@ -11,7 +11,7 @@ const cryptr = new Cryptr(settings.settings.encryptionKey); // using aes256 encr
 import { Logging } from '../main';
 const logger = Logging.defaultLogger(__dirname);
 
-export class EnvironmentDao extends Dao {
+export  class EnvironmentDao extends Dao {
 
    public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironment[]> {
       const environmentRows = user ?
@@ -40,9 +40,9 @@ export class EnvironmentDao extends Dao {
    }
 
    public async getEnvironmentFull(id: number): Promise<data.IEnvironmentFull | null> {
-      const queryStr = 'SELECT e.id, e.name AS envName, e.ownerId AS ownerId, d.name AS dbName, host, ' +
-         'user, pass, instance, ' +
-         'parameterGroup, bucket, prefix, accessKey, secretKey, region, a.name as keysName ' +
+      const queryStr = 'SELECT e.id, e.name AS envName, e.ownerId AS ownerId, ' +
+         'd.name AS dbName, host, user, pass, instance, parameterGroup, ' +
+         'bucket, prefix, accessKey, secretKey, region, a.name as keysName, a.id as keysId ' +
          'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ' +
          'JOIN S3Reference AS s ON e.S3Id = s.id JOIN AwsKeys AS a ON e.awsKeysId = a.id ' +
          'WHERE e.id = ?';
@@ -92,6 +92,17 @@ export class EnvironmentDao extends Dao {
       return keysRows.map(this.rowToAwsKeys);
    }
 
+   public async getAllAwsKeysByName(name: string, user?: data.IUser): Promise<data.IAwsKeys | null> {
+      const keysRows = user ?
+         await this.query<any[]>('SELECT * FROM AwsKeys WHERE userId = ? AND name = ?', [user.id, name]) :
+         await this.query<any[]>('SELECT * FROM AwsKyes WHERE name = ?', [name]);
+
+      if (keysRows.length === 0) {
+            return null;
+      }
+      return this.rowToAwsKeys(keysRows[0]);
+   }
+
    public async getAwsKeys(id: number): Promise<data.IAwsKeys | null> {
       const rows = await this.query<any[]>('SELECT * FROM AwsKeys WHERE id = ?', [id]);
       return rows.length ? this.rowToAwsKeys(rows[0]) : null;
@@ -131,6 +142,7 @@ export class EnvironmentDao extends Dao {
       dbRef.user = cryptr.encrypt(dbRef.user);
       dbRef.pass = cryptr.encrypt(dbRef.pass);
       const row = await this.query<any>('INSERT INTO DBReference SET ?', dbRef);
+
       return await this.getDbReference(row.insertId);
    }
 
@@ -154,6 +166,8 @@ export class EnvironmentDao extends Dao {
          id: row.id,
          envName: row.envName,
          ownerId: row.ownerId,
+         keysId: row.keysId,
+         keysName: row.keysName,
          accessKey: cryptr.decrypt(row.accessKey),
          secretKey: cryptr.decrypt(row.secretKey),
          region: row.region,

@@ -10,7 +10,6 @@ import { MyCrtServiceTestClient } from './mycrt';
 
 export const replayTests = (mycrt: MyCrtServiceTestClient) => function() {
 
-   // post
    it("should post a replay", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
@@ -49,7 +48,6 @@ export const replayTests = (mycrt: MyCrtServiceTestClient) => function() {
       expect(failedResponse.body.message).to.contain("already at least 1 replay running on that database");
    });
 
-   // get
    it("should get all replays", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
@@ -71,14 +69,12 @@ export const replayTests = (mycrt: MyCrtServiceTestClient) => function() {
       const response = await mycrt.get(http.OK, '/api/replays/?captureId=' + capture.body.id);
    });
 
-   // bad gets
    it("should fail since replay does not exist", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
       const response = await mycrt.get(http.NOT_FOUND, '/api/replays/1');
    });
 
-   // delete
    it("should successfully delete a replay", async function() {
       await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       await mycrt.post(http.OK, '/api/captures/', liveCaptureBody);
@@ -86,7 +82,6 @@ export const replayTests = (mycrt: MyCrtServiceTestClient) => function() {
       const response = await mycrt.delete(http.OK, '/api/replays/1');
    });
 
-   // fail delete
    it("should fail since replay 56 does not exist", async function() {
       const response = await mycrt.delete(http.NOT_FOUND, '/api/replays/56');
    });

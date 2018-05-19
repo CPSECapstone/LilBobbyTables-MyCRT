@@ -3,6 +3,8 @@ export abstract class StorageBackend {
 
    public abstract async exists(key: string): Promise<boolean>;
 
+   public abstract async bucketExists(): Promise<boolean>;
+
    public abstract async allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]>;
 
    public abstract async readJson<T>(key: string): Promise<T>;

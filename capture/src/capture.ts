@@ -50,6 +50,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
 
       logger.info("set status to 'stopping'");
       await captureDao.updateCaptureStatus(this.id, ChildProgramStatus.STOPPING);
+
+      logger.info("record end time");
+      await captureDao.updateCaptureEndTime(this.id);
+
    }
 
    public asIChildProgram(): IChildProgram {
@@ -124,9 +128,6 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
    protected async teardown(): Promise<void> {
       try {
          logger.info(`Performing teardown for Capture ${this.id}`);
-
-         logger.info("record end time");
-         await captureDao.updateCaptureEndTime(this.id);
 
          logger.info("turning off RDS logging");
          await this.workloadLogger.setLogging(false);

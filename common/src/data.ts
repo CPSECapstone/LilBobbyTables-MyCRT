@@ -43,6 +43,7 @@ export interface IChildProgram {
    name?: string;
    start?: Date;
    end?: Date;
+   reason?: string;
    scheduledStart?: Date;
    scheduledEnd?: Date;
    status?: ChildProgramStatus;
@@ -85,6 +86,8 @@ export interface IEnvironmentFull {
    id?: number;
    envName: string;
    ownerId?: number;
+   keysId?: number;
+   keysName: string;
    accessKey: string;
    secretKey: string;
    region: string;

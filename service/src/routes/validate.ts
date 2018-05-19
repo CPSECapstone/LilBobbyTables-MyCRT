@@ -3,13 +3,24 @@ import * as mysql from 'mysql';
 
 import http = require('http-status-codes');
 
-import { Logging, ServerIpcNode } from '@lbt-mycrt/common/dist/main';
+import { Check, ChildProgramType, IEnvironment, IEnvironmentFull, Logging, ServerIpcNode } from '@lbt-mycrt/common';
+import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
+import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
+import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 
+import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
+import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
+import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
+import { getDbInstances } from '../common/rdsInstances';
+import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/validate-schema';
+import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
+
+const logger = Logging.defaultLogger(__dirname);
 
 export default class ValidateRouter extends SelfAwareRouter {
 
@@ -26,33 +37,35 @@ export default class ValidateRouter extends SelfAwareRouter {
 
    protected mountRoutes(): void {
 
+      this.router.post('/credentials/name', check.validBody(schema.credentialsNameBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const keysWithSameName = await environmentDao.getAllAwsKeysByName(request.body.keysName, request.user!);
+         if (keysWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Keys with same name already exists");
+         } else {
+            response.json({status: http.OK}).end();
+         }
+      }));
+
       this.router.post('/credentials', check.validBody(schema.credentialsBody),
-         this.handleHttpErrors(async (request, response) => {
+            this.handleHttpErrors(async (request, response) => {
+
+         if (request.body.keysName) {
+            const keysWithSameName = await environmentDao.getAllAwsKeysByName(request.body.keysName, request.user!);
+            if (keysWithSameName !== null) {
+               throw new HttpError(http.BAD_REQUEST, "Keys with same name already exists");
+            }
+         }
 
          const rds = new RDS({
             region: request.body.region,
             accessKeyId: request.body.accessKey,
             secretAccessKey: request.body.secretKey,
          });
-         const params = {};
 
-         try {
-            const data = await this.getDBInstances(rds, params);
-            const instances: any = [];
-            data.DBInstances.forEach((dbInstance: RDS.DBInstance) => {
-               instances.push({
-                  instance: dbInstance.DBInstanceIdentifier,
-                  name: dbInstance.DBName || dbInstance.DBInstanceIdentifier,
-                  user: dbInstance.MasterUsername,
-                  host: dbInstance.Endpoint ? dbInstance.Endpoint.Address : "",
-                  parameterGroup: dbInstance.DBParameterGroups ?
-                     dbInstance.DBParameterGroups[0].DBParameterGroupName : "",
-               });
-            });
-            response.json(instances);
-         } catch (e) {
-            throw new HttpError(http.BAD_REQUEST, "Credentials are invalid");
-         }
+         const instances = await getDbInstances(rds, {});
+         response.json(instances);
       }));
 
       this.router.post('/database', check.validBody(schema.databaseBody),
@@ -72,6 +85,72 @@ export default class ValidateRouter extends SelfAwareRouter {
          }
       }));
 
+      this.router.get('/bucket',
+         check.validQuery(schema.bucketQuery),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.query.envId)),
+         this.handleHttpErrors(async (request, response) => {
+            const envId = request.query.envId;
+            const environment = await environmentDao.getEnvironmentFull(envId);
+            if (!environment) {
+               throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
+            }
+
+            const storage = this.getStorage(environment);
+
+            const bucketExists = await storage.bucketExists();
+            if (!bucketExists) {
+               throw new HttpError(http.BAD_REQUEST, `S3 Bucket ${environment.bucket} does not exist`);
+            }
+            response.json(environment.bucket);
+         },
+      ));
+
+      this.router.get('/bucket/metrics',
+         check.validQuery(schema.bucketMetricsQuery),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.query.envId)),
+         this.handleHttpErrors(async (request, response) => {
+            const envId = request.query.envId;
+            const id = request.query.id;
+            const type = request.query.type;
+
+            const environment = await environmentDao.getEnvironmentFull(envId);
+            if (!environment) {
+               throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
+            }
+            const progType: ChildProgramType = type === 'capture' ? ChildProgramType.CAPTURE : ChildProgramType.REPLAY;
+            const storage = this.getStorage(environment, progType);
+
+            const key = `environment${envId}/${type}${id}/metrics.json`;
+            const metricsExist = await storage.exists(key);
+            if (!metricsExist) {
+               throw new HttpError(http.BAD_REQUEST, `Associated metrics file does not exist`);
+            }
+            response.json(environment.bucket);
+         },
+      ));
+
+      this.router.get('/bucket/workload',
+         check.validQuery(schema.bucketWorkloadQuery),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.query.envId)),
+         this.handleHttpErrors(async (request, response) => {
+            const envId = request.query.envId;
+            const id = request.query.id;
+
+            const environment = await environmentDao.getEnvironmentFull(envId);
+            if (!environment) {
+               throw new HttpError(http.BAD_REQUEST, `Environment ${envId} does not exist`);
+            }
+            const storage = this.getStorage(environment, ChildProgramType.CAPTURE);
+
+            const key = `environment${envId}/capture${id}/workload.json`;
+            const workloadExists = await storage.exists(key);
+            if (!workloadExists) {
+               throw new HttpError(http.BAD_REQUEST, `Associated workload.json file does not exist`);
+            }
+            response.json(environment.bucket);
+         },
+      ));
+
       this.router.post('/bucket', check.validBody(schema.credentialsBody),
          this.handleHttpErrors(async (request, response) => {
          const s3 = new S3({
@@ -79,10 +158,9 @@ export default class ValidateRouter extends SelfAwareRouter {
             accessKeyId: request.body.accessKey,
             secretAccessKey: request.body.secretKey,
          });
-         const params = {};
 
          try {
-            const data = await this.getBuckets(s3, params);
+            const data = await this.getBuckets(s3, {});
             const buckets: any = [];
             data.Buckets.forEach((bucket: S3.Bucket) => {
                buckets.push(bucket.Name);
@@ -92,18 +170,18 @@ export default class ValidateRouter extends SelfAwareRouter {
             throw new HttpError(http.BAD_REQUEST, "Credentials are invalid");
          }
       }));
-   }
 
-   private getDBInstances(rds: RDS, params: any): Promise<any> {
-      return new Promise((resolve, reject) => {
-         rds.describeDBInstances(params, (err, data) => {
-            if (err) {
-               reject(err);
-            } else {
-               resolve(data);
-            }
-         });
-      });
+      this.router.post('/environmentName',
+         check.validBody(schema.environmentNameBody),
+         this.handleHttpErrors(async (request, response) => {
+            const environment = await environmentDao.getEnvironmentByName(request.body.name);
+            const result: Check = {
+               value: environment === null,
+            };
+            response.json(result);
+         },
+      ));
+
    }
 
    private getDBConnection(connection: mysql.Connection): Promise<any> {
@@ -128,5 +206,29 @@ export default class ValidateRouter extends SelfAwareRouter {
             }
          });
       });
+   }
+
+   private getStorage(env: IEnvironmentFull, type?: ChildProgramType): StorageBackend {
+      let backend: StorageBackend;
+      let mocking: boolean;
+      if (type) {
+         mocking = (type === ChildProgramType.CAPTURE && settings.captures.mock)
+            || (type === ChildProgramType.REPLAY && settings.replays.mock);
+      } else {
+         mocking = settings.captures.mock && settings.replays.mock;
+      }
+
+      if (mocking) {
+         backend = new LocalBackend(getSandboxPath(), env.prefix);
+      } else {
+         const awsConfig: S3.ClientConfiguration = {
+            region: env.region,
+            accessKeyId: env.accessKey,
+            secretAccessKey: env.secretKey,
+         };
+         backend = new S3Backend(new S3(awsConfig), env.bucket, env.prefix);
+      }
+
+      return backend;
    }
 }

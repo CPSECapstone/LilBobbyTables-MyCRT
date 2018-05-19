@@ -80,6 +80,7 @@ class EnvironmentsApp extends React.Component<any, any> {
                   limit={4}/> :
                   <p className="myCRT-empty-col">No environments currently exist.</p>}
               </div>
+              <br/>
             </div>
           </div>
         </div>
