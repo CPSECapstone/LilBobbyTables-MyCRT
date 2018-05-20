@@ -7,7 +7,7 @@ import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/common-schema';
-import SelfAwareRouter from "./self-aware-router";
+import SelfAwareRouter from './self-aware-router';
 
 export default class AwsKeysRouter extends SelfAwareRouter {
    public name: string = 'awsKeys';

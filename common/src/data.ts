@@ -82,6 +82,12 @@ export interface IEnvironment {
    s3Id?: number;
 }
 
+export interface IEnvironmentUser {
+   userId?: number;
+   isAdmin?: boolean;
+   email?: string;
+}
+
 export interface IEnvironmentFull {
    id?: number;
    envName: string;
