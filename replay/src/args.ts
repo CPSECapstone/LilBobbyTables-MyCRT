@@ -1,5 +1,4 @@
 import * as readCmdArgs from 'command-line-args';
-import { OptionDefinition } from 'command-line-args';
 
 import { Config } from '@lbt-mycrt/common/dist/capture-replay/args';
 
@@ -8,6 +7,10 @@ import { Config } from '@lbt-mycrt/common/dist/capture-replay/args';
 //
 // notation rules documented here
 // https://github.com/75lb/command-line-args/wiki/Notation-rules
+
+export interface OptionDefinition extends readCmdArgs.OptionDefinition {
+   description?: string;
+}
 
 export const optionId: OptionDefinition = {
    name: 'id',

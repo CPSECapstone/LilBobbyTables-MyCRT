@@ -186,7 +186,7 @@ export default class EnvironmentRouter extends SelfAwareRouter {
          };
 
          const editEnvironment = await environmentDao.editEnvironment(request.params.id, environmentEdits);
-         response.json(editEnvironment!);
+         response.status(http.OK).end();
       }));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
