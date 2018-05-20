@@ -3,6 +3,7 @@ import ReactDom = require('react-dom');
 
 import { ChildProgramStatus, IChildProgram } from '@lbt-mycrt/common/dist/data';
 
+import * as $ from 'jquery';
 import './common';
 
 import '../../static/css/index.css';
@@ -22,6 +23,7 @@ import { ReplayModal } from './components/replay_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 import { Search } from './components/search_comp';
 import { ShareModal } from './components/share_modal_comp';
+import { UserTable } from './components/user_table_comp';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 class DashboardApp extends React.Component<any, any> {
@@ -40,6 +42,27 @@ class DashboardApp extends React.Component<any, any> {
         this.state = { envId: id, env: null, captures: [], replays: [], error: "",
          pastCSearch: "", scheduleCSearch: "", liveCSearch: "",
          pastRSearch: "", scheduleRSearch: "", liveRSearch: ""};
+    }
+
+    public async componentWillMount() {
+      if (this.state.envId) {
+         this.setState({
+            env: await mycrt.getEnvironment(this.state.envId),
+         });
+      }
+      this.setCaptures();
+      const bucketExists = await mycrt.validateStorage(this.state.envId);
+      if (!bucketExists) {
+         logger.error("Bucket no longer exists.");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Missing Storage Bucket",
+            message: "The bucket associated with this environment does not exist. "
+                     + "Please create a bucket in S3 named " + this.state.env.bucket
+                     + " before creating a capture or running a replay.",
+         }));
+      }
+      $(`#dashboardTabs a[href="#dashboardTab"]`).tab('show');
     }
 
    public async setCaptures() {
@@ -82,26 +105,6 @@ class DashboardApp extends React.Component<any, any> {
 
     public updateSearch(searchText: string, type: string) {
        this.setState({[type]: searchText});
-    }
-
-    public async componentWillMount() {
-      if (this.state.envId) {
-         this.setState({
-            env: await mycrt.getEnvironment(this.state.envId),
-         });
-      }
-      this.setCaptures();
-      const bucketExists = await mycrt.validateStorage(this.state.envId);
-      if (!bucketExists) {
-         logger.error("Bucket no longer exists.");
-         store.dispatch(showAlert({
-            show: true,
-            header: "Missing Storage Bucket",
-            message: "The bucket associated with this environment does not exist. "
-                     + "Please create a bucket in S3 named " + this.state.env.bucket
-                     + " before creating a capture or running a replay.",
-         }));
-      }
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
@@ -165,16 +168,6 @@ class DashboardApp extends React.Component<any, any> {
                            data-target="#deleteEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
                            data-backdrop="static" data-keyboard={false}>
                             <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
-                     </a>
-                     <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
-                           data-target="#" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
-                           data-backdrop="static" data-keyboard={false}>
-                            <i className="fa fa-users fa-lg" aria-hidden="true"></i>
-                     </a>
-                     <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
-                           data-target="#shareEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
-                           data-backdrop="static" data-keyboard={false}>
-                            <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i>
                      </a><br/><br/>
                      <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>
@@ -203,46 +196,70 @@ class DashboardApp extends React.Component<any, any> {
                   </div>
                </div>
                <br></br>
-               <div className="row">
-                  <div className="col-xs-12 col-md-5 mb-r">
-                     <div><br/>
-                        <h2 style={{display: "inline"}}>Captures</h2>
-                        <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
-                           data-backdrop="static" data-keyboard={false}
-                           data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
-                            <i className="fa fa-plus" aria-hidden="true"></i>
-                        </a>
-                        <CaptureModal id="captureModal" envId={this.state.envId} bucket={this.state.env.bucket}
-                        update={this.componentWillMount}/>
+               <ul className="nav nav-tabs" role="tablist" id="dashboardTabs">
+                  <li className="nav-item">
+                     <a className="nav-link" data-toggle="tab" href="#dashboardTab" role="tab">Dashboard</a>
+                  </li>
+                  <li className="nav-item">
+                     <a className="nav-link" data-toggle="tab" href="#userTab" role="tab">Users</a>
+                  </li>
+               </ul>
+               <div className = "tab-content">
+                  <div className="tab-pane" id="dashboardTab" role="tabpanel">
+                     <div className="row">
+                        <div className="col-xs-12 col-md-5 mb-r">
+                           <div><br/>
+                              <h2 style={{display: "inline"}}>Captures</h2>
+                              <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
+                                 data-backdrop="static" data-keyboard={false}
+                                 data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                                 <i className="fa fa-plus" aria-hidden="true"></i>
+                              </a>
+                              <CaptureModal id="captureModal" envId={this.state.envId} bucket={this.state.env.bucket}
+                              update={this.componentWillMount}/>
+                           </div>
+                           <br></br>
+                           <ListView name="Active" list={liveCaptures} update={this.updateSearch}
+                              display="No currently active captures." type="liveCSearch"
+                              stateVar={this.state.liveCSearch}/>
+                           <ListView name="Scheduled" list={scheduledCaptures} update={this.updateSearch}
+                              display="No currently scheduled captures." type="scheduleCSearch"
+                              stateVar={this.state.scheduleCSearch}/>
+                           <ListView name="Past" list={pastCaptures} update={this.updateSearch}
+                              display="No past captures exist." type="pastCSearch" stateVar={this.state.pastCSearch}/>
+                        </div>
+                        <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
+                           <div><br/>
+                              <h2 style={{display: "inline"}}>Replays</h2>
+                              <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
+                                 data-backdrop="static" data-keyboard={false}
+                                 data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                                 <i className="fa fa-plus" aria-hidden="true"></i>
+                              </a>
+                              <ReplayModal id="replayModal" captures={this.state.captures}
+                                 env = {this.state.env} update={this.componentWillMount}/>
+                           </div>
+                           <br></br>
+                           <ListView name="Active" list={liveReplays} update={this.updateSearch}
+                              display="No currently active replays." type="liveRSearch"
+                              stateVar={this.state.liveRSearch}/>
+                           <ListView name="Scheduled" list={scheduledReplays} update={this.updateSearch}
+                              display="No currently scheduled replays." type="scheduleRSearch"
+                              stateVar={this.state.scheduleRSearch}/>
+                           <ListView name="Past" list={pastReplays} update={this.updateSearch}
+                              display="No past replays exist." type="pastRSearch" stateVar={this.state.pastRSearch}/>
+                        </div>
                      </div>
-                     <br></br>
-                     <ListView name="Active" list={liveCaptures} update={this.updateSearch}
-                        display="No currently active captures." type="liveCSearch" stateVar={this.state.liveCSearch}/>
-                     <ListView name="Scheduled" list={scheduledCaptures} update={this.updateSearch}
-                        display="No currently scheduled captures." type="scheduleCSearch"
-                        stateVar={this.state.scheduleCSearch}/>
-                     <ListView name="Past" list={pastCaptures} update={this.updateSearch}
-                        display="No past captures exist." type="pastCSearch" stateVar={this.state.pastCSearch}/>
                   </div>
-                  <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
-                     <div><br/>
-                        <h2 style={{display: "inline"}}>Replays</h2>
-                        <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
-                           data-backdrop="static" data-keyboard={false}
-                           data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
-                            <i className="fa fa-plus" aria-hidden="true"></i>
-                        </a>
-                        <ReplayModal id="replayModal" captures={this.state.captures}
-                            env = {this.state.env} update={this.componentWillMount}/>
-                     </div>
-                     <br></br>
-                     <ListView name="Active" list={liveReplays} update={this.updateSearch}
-                        display="No currently active replays." type="liveRSearch" stateVar={this.state.liveRSearch}/>
-                     <ListView name="Scheduled" list={scheduledReplays} update={this.updateSearch}
-                        display="No currently scheduled replays." type="scheduleRSearch"
-                        stateVar={this.state.scheduleRSearch}/>
-                     <ListView name="Past" list={pastReplays} update={this.updateSearch}
-                        display="No past replays exist." type="pastRSearch" stateVar={this.state.pastRSearch}/>
+                  <div className="tab-pane" id="userTab" role="tabpanel">
+                     <br/><h2 style={{display: "inline"}}>Users</h2>
+                     <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
+                           data-target="#shareEnvModal" style={{marginBottom: "15px", marginLeft: "15px"}}
+                           data-backdrop="static" data-keyboard={false}>
+                            <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i>
+                     </a>
+                     <br/><br/>
+                     <UserTable />
                   </div>
                </div>
             </div>

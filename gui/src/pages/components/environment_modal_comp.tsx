@@ -145,6 +145,7 @@ export class EnvModal extends React.Component<any, any>  {
          return;
       }
       this.setState({sharedEnv: result});
+      this.props.update();
       this.changeProgress(7);
    }
 
