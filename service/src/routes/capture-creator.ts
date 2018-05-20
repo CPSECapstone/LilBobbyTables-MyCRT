@@ -16,6 +16,7 @@ export class CaptureCreator extends SubProcessCreator {
    private endTime: Date | undefined;
    private duration: number;
    private ipcNode: ServerIpcNode;
+   private env: any;
 
    constructor(request: any, response: any, ipcNode: ServerIpcNode) {
       super(request, response);
@@ -51,53 +52,47 @@ export class CaptureCreator extends SubProcessCreator {
       }
    }
 
+   // tslint:disable-next-line:member-ordering
    public async createCaptureTemplate(request: any, response: any) {
-      const env = await environmentDao.getEnvironment(request.body.envId);
-      if (!env) {
+      this.env = await environmentDao.getEnvironment(request.body.envId);
+      if (!this.env) {
          throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
       }
-
-      if (this.initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
-         throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
-      }
+      this.checkScheduledStatus(request);
 
       // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
-      let captureTemplate: ICapture | null = {
-         type: ChildProgramType.CAPTURE,
-         ownerId: request.user!.id,
-         envId: env.id,
-         status: this.initialStatus === ChildProgramStatus.SCHEDULED ?
-            ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-         name: request.body.name,
-         scheduledEnd: this.endTime,
-      };
-
-      logger.debug("captureTemplate: " + captureTemplate);
+      // Replay: dbId, captureId
+      // create capture template
+      this.createTemplate(request, ChildProgramType.CAPTURE);
+      // add attributes to capture template
+      this.template.ownerId = request.user!.id;
+      this.template.envId = this.env.id;
+      this.template.scheduledEnd = this.endTime;
 
       // if status is scheduled, start at a scheduled time
-      if (this.initialStatus === ChildProgramStatus.SCHEDULED) {
-         captureTemplate.scheduledStart = this.inputTime;
-      }
+      this.checkScheduledStartTime();
 
       // assign capture, insert into db
-      captureTemplate = await captureDao.makeCapture(captureTemplate);
+      this.template = await captureDao.makeCapture(this.template);
 
-      if (captureTemplate === null) {
-         throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
-      }
+      this.checkTemplateInDB();
 
-      response.json(captureTemplate);
+      response.json(this.template);
 
       if (this.initialStatus === ChildProgramStatus.SCHEDULED) {
-         schedule.scheduleJob(this.inputTime!, () => { startCapture(captureTemplate!); });
+         schedule.scheduleJob(this.inputTime!, () => { startCapture(this.template!); });
       } else {
-         startCapture(captureTemplate);
+         startCapture(this.template);
       }
 
       logger.info(`Successfully created capture!`);
 
+      this.checkDuration();
+   }
+
+   private checkDuration() {
       if (this.duration) {
-         schedule.scheduleJob(this.endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
+         schedule.scheduleJob(this.endTime!, () => { this.stopScheduledCapture(this.template!); }); // scheduled stop
       }
    }
 

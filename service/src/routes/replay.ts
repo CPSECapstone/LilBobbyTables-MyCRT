@@ -91,6 +91,7 @@ export default class ReplayRouter extends SelfAwareRouter {
                throw new HttpError(http.UNAUTHORIZED);
             }
          } else {
+            logger.debug("I'm here " + JSON.stringify(request.user!));
             replays = await replayDao.getAllReplays(request.user!);
          }
          response.json(replays);
