@@ -14,7 +14,7 @@ export class UserTable extends React.Component<any, any> {
    public render() {
       return (
          <table className="table">
-            <thead className="thead-dark">
+            <thead className="thead-light">
                <tr>
                   <th scope="col">#</th>
                   <th scope="col">Email</th>
