@@ -90,6 +90,7 @@ export default class ReplayRouter extends SelfAwareRouter {
                throw new HttpError(http.UNAUTHORIZED);
             }
          } else {
+            logger.debug("I'm here " + JSON.stringify(request.user!));
             replays = await replayDao.getAllReplays(request.user!);
          }
          response.json(replays);
@@ -142,8 +143,8 @@ export default class ReplayRouter extends SelfAwareRouter {
             throw new HttpError(http.UNAUTHORIZED);
          }
 
-         const replayWithSameName = replayDao.getReplaysForCapByName(cap!.id!, request.body.name);
-         if (Object.keys(replayWithSameName).length) {
+         const replayWithSameName = await replayDao.getReplaysForCapByName(cap!.id!, request.body.name);
+         if (replayWithSameName) {
             throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
          }
 
@@ -179,6 +180,7 @@ export default class ReplayRouter extends SelfAwareRouter {
                ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             dbId: db!.id,
             type: ChildProgramType.REPLAY,
+            ownerId: request.user!.id,
          };
 
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
