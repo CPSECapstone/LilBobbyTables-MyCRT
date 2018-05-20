@@ -86,6 +86,7 @@ export interface IEnvironmentUser {
    userId?: number;
    isAdmin?: boolean;
    email?: string;
+   acceptedAt?: number;
 }
 
 export interface IEnvironmentFull {

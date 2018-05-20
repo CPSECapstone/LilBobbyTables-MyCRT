@@ -55,7 +55,7 @@ export class EnvironmentInviteDao extends Dao {
       if (now - invite.createdAt! > MS_PER_DAY) {
          throw new Error("This invite has expired");
       }
-      await this.query('UPDATE EnvironmentUser SET accepted = 1 WHERE id = ?', [invite.id]);
+      await this.query('UPDATE EnvironmentUser SET accepted = 1, acceptedAt = ? WHERE id = ?', [now, invite.id]);
       return;
    }
 
@@ -107,7 +107,7 @@ export class EnvironmentInviteDao extends Dao {
    }
 
    public async getEnvUsers(environment: IEnvironment): Promise<IEnvironmentUser[] | null> {
-      const rows = await this.query<any[]>('SELECT u.email, u.id AS userId, eu.isAdmin ' +
+      const rows = await this.query<any[]>('SELECT u.email, u.id AS userId, eu.isAdmin, eu.acceptedAt ' +
          'FROM EnvironmentUser AS eu JOIN User AS u ON eu.userId = u.id ' +
          'WHERE eu.accepted = 1 AND eu.environmentId = ?', [environment.id!]);
 
@@ -126,6 +126,7 @@ export class EnvironmentInviteDao extends Dao {
          userId: row.userId,
          isAdmin: !!row.isAdmin,
          email: row.email,
+         acceptedAt: row.acceptedAt,
       };
    }
 
