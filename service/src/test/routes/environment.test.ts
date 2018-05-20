@@ -20,7 +20,7 @@ export const environmentTests = (mycrt: MyCrtServiceTestClient) => function() {
       const responsePost = await mycrt.post(http.OK, '/api/environments/', newEnvBody);
       const id = responsePost.body.id;
       const response = await mycrt.put(http.OK, '/api/environments/' + id, editEnvBody);
-      expect(response.body.changedRows).to.equal(1);
+      expect(response.status).to.equal(http.OK);
    });
 
    it("should reject the edit of environment", async function() {
