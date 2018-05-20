@@ -1,6 +1,7 @@
 import AwsKeysRouter from './aws-keys';
 import CaptureRouter from './capture';
 import DBReferenceRouter from './db-reference';
+import EnvUserRouter from './env-user';
 import EnvironmentRouter from './environment';
 import PingRouter from './ping';
 import ReplayRouter from './replay';
@@ -27,5 +28,6 @@ export default class ApiRouter extends SelfAwareRouter {
       mountRouter(new AwsKeysRouter(this.ipcNode));
       mountRouter(new ValidateRouter(this.ipcNode));
       mountRouter(new DBReferenceRouter(this.ipcNode));
+      mountRouter(new EnvUserRouter(this.ipcNode));
    }
 }
