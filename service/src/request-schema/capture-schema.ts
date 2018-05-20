@@ -19,6 +19,8 @@ export const captureBody: joi.ObjectSchema = joi.object().keys({
 
 export const mimicBody: joi.ObjectSchema = joi.object().keys({
    envId: value.envId.required(),
+   name: value.nameString.required(),
+   duration: captureValue.duration.required(),
 });
 
 export const capQuery: joi.ObjectSchema = joi.object().keys({

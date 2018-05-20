@@ -51,7 +51,7 @@ export interface IChildProgram {
 
 export interface ICapture extends IChildProgram {
    type: ChildProgramType.CAPTURE;
-   envId?: number;
+   // envId?: number;
 }
 
 export interface IReplay extends IChildProgram {
@@ -70,6 +70,11 @@ export interface IReplayFull extends IChildProgram {
    pass: string;
    instance: string;
    parameterGroup: string;
+}
+
+export interface IMimic extends IChildProgram {
+   type: ChildProgramType.MIMIC;
+   replays?: IReplayFull[];
 }
 
 /** Interface for Environment objects sent/received from the MyCRT service. */

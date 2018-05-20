@@ -2,7 +2,7 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
-import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList,
+import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, IMimic,
    Logging, MetricType, ServerIpcNode} from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
@@ -12,7 +12,7 @@ import { Template } from '@lbt-mycrt/gui/dist/main';
 import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
-import { startCapture } from '../common/launching';
+import { startCapture, startMimic } from '../common/launching';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
@@ -188,7 +188,46 @@ export default class CaptureRouter extends SelfAwareRouter {
          check.validBody(schema.mimicBody),
          this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.body.envId)),
          this.handleHttpErrors(async (request, response) => {
-            response.status(http.OK).end();
+
+            // TODO make this production ready. For now, just enough to launch and test.
+
+            const environment = await environmentDao.getEnvironment(request.body.envId);
+            if (!environment) {
+               throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
+            }
+
+            // make the capture
+            const endTime = this.createEndDate(new Date(), request.body.duration);
+            let capture: ICapture | null = {
+               type: ChildProgramType.CAPTURE,
+               ownerId: request.user!.id,
+               envId: environment.id,
+               status: ChildProgramStatus.STARTED,
+               name: request.body.name,
+               scheduledEnd: endTime,
+            };
+            capture = await captureDao.makeCapture(capture);
+            if (capture === null) {
+               throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to create capture in DB");
+            }
+
+            // make all of the replays
+            // TODO
+
+            // make the mimic
+            const mimic: IMimic = {
+               ...capture,
+               type: ChildProgramType.MIMIC,
+               replays: [],
+            };
+
+            // For now, we will start them now, and require that they run for a duration.
+            startMimic(mimic);
+            schedule.scheduleJob(endTime!, () => {
+               this.stopScheduledCapture(capture!);
+            });
+
+            response.json(mimic);
          }),
       );
 

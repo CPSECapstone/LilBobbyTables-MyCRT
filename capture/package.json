@@ -15,7 +15,7 @@
     "url": "https://github.com/CPSECapstone/LilBobbyTables-MyCRT.git"
   },
   "scripts": {
-     "mimic": "node ./dist/mimic/main.js"
+    "mimic": "node ./dist/mimic/main.js"
   },
   "dependencies": {
     "@lbt-mycrt/common": "file:../common",

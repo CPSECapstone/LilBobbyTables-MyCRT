@@ -20,7 +20,7 @@ const DBIdentifier: string = 'DBInstanceIdentifier';
 const period: number = 60;
 const statistics: string[] = ['Maximum'];
 
-async function validCapture(config: CaptureConfig): Promise<boolean> {
+export async function validCapture(config: CaptureConfig): Promise<boolean> {
 
    const logger = Logging.defaultLogger(__dirname);
    if (!config) { return false; }
