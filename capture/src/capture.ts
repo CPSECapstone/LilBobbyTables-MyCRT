@@ -1,7 +1,7 @@
 import mysql = require('mysql');
 import { setTimeout } from 'timers';
 
-import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, Logging, Metric,
+import { CaptureIpcNode, ICaptureIpcNodeDelegate, IpcNode, IWorkload, Logging, Metric,
    MetricsBackend, MetricsHash, MetricType, utils } from '@lbt-mycrt/common';
 import { Subprocess } from '@lbt-mycrt/common/dist/capture-replay/subprocess';
 import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, IChildProgram, IEnvironment,
@@ -19,7 +19,7 @@ import { WorkloadStorage } from './workload/workload-storage';
 
 const logger = Logging.defaultLogger(__dirname);
 
-export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
+export class Capture extends Subprocess<IWorkload> implements ICaptureIpcNodeDelegate {
 
    public env: IEnvironmentFull;
 
@@ -92,7 +92,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       }
    }
 
-   protected async loop(): Promise<void> {
+   protected async loop(): Promise<IWorkload> {
       logger.info('-----------==[ LOOP ]==-----------');
 
       const end = new Date();
@@ -105,7 +105,10 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       logger.info(`endTime   = ${end}`);
 
       logger.info('-< Process Workload >-------------');
-      await this.sendWorkloadToS3(start, end);
+      const workloadFragment = await this.sendWorkloadToS3(start, end);
+      if (workloadFragment === null) {
+         throw new Error("Unable to obtain workload in loop");
+      }
 
       if (this.config.mock) {
          logger.info('-< generate fake traffic for the mock workload >-------');
@@ -123,6 +126,7 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       }, metricsDelay);
       logger.info(`   * metrics sent`);
 
+      return workloadFragment;
    }
 
    protected async teardown(): Promise<void> {
@@ -160,7 +164,8 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
       return captureDao.updateCaptureStatus(this.id, ChildProgramStatus.FAILED, reason);
    }
 
-   private async sendWorkloadToS3(start: Date, end: Date) {
+   private async sendWorkloadToS3(start: Date, end: Date): Promise<IWorkload | null> {
+      let workloadFragment: IWorkload | null = null;
       await this.tryTwice(async () => {
 
          // download the fragment
@@ -177,11 +182,13 @@ export class Capture extends Subprocess implements ICaptureIpcNodeDelegate {
          logger.info(`Saving workload fragment to ${key}`);
          await this.storage.writeJson(key, fragment);
 
+         workloadFragment = fragment;
       }, "Send workload fragment to S3");
+
+      return workloadFragment;
    }
 
    private async sendMetricsToS3(start: Date, end: Date) {
-
       await this.tryTwice(async () => {
 
          const data = [];

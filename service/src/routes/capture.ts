@@ -2,8 +2,8 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
-import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList, IMimic,
-   Logging, MetricType, ServerIpcNode} from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IDbReference, IMetric,
+   IMetricsList, IMimic, IReplay, IReplayFull, Logging, MetricType, ServerIpcNode} from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
@@ -212,13 +212,42 @@ export default class CaptureRouter extends SelfAwareRouter {
             }
 
             // make all of the replays
-            // TODO
+            const replays: IReplay[] = [];
+            for (const replay of (request.body.replays as IReplayFull[])) {
+               let db: IDbReference | null = {
+                  name: replay.dbName,
+                  host: replay.host,
+                  user: replay.user,
+                  pass: replay.pass,
+                  instance: replay.instance,
+                  parameterGroup: replay.parameterGroup,
+               };
+               db = await environmentDao.makeDbReference(db);
+               if (!db) {
+                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "DB reference could not be created");
+               }
+
+               let replayTemplate: IReplay | null = {
+                  type: ChildProgramType.REPLAY,
+                  name: replay.name,
+                  captureId: capture!.id,
+                  status: ChildProgramStatus.STARTED,
+                  dbId: db!.id,
+                  ownerId: request.user!.id,
+               };
+               replayTemplate = await replayDao.makeReplay(replayTemplate);
+               if (!replayTemplate) {
+                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to create replay in the DB");
+               }
+
+               replays.push(replayTemplate);
+            }
 
             // make the mimic
             const mimic: IMimic = {
                ...capture,
                type: ChildProgramType.MIMIC,
-               replays: [],
+               replays,
             };
 
             // For now, we will start them now, and require that they run for a duration.

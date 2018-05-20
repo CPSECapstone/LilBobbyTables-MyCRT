@@ -74,7 +74,7 @@ export interface IReplayFull extends IChildProgram {
 
 export interface IMimic extends IChildProgram {
    type: ChildProgramType.MIMIC;
-   replays?: IReplayFull[];
+   replays?: IReplay[];
 }
 
 /** Interface for Environment objects sent/received from the MyCRT service. */

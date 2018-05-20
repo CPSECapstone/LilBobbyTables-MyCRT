@@ -40,7 +40,9 @@ export function startMimic(mimic: IMimic): void {
       logger.info(` - replay ${replay.id}`);
    });
 
-   const config = new MimicConfig(mimic.id!, mimic.envId!);
+   const replayIds: number[] = mimic.replays!.map((replay) => replay.id!);
+
+   const config = new MimicConfig(mimic.id!, mimic.envId!, replayIds);
    config.mock = settings.captures.mock;
    config.interval = settings.captures.interval;
    config.intervalOverlap = settings.captures.intervalOverlap;

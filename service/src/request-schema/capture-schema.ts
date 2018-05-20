@@ -21,6 +21,15 @@ export const mimicBody: joi.ObjectSchema = joi.object().keys({
    envId: value.envId.required(),
    name: value.nameString.required(),
    duration: captureValue.duration.required(),
+   replays: joi.array().items(joi.object().keys({
+      name: value.nameString.required(),
+      dbName: value.dbName.required(),
+      host: value.host.required(),
+      user: value.user.required(),
+      pass: value.password.required(),
+      instance: value.instance.required(),
+      parameterGroup: value.parameterGroup.required(),
+   }).required()).min(1).max(5).required(),
 });
 
 export const capQuery: joi.ObjectSchema = joi.object().keys({
