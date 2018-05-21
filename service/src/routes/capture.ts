@@ -234,6 +234,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                   status: ChildProgramStatus.STARTED,
                   dbId: db!.id,
                   ownerId: request.user!.id,
+                  scheduledEnd: endTime,
                };
                replayTemplate = await replayDao.makeReplay(replayTemplate);
                if (!replayTemplate) {

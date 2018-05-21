@@ -1,10 +1,13 @@
 import * as moment from 'moment';
 import mysql = require('mysql');
 
-import { ChildProgramStatus, ChildProgramType, ICapture, ICommand, IDbReference, IReplay,
-   IWorkload, Logging, mycrtDbConfig } from '@lbt-mycrt/common';
+import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, ICapture, ICommand, IDbReference, IMetricsList,
+   IReplay, IWorkload, Logging, MetricsBackend, MetricsHash, MetricType, mycrtDbConfig } from '@lbt-mycrt/common';
+import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
+import { path as schema } from '@lbt-mycrt/common/dist/storage/backend-schema';
 
 import { environmentDao } from '../dao';
+import { MimicConfig } from './args';
 import { replayDao } from './dao';
 
 const logger = Logging.defaultLogger(__dirname);
@@ -18,7 +21,10 @@ export class ReplayManager {
    protected commandPromises: Array<Promise<void>> = [];
    protected startTime: moment.Moment = moment();
 
-   constructor(protected replayId: number, protected mock: boolean) {}
+   constructor(protected replayId: number, protected config: MimicConfig, protected metrics: MetricsBackend,
+      protected storage: StorageBackend) {}
+
+   public get id() { return this.replayId; }
 
    public get hasStarted() { return this.started; }
 
@@ -31,7 +37,7 @@ export class ReplayManager {
 
       this.replay = r;
       this.db = db;
-      this.dbConfig = this.mock ? mycrtDbConfig : {
+      this.dbConfig = this.config.mock ? mycrtDbConfig : {
          database: db.name,
          host: db.host,
          password: db.pass,
@@ -87,11 +93,38 @@ export class ReplayManager {
       return Promise.all(this.commandPromises);
    }
 
+   public retrieveMetrics() {
+      logger.info(`Getting metrics for replay ${this.replayId}`);
+      const end = moment();
+      let start = end.clone().subtract(this.config.interval + this.config.intervalOverlap);
+      if (start.diff(this.startTime) < 0) {
+         start = this.startTime.clone();
+      }
+
+      const delta = end.diff(start);
+      if (delta < this.config.intervalOverlap) {
+         logger.info(`   skipping metrics, not enough time has passed`);
+      } else {
+         logger.info(`   waiting ${this.config.metricsDelay} ms before gathering metrics`);
+         this.commandPromises.push(new Promise<void>((resolve, reject) => {
+            setTimeout(async () => {
+               logger.info(`   retrieving metrics from ${start.toDate()} to ${end.toDate()}`);
+               try {
+                  await this.sendMetricsToS3(start.toDate(), end.toDate());
+               } catch (e) {
+                  reject(`Failed to get metrics for replay ${this.replayId}`);
+               }
+               resolve();
+            }, this.config.metricsDelay);
+         }));
+      }
+   }
+
    protected processCommand = (capture: ICapture, command: ICommand) => new Promise<void>((resolve, reject) => {
 
       // first, get the delta time until the command should be run
       let t: moment.Moment = moment(command.event_time);
-      if (!this.mock) { t = t.add(7, 'hours'); }
+      if (!this.config.mock) { t = t.add(7, 'hours'); }
 
       const queryOffset = t.diff(capture.start);
       if (queryOffset < 0) {
@@ -138,6 +171,37 @@ export class ReplayManager {
             }
          });
       });
+   }
+
+   protected async sendMetricsToS3(start: Date, end: Date) {
+      const data: IMetricsList[] = [];
+      for (const entry in MetricsHash) {
+         const metricType = MetricsHash[entry];
+
+         logger.info(`   * ${metricType.metricName}`);
+
+         const metrics = await this.metrics.getMetricsForType(metricType, start, end);
+         const datapoints = metrics.dataPoints;
+
+         if (metricType.metricType === MetricType.MEMORY) {
+            datapoints.forEach((metric) => {
+               metric.Unit = "Megabytes";
+               metric.Maximum *= ByteToMegabyte;
+            });
+         }
+
+         logger.info(`      * ${datapoints.length} datapoints`);
+         data.push(metrics);
+      }
+
+      const key = schema.metrics.getSingleSampleKey({
+         type: ChildProgramType.REPLAY,
+         id: this.replay.id,
+         envId: this.config.envId,
+      }, end);
+      logger.info(`      * saving metrics to ${key}`);
+      await this.storage.writeJson(key, data);
+      logger.info(`      * done!`);
    }
 
 }

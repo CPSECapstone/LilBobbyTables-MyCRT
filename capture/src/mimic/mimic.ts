@@ -1,10 +1,11 @@
-import { ChildProgramType, ICapture, ICaptureIpcNodeDelegate, IChildProgram, IEnvironmentFull,
-   IWorkload, Logging, MetricsBackend} from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, ICapture, ICaptureIpcNodeDelegate, IChildProgram,
+   IEnvironmentFull, IWorkload, Logging, MetricsBackend} from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { Capture } from '../capture';
 import { WorkloadLogger } from '../workload/workload-logger';
 import { MimicConfig } from './args';
+import { replayDao } from './dao';
 import { ReplayManager } from './replay-manager';
 
 const logger = Logging.defaultLogger(__dirname);
@@ -33,12 +34,6 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
       };
    }
 
-   /** Handle the stop signal */
-   // public async onStop(): Promise<any> {
-   //    logger.info(`Mimic ${this.id} received stop signal!`);
-   //    this.stop(true);
-   // }
-
    protected async setup(): Promise<void> {
       await super.setup();
       try {
@@ -46,7 +41,7 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
 
          logger.info(`Loading Replay Information for ids ${this.config.replayIds}`);
          for (const id of this.config.replayIds) {
-            const replay = new ReplayManager(id, this.config.mock);
+            const replay = new ReplayManager(id, this.config, this.metrics, this.storage);
             const loaded = await replay.loadReplay();
             if (loaded) {
                this.replays.push(replay);
@@ -69,18 +64,26 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
       const workloadFragment: IWorkload = await super.loop();
 
       // start the replay models
+      let first: boolean = false;
       for (const replay of this.replays) {
          if (!replay.hasStarted) {
+            first = true;
             await replay.start();
          }
       }
 
+      // process the workload
       const capture: ICapture = {
          type: ChildProgramType.CAPTURE,
          start: this.startTime!,
       };
       for (const replay of this.replays) {
          await replay.processWorkloadFragment(capture, workloadFragment);
+      }
+
+      // get metrics for the replays
+      if (!first) {
+         this.replays.forEach((r) => r.retrieveMetrics());
       }
 
       return workloadFragment;
@@ -90,6 +93,12 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
       await super.teardown();
       try {
          logger.info(`Performing teardown for mimic ${this.id}`);
+         for (const replay of this.replays) {
+            await replayDao.updateReplayStatus(replay.id, ChildProgramStatus.STOPPING);
+         }
+
+         logger.info(`Getting the last metrics for the replays`);
+         await this.getFinalReplayMetrics();
 
          logger.info(`Waiting for all replays to finish`);
          await Promise.all(this.replays.map((r) => r.finishAllCommands()));
@@ -104,6 +113,15 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
       } catch (error) {
          this.selfDestruct(`mimic teardown failed: ${error}`);
       }
+   }
+
+   protected getFinalReplayMetrics(): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+         setTimeout(async () => {
+            this.replays.forEach((r) => r.retrieveMetrics());
+            resolve();
+         }, this.config.filePrepDelay);
+      });
    }
 
    protected async dontPanic(reason: string): Promise<void> {
