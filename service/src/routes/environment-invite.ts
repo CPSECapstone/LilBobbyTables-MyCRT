@@ -54,7 +54,7 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
 
             // good to go!
             logger.info("Creating invite");
-            const invite = await inviteDao.inviteUser(environment, user);
+            const invite = await inviteDao.inviteUser(environment, user, false);
 
             logger.info("Invite created!");
             response.json(invite);
@@ -90,7 +90,10 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
             }
 
             logger.info("Done");
-            response.status(http.OK).end();
+
+            logger.info("Getting environment to return");
+            const environment = await environmentDao.getEnvironmentFull(invite.environmentId!);
+            response.json(environment);
 
          },
       ));

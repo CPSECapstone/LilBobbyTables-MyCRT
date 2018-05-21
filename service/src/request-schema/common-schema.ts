@@ -66,7 +66,7 @@ export const value = {
 
    dbId: joi.number(),
 
-   awsKeysId: joi.number(),
+   keysId: joi.number(),
 
    // TODO
    instance: joi.string(),

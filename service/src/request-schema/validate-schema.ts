@@ -19,3 +19,22 @@ export const databaseBody: joi.ObjectSchema = joi.object().keys({
    user: value.user.required(),
    pass: value.password.required(),
 });
+
+export const environmentNameBody: joi.ObjectSchema = joi.object().keys({
+   name: value.nameString.required(),
+});
+
+export const bucketQuery: joi.ObjectSchema = joi.object().keys({
+   envId: value.id.required(),
+});
+
+export const bucketMetricsQuery: joi.ObjectSchema = joi.object().keys({
+   envId: value.id.required(),
+   id: value.id.required(),
+   type: joi.string().regex(/^(?:capture|replay)$/).required(),
+});
+
+export const bucketWorkloadQuery: joi.ObjectSchema = joi.object().keys({
+   envId: value.id.required(),
+   id: value.id.required(),
+});

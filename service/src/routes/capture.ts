@@ -12,7 +12,7 @@ import { Template } from '@lbt-mycrt/gui/dist/main';
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startCapture } from '../common/launching';
-import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
+import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
@@ -31,55 +31,79 @@ export default class CaptureRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/', check.validQuery(schema.envQuery),
+      this.router.get('/', check.validQuery(schema.capQuery),
             this.handleHttpErrors(async (request, response) => {
 
          const envId = request.query.envId;
          const name = request.query.name;
          let captures;
+
          if (envId) {
-            captures = await captureDao.getCapturesForEnvironment(envId);
-            if (name) {
-               captures = await captureDao.getCapturesForEnvByName(envId, name);
+            const environment = await environmentDao.getEnvironment(envId);
+            if (!environment) {
+               throw new HttpError(http.NOT_FOUND, `Environment ${envId} does not exist`);
+            }
+
+            const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+            if (isUserMember.isMember) {
+               if (name) {
+                  captures = await captureDao.getCapturesForEnvByName(envId, name);
+               } else {
+                  captures = await captureDao.getCapturesForEnvironment(envId);
+               }
+            } else {
+               throw new HttpError(http.UNAUTHORIZED);
             }
          } else {
-            captures = await captureDao.getAllCaptures();
+            captures = await captureDao.getAllCaptures(request.user!);
          }
-
          response.json(captures);
       }));
 
       this.router.get('/:id(\\d+)', check.validParams(schema.idParams),
             this.handleHttpErrors(async (request, response) => {
 
-         const id = request.params.id;
-         const capture = await captureDao.getCapture(id);
+         const capture = await captureDao.getCapture(request.params.id);
+
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);
          }
-         response.json(capture);
+
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (isUserMember.isMember) {
+            response.json(capture);
+         } else {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
 
       }));
 
       this.router.get('/:id(\\d+)/metrics', check.validParams(schema.idParams),
             check.validQuery(schema.metricTypeQuery), this.handleHttpErrors(async (request, response) => {
 
-         const type: MetricType | undefined = request.query.type;
          const capture = await captureDao.getCapture(request.params.id);
-         if (capture === null) {
+
+         if (!capture) {
             throw new HttpError(http.NOT_FOUND);
-         } else if (!capture.envId) {
-            throw new HttpError(http.CONFLICT, `Capture ${capture.id} has no envId`);
          }
 
-         const environment = await environmentDao.getEnvironmentFull(capture.envId);
+         const environment = await environmentDao.getEnvironmentFull(capture!.envId!);
          if (environment === null) {
-            throw new HttpError(http.CONFLICT, `Capture ${capture.id}'s environment does not exist`);
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
          }
 
-         const result = await getMetrics(capture, environment, type);
-         response.json(result);
-
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (isUserMember.isMember) {
+            const result = await getMetrics(capture, environment!, request.query.type);
+            response.json(result);
+         } else {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
       }));
 
       this.router.post('/:id(\\d+)/stop', check.validParams(schema.idParams),
@@ -88,6 +112,16 @@ export default class CaptureRouter extends SelfAwareRouter {
          const capture = await captureDao.getCapture(request.params.id);
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);
+         }
+
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (request.user! !== capture!.ownerId && !isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
          }
 
          switch (capture.status) {
@@ -120,146 +154,154 @@ export default class CaptureRouter extends SelfAwareRouter {
             case ChildProgramStatus.FAILED:
                throw new HttpError(http.CONFLICT, "This capture failed and is no longer running.");
          }
-
       }));
 
       this.router.put('/:id(\\d+)', check.validParams(schema.idParams), check.validBody(schema.putCaptureBody),
             this.handleHttpErrors(async (request, response) => {
 
          const capture = await captureDao.getCapture(request.params.id);
-         if (!capture || !capture!.envId) {
+         if (!capture) {
             throw new HttpError(http.NOT_FOUND);
          }
 
-         const captures = await captureDao.getCapturesForEnvironment(capture!.envId!);
-         if (!captures) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR);
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
          }
 
-         let nameAvailable = true;
-
-         captures.forEach( (value, index, arr) => {
-            if (value.name && value.name! === request.body.name) {
-               nameAvailable = false;
-            }
-         });
-
-         if (nameAvailable) {
-            await captureDao.updateCaptureName(capture.id!, request.body.name);
-            response.status(http.OK).end();
-         } else {
-            throw new HttpError(http.CONFLICT, "A capture with this name already exists.");
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (request.user! !== capture!.ownerId && !isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
          }
 
+         const capWithSameName = await captureDao.getCapturesForEnvByName(request.params.id, request.body.name);
+         if (capWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
+         }
+
+         const updateCapture = await captureDao.updateCaptureName(capture.id!, request.body.name);
+         response.status(http.OK).end();
       }));
 
-      this.router.post('/',
-         check.validBody(schema.captureBody),
-         this.handleHttpErrors(async (request, response) => {
+      this.router.post('/', check.validBody(schema.captureBody),
+            this.handleHttpErrors(async (request, response) => {
 
-            const initialStatus: string | undefined = request.body.status;
-            let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
-            let endTime: Date | undefined;
+         const initialStatus: string | undefined = request.body.status;
+         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
+         let endTime: Date | undefined;
 
-            const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
-            if (capWithSameName !== null) {
-               throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
-            }
+         const environment = await environmentDao.getEnvironment(request.body.envId);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
+         }
 
-            if (!inputTime) {
-               inputTime = new Date();
-            }
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (!isUserMember.isMember) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
 
-            const duration = request.body.duration;
+         const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
+         if (capWithSameName !== null) {
+            throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
+         }
 
-            if (duration && duration < 60) {
-               throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
-            }
+         if (!inputTime) {
+            inputTime = new Date();
+         }
 
-            if (duration) {
-               endTime = this.createEndDate(inputTime, duration);
-            }
+         const duration = request.body.duration;
 
-            const env = await environmentDao.getEnvironment(request.body.envId);
-            if (!env) {
-               throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
-            }
+         if (duration && duration < 60) {
+            throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
+         }
 
-            if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
-               throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
-            }
+         if (duration) {
+            endTime = this.createEndDate(inputTime, duration);
+         }
 
-            // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
-            let captureTemplate: ICapture | null = {
-               type: ChildProgramType.CAPTURE,
-               ownerId: request.user!.id,
-               envId: env.id,
-               status: initialStatus === ChildProgramStatus.SCHEDULED ?
-                  ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-               name: request.body.name,
-               scheduledEnd: endTime,
-            };
+         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
+            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
+         }
 
-            // if status is scheduled, start at a scheduled time
-            if (initialStatus === ChildProgramStatus.SCHEDULED) {
-               captureTemplate.scheduledStart = inputTime;
-            }
+         // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
+         let captureTemplate: ICapture | null = {
+            type: ChildProgramType.CAPTURE,
+            ownerId: request.user!.id,
+            envId: environment.id,
+            status: initialStatus === ChildProgramStatus.SCHEDULED ?
+               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+            name: request.body.name,
+            scheduledEnd: endTime,
+         };
 
-            // assign capture, insert into db
-            captureTemplate = await captureDao.makeCapture(captureTemplate);
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            captureTemplate.scheduledStart = inputTime;
+         }
 
-            if (captureTemplate === null) {
-               throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
-            }
+         captureTemplate = await captureDao.makeCapture(captureTemplate);
 
-            response.json(captureTemplate);
+         if (captureTemplate === null) {
+            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
+         }
 
-            if (initialStatus === ChildProgramStatus.SCHEDULED) {
-               schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
-            } else {
-               startCapture(captureTemplate);
-            }
+         response.json(captureTemplate);
 
-            logger.info(`Successfully created capture!`);
+         if (initialStatus === ChildProgramStatus.SCHEDULED) {
+            schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
+         } else {
+            startCapture(captureTemplate);
+         }
 
-            if (duration) {
-               schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
-            }
-         },
-      ));
+         logger.info(`Successfully created capture!`);
+
+         if (duration) {
+            schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
+         }
+      },
+   ));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             check.validQuery(schema.deleteLogsQuery),
             this.handleHttpErrors(async (request, response) => {
 
-         const id = request.params.id;
-         const deleteLogs: boolean | undefined = request.query.deleteLogs;
-         const captureRow = await captureDao.getCapture(id);
+         const isDeleteLogs: boolean | undefined = request.query.deleteLogs;
 
-         const capture = await captureDao.deleteCapture(id);
+         const capture = await captureDao.getCapture(request.params.id);
          if (!capture) {
             throw new HttpError(http.NOT_FOUND);
          }
 
-         if (deleteLogs === true && captureRow && captureRow.envId) {
-            const env = await environmentDao.getEnvironmentFull(captureRow.envId);
+         const environment = await environmentDao.getEnvironment(capture!.envId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Capture ${request.params.id}'s environment does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (request.user! !== capture!.ownerId && !isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const captureDel = await captureDao.deleteCapture(request.params.id);
+
+         if (isDeleteLogs === true && capture && capture.envId) {
+            const env = await environmentDao.getEnvironmentFull(capture.envId);
 
             if (env) {
                /* TODO: Replace with S3StorageBackend object in the Capture Object */
                const storage = new S3Backend(
-                     new S3({region: env.region,
+                  new S3({
+                        region: env.region,
                         accessKeyId: env.accessKey,
-                        secretAccessKey: env.secretKey}),
-                     env.bucket, env.prefix,
-                  );
+                        secretAccessKey: env.secretKey,
+                     }),
+                  env.bucket, env.prefix,
+               );
 
-               const capturePrefix = `environment${env.id}/capture${id}/`;
+               const capturePrefix = `environment${env.id}/capture${request.params.id}/`;
                await storage.deletePrefix(capturePrefix);
             }
          }
-
-         response.json(capture);
-
+         response.status(http.OK).end();
       }));
    }
 

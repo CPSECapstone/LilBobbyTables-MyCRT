@@ -25,6 +25,10 @@ export class LocalBackend extends StorageBackend {
       return await fs.pathExists(file);
    }
 
+   public async bucketExists(): Promise<boolean> {
+      return await fs.pathExists(this.rootDir);
+   }
+
    public async allMatching(dirPrefix: string, pattern: RegExp): Promise<string[]> {
       dirPrefix = this.attachPrefix(dirPrefix);
       const fullDirPrefix = path.join(this.rootDir, dirPrefix);

@@ -73,6 +73,7 @@ export class CapturePanel extends React.Component<any, any>  {
     public async stopCapture(event: any) {
       const capture = this.state.capture;
       capture.status = ChildProgramStatus.STOPPING;
+      capture.end = new Date();
       this.setState({ capture, active: false, live: false });
       let result = await mycrt.stopCapture(this.state.capture.id);
       if (!result) {
@@ -104,7 +105,7 @@ export class CapturePanel extends React.Component<any, any>  {
        if (!this.props.capture) { return (<div></div>); }
        const percent = `${((this.state.currentDuration / this.state.duration) * 100).toFixed(0)}%`;
         return (
-            <div className="card myCRT-panel mt-4 myCRT-card">
+            <div className="card myCRT-panel mt-4 ml-4 mr-4 myCRT-card">
                 <div className={`card-header ${className}`}>
                     <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle", cursor: "pointer"}}
                         onClick={ (e) => this.handleInfoClick(e)}>{this.props.title}</h5>
@@ -126,6 +127,7 @@ export class CapturePanel extends React.Component<any, any>  {
                   </div> :
                   <div className={`card-footer ${statusStyle}`}>{this.state.capture.status}</div>}
                 <div className="card-body">
+                  {this.state.failed ? <p className="myCRT-danger-label"><i>{this.state.capture.reason}</i></p> : null}
                   {this.state.scheduled ?
                      <p><b>Scheduled Start:</b><i> {this.formatTimeStamp(this.state.capture.scheduledStart)}</i></p> :
                      <p><b>Start:</b><i> {this.formatTimeStamp(this.state.capture.start)}</i></p>}
