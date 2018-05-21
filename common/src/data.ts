@@ -39,6 +39,7 @@ export interface IChildProgram {
    type?: ChildProgramType;
    id?: number;
    ownerId?: number;
+   username?: string;
    envId?: number;
    name?: string;
    start?: Date;

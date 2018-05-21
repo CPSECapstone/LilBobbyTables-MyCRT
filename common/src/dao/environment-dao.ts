@@ -25,7 +25,7 @@ export  class EnvironmentDao extends Dao {
       const rows = user ?
          await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id ' +
             'WHERE name = ? AND ownerId = ?', [name, user.id]) :
-         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id WHERE name = ?',
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id WHERE e.name = ?',
             [name])
       ;
       if (rows.length === 0) {
@@ -36,7 +36,7 @@ export  class EnvironmentDao extends Dao {
 
    public async getEnvironment(id: number): Promise<data.IEnvironment | null> {
       const rows =
-         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id WHERE id = ?',
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id WHERE e.id = ?',
          [id]);
 
       if (rows.length === 0) {
