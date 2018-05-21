@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 
-import { IEnvironment, IEnvironmentUser as Invite, IUser } from '../data';
+import { IEnvironment, IEnvironmentUser, IEnvironmentUser as Invite, IUser } from '../data';
 import { defaultLogger } from '../logging';
 import { ConnectionPool } from './cnnPool';
 import { Dao } from './dao';
@@ -55,7 +55,7 @@ export class EnvironmentInviteDao extends Dao {
       if (now - invite.createdAt! > MS_PER_DAY) {
          throw new Error("This invite has expired");
       }
-      await this.query('UPDATE EnvironmentUser SET accepted = 1 WHERE id = ?', [invite.id]);
+      await this.query('UPDATE EnvironmentUser SET accepted = 1, acceptedAt = ? WHERE id = ?', [now, invite.id]);
       return;
    }
 
@@ -65,13 +65,11 @@ export class EnvironmentInviteDao extends Dao {
       let isMember = false;
       let isAdmin = false;
 
-      // If the user created the environment
       if (environment.ownerId === user.id) {
          logger.info('User owns the environment');
          isMember = true;
          isAdmin = true;
       } else {
-         // otherwise, they were added through invite
          const query = 'SELECT userId, isAdmin FROM EnvironmentUser WHERE userId = ? '
             + 'AND environmentId = ? AND accepted = 1';
          const rows = await this.query<any[]>(query, [user.id, environment.id]);
@@ -94,7 +92,6 @@ export class EnvironmentInviteDao extends Dao {
    }
 
    public async getAllEnvironmentsWithMembership(user: IUser): Promise<IEnvironment[]> {
-      // get invited environments
       const invited = await this.query<any[]>(
          'SELECT e.* FROM Environment as e JOIN EnvironmentUser as eu ON e.id = eu.environmentId '
          + 'WHERE eu.accepted = 1 AND eu.userId = ?', [user.id]);
@@ -102,8 +99,35 @@ export class EnvironmentInviteDao extends Dao {
       return invited.map(this.rowtoIEnvironment);
    }
 
+   public async getEnvUserCount(environment: IEnvironment): Promise<any> {
+      const envUserCt = await this.query<any>('SELECT COUNT(*) AS count FROM EnvironmentUser WHERE environmentId = ?',
+         [environment.id!]);
+
+      return envUserCt[0];
+   }
+
+   public async getEnvUsers(environment: IEnvironment): Promise<IEnvironmentUser[] | null> {
+      const rows = await this.query<any[]>('SELECT u.email, u.id AS userId, eu.isAdmin, eu.acceptedAt ' +
+         'FROM EnvironmentUser AS eu JOIN User AS u ON eu.userId = u.id ' +
+         'WHERE eu.accepted = 1 AND eu.environmentId = ?', [environment.id!]);
+
+      if (rows.length === 0) {
+         return null;
+      }
+      return rows.map(this.rowToIEnvironmentUser);
+   }
+
    private rowtoIEnvironment(row: any): IEnvironment {
       return {...row};
+   }
+
+   private rowToIEnvironmentUser(row: any): IEnvironmentUser {
+      return {
+         userId: row.userId,
+         isAdmin: !!row.isAdmin,
+         username: row.email,
+         acceptedAt: row.acceptedAt,
+      };
    }
 
    private rowToInvite(row: any) {
