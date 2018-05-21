@@ -19,6 +19,8 @@ export interface IEnvironmentUser {
    inviteCode?: string;
    accepted?: boolean;
    createdAt?: number;
+   acceptedAt?: number;
+   username?: string;
 }
 
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
@@ -80,13 +82,6 @@ export interface IEnvironment {
    awsKeysId?: number;
    dbId?: number;
    s3Id?: number;
-}
-
-export interface IEnvironmentUser {
-   userId?: number;
-   isAdmin?: boolean;
-   email?: string;
-   acceptedAt?: number;
 }
 
 export interface IEnvironmentFull {

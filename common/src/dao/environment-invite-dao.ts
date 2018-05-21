@@ -125,7 +125,7 @@ export class EnvironmentInviteDao extends Dao {
       return {
          userId: row.userId,
          isAdmin: !!row.isAdmin,
-         email: row.email,
+         username: row.email,
          acceptedAt: row.acceptedAt,
       };
    }
