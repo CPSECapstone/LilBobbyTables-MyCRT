@@ -44,7 +44,7 @@ export default class EnvironmentUserRouter extends SelfAwareRouter {
          }
 
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
-         if (isUserMember.isAdmin) {
+         if (isUserMember.isMember) {
             const envUsers = await inviteDao.getEnvUsers(environment);
             response.json(envUsers);
          } else {
