@@ -15,6 +15,7 @@ import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/environment-schema';
 import InviteRouter from './environment-invite';
+import EnvironmentUserRouter from './environment-user';
 import SelfAwareRouter from './self-aware-router';
 
 export default class EnvironmentRouter extends SelfAwareRouter {
@@ -223,5 +224,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
       const inviteRouter = new InviteRouter(this.ipcNode);
       this.router.use(inviteRouter.urlPrefix, inviteRouter.router);
+
+      const envUserRouter = new EnvironmentUserRouter(this.ipcNode);
+      this.router.use(envUserRouter.urlPrefix, envUserRouter.router);
    }
 }

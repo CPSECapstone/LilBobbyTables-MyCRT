@@ -9,9 +9,9 @@ import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/common-schema';
 import SelfAwareRouter from './self-aware-router';
 
-export default class EnvUserRouter extends SelfAwareRouter {
-   public name: string = 'envUser';
-   public urlPrefix: string = '/envUsers';
+export default class EnvironmentUserRouter extends SelfAwareRouter {
+   public name: string = 'environmentUser';
+   public urlPrefix: string = '';
 
    constructor(ipcNode: ServerIpcNode) {
       super(ipcNode, [
@@ -22,7 +22,7 @@ export default class EnvUserRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
-      this.router.get('/:id(\\d+)', this.handleHttpErrors(async (request, response) => {
+      this.router.get('/:id(\\d+)/users/count', this.handleHttpErrors(async (request, response) => {
          const environment = await environmentDao.getEnvironment(request.params.id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
@@ -37,7 +37,7 @@ export default class EnvUserRouter extends SelfAwareRouter {
          }
       }));
 
-      this.router.get('/:id(\\d+)/list', this.handleHttpErrors(async (request, response) => {
+      this.router.get('/:id(\\d+)/users/list', this.handleHttpErrors(async (request, response) => {
          const environment = await environmentDao.getEnvironment(request.params.id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
@@ -53,7 +53,7 @@ export default class EnvUserRouter extends SelfAwareRouter {
 
       }));
 
-      this.router.get('/:id(\\d+)/me', this.handleHttpErrors(async (request, response) => {
+      this.router.get('/:id(\\d+)/users/me', this.handleHttpErrors(async (request, response) => {
          const environment = await environmentDao.getEnvironment(request.params.id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND);
