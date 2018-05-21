@@ -15,17 +15,17 @@ export  class EnvironmentDao extends Dao {
 
    public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironment[]> {
       const environmentRows = user ?
-         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id WHERE ownerId = ?',
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id WHERE ownerId = ?',
             [user.id]) :
-         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id', []);
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id', []);
       return environmentRows.map(this.rowToIEnvironment);
    }
 
    public async getEnvironmentByName(name: string, user?: data.IUser): Promise<data.IEnvironment | null> {
       const rows = user ?
-         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id ' +
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id ' +
             'WHERE name = ? AND ownerId = ?', [name, user.id]) :
-         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id WHERE e.name = ?',
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id WHERE e.name = ?',
             [name])
       ;
       if (rows.length === 0) {
@@ -36,7 +36,7 @@ export  class EnvironmentDao extends Dao {
 
    public async getEnvironment(id: number): Promise<data.IEnvironment | null> {
       const rows =
-         await this.query<any[]>('SELECT * FROM Environment AS e JOIN USER as u ON e.ownerId = u.id WHERE e.id = ?',
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id WHERE e.id = ?',
          [id]);
 
       if (rows.length === 0) {
