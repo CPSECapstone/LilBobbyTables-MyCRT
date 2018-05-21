@@ -1,5 +1,5 @@
-import { ChildProgramType, ICaptureIpcNodeDelegate, IChildProgram, IEnvironmentFull, IWorkload,
-   Logging, MetricsBackend} from '@lbt-mycrt/common';
+import { ChildProgramType, ICapture, ICaptureIpcNodeDelegate, IChildProgram, IEnvironmentFull,
+   IWorkload, Logging, MetricsBackend} from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 
 import { Capture } from '../capture';
@@ -34,10 +34,10 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
    }
 
    /** Handle the stop signal */
-   public async onStop(): Promise<any> {
-      logger.info(`Mimic ${this.id} received stop signal!`);
-      this.stop(true);
-   }
+   // public async onStop(): Promise<any> {
+   //    logger.info(`Mimic ${this.id} received stop signal!`);
+   //    this.stop(true);
+   // }
 
    protected async setup(): Promise<void> {
       await super.setup();
@@ -46,7 +46,7 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
 
          logger.info(`Loading Replay Information for ids ${this.config.replayIds}`);
          for (const id of this.config.replayIds) {
-            const replay = new ReplayManager(id);
+            const replay = new ReplayManager(id, this.config.mock);
             const loaded = await replay.loadReplay();
             if (loaded) {
                this.replays.push(replay);
@@ -75,8 +75,12 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
          }
       }
 
+      const capture: ICapture = {
+         type: ChildProgramType.CAPTURE,
+         start: this.startTime!,
+      };
       for (const replay of this.replays) {
-         await replay.processWorkloadFragment(workloadFragment);
+         await replay.processWorkloadFragment(capture, workloadFragment);
       }
 
       return workloadFragment;
@@ -90,9 +94,12 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
          logger.info(`Waiting for all replays to finish`);
          await Promise.all(this.replays.map((r) => r.finishAllCommands()));
 
+         logger.info(`Ending replays`);
          for (const replay of this.replays) {
             await replay.end();
          }
+
+         logger.info(`Done!`);
 
       } catch (error) {
          this.selfDestruct(`mimic teardown failed: ${error}`);
