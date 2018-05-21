@@ -80,12 +80,14 @@ export interface IEnvironment {
    awsKeysId?: number;
    dbId?: number;
    s3Id?: number;
+   username?: string;
 }
 
 export interface IEnvironmentFull {
    id?: number;
    envName: string;
    ownerId?: number;
+   username: string;
    keysId?: number;
    keysName: string;
    accessKey: string;
