@@ -15,15 +15,18 @@ export  class EnvironmentDao extends Dao {
 
    public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironment[]> {
       const environmentRows = user ?
-         await this.query<any[]>('SELECT * FROM Environment WHERE ownerId = ?', [user.id]) :
-         await this.query<any[]>('SELECT * FROM Environment', []);
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id WHERE ownerId = ?',
+            [user.id]) :
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id', []);
       return environmentRows.map(this.rowToIEnvironment);
    }
 
    public async getEnvironmentByName(name: string, user?: data.IUser): Promise<data.IEnvironment | null> {
       const rows = user ?
-         await this.query<any[]>('SELECT * FROM Environment WHERE name = ? AND ownerId = ?', [name, user.id]) :
-         await this.query<any[]>('SELECT * FROM Environment WHERE name = ?', [name])
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id ' +
+            'WHERE name = ? AND ownerId = ?', [name, user.id]) :
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id WHERE e.name = ?',
+            [name])
       ;
       if (rows.length === 0) {
          return null;
@@ -32,7 +35,10 @@ export  class EnvironmentDao extends Dao {
    }
 
    public async getEnvironment(id: number): Promise<data.IEnvironment | null> {
-      const rows = await this.query<any[]>('SELECT * FROM Environment WHERE id = ?', [id]);
+      const rows =
+         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id WHERE e.id = ?',
+         [id]);
+
       if (rows.length === 0) {
          return null;
       }
@@ -40,11 +46,12 @@ export  class EnvironmentDao extends Dao {
    }
 
    public async getEnvironmentFull(id: number): Promise<data.IEnvironmentFull | null> {
-      const queryStr = 'SELECT e.id, e.name AS envName, e.ownerId AS ownerId, ' +
+      const queryStr = 'SELECT e.id, e.name AS envName, e.ownerId AS ownerId, u.email, ' +
          'd.name AS dbName, host, user, pass, instance, parameterGroup, ' +
          'bucket, prefix, accessKey, secretKey, region, a.name as keysName, a.id as keysId ' +
          'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ' +
          'JOIN S3Reference AS s ON e.S3Id = s.id JOIN AwsKeys AS a ON e.awsKeysId = a.id ' +
+         'JOIN User AS u ON e.ownerId = u.id ' +
          'WHERE e.id = ?';
 
       const rows = await this.query<any[]>(queryStr, [id]);
@@ -158,6 +165,7 @@ export  class EnvironmentDao extends Dao {
          awsKeysId: row.awsKeysId,
          dbId: row.dbId,
          s3Id: row.s3Id,
+         username: row.email,
       };
    }
 
@@ -166,6 +174,7 @@ export  class EnvironmentDao extends Dao {
          id: row.id,
          envName: row.envName,
          ownerId: row.ownerId,
+         username: row.email,
          keysId: row.keysId,
          keysName: row.keysName,
          accessKey: cryptr.decrypt(row.accessKey),
