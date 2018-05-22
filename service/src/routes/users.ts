@@ -101,6 +101,12 @@ export class UserRouter extends SelfAwareRouter {
          },
       ));
 
+      this.router.put('/forgotPassword',
+      this.handleHttpErrors(async (request, response) => {
+            // TODO: implement
+         },
+      ));
+
       this.router.delete('/:id(\\d+)',
          session.adminLoggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {

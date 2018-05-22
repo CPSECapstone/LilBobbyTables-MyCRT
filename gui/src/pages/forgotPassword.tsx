@@ -14,16 +14,14 @@ import * as ReactDom from 'react-dom';
 
 export interface State {
    email: string;
-   password: string;
 }
 
-class LoginApp extends React.Component<{}, State> {
+class ForgotPasswordApp extends React.Component<{}, State> {
 
    constructor(props: {}) {
       super(props);
       this.state = {
          email: '',
-         password: '',
       };
    }
 
@@ -35,33 +33,23 @@ class LoginApp extends React.Component<{}, State> {
 
                   <div className="card text-center myCRT-setup-card" style={style.signupCard}>
                      <div className="card-body">
-                        <h3 style={style.cardTitle}>Login to MyCRT</h3>
+                        <h3 style={style.cardTitle}>Forgot Password</h3>
 
                         <div className="input-group mb-3">
                            <input type="email" className="form-control" placeholder="Email"
                               onChange={this.handleEmailChange}/>
                         </div>
                         <div className="input-group mb-3">
-                           <input type="password" className="form-control"
-                              placeholder="Password" onChange={this.handlePasswordChange} />
-                        </div>
-                        <div className="input-group mb-3">
-                           <p className="text-muted">
-                              <a href="/forgotPassword">Forgot Password?</a>
-                           </p>
-                        </div>
-                        <div className="input-group mb-3">
                            <button type="button" className="btn btn-primary" style={style.submit}
-                                 onClick={this.handleSubmit}>
-                              Log In
+                                 onClick={this.recoverLogin}>
+                              Send Reset Link
                            </button>
                         </div>
-
                      </div>
                   </div>
 
                   <p className="text-muted">
-                     Need to create an account? <a href="/signup">Sign Up</a>
+                     Remember your password? <a href="/login">Login</a>
                   </p>
 
                </div>
@@ -77,32 +65,27 @@ class LoginApp extends React.Component<{}, State> {
       });
    }
 
-   private handlePasswordChange = (e: any) => {
-      this.setState({
-         ...this.state,
-         password: e.target.value,
-      });
-   }
+   private recoverLogin = async (e: any) => {
+      logger.info("Need to reset password!");
 
-   private handleSubmit = async (e: any) => {
-      logger.info("Submit!");
-      const valid = validLoginFields(this.state);
-
-      const user = await mycrt.login(this.state);
+      logger.info("Check that the email belongs to a valid user");
+      // TODO: Check that the email is valid and is registered to a user in the db
+      const valid = null;
+      const user = null;
 
       if (!valid || user === null) {
-         logger.error("Invalid Credentials");
+         logger.error("Invalid Email");
          store.dispatch(showAlert({
             show: true,
-            header: "Invalid Credentials",
-            message: "Please enter a correct email/password.",
+            header: "Invalid Email",
+            message: "The provided email is not registered with MyCRT.",
          }));
       } else {
          logger.info("Done!");
-         window.location.assign('/');
+         // window.location.assign('/');
       }
    }
 
 }
 
-ReactDom.render(<BasePage page={<LoginApp />}/>, document.getElementById('login-app'));
+ReactDom.render(<BasePage page={<ForgotPasswordApp />}/>, document.getElementById('forgotPassword-app'));
