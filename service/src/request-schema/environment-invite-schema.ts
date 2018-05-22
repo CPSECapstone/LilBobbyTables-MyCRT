@@ -11,3 +11,5 @@ export const inviteBody: joi.ObjectSchema = joi.object().keys({
 export const acceptBody: joi.ObjectSchema = joi.object().keys({
    inviteCode: joi.string().regex(/[a-f0-9]{8}/i).required(),
 });
+
+export * from './common-schema';

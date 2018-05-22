@@ -16,12 +16,11 @@ export class UserTable extends React.Component<any, any> {
       const users: JSX.Element[] = [];
       let count = 1;
       for (const user of this.props.users) {
-         logger.info(user.acceptedAt);
          users.push(
             <tr>
                <th scope="row">{count}</th>
                <td>{user.username}</td>
-               <td>{String(user.isAdmin)}</td>
+               <td>{user.isAdmin ? "Yes" : "No"}</td>
                <td>{moment(user.acceptedAt).format('MM/DD/YY - h:mm A')}</td>
             </tr>,
          );
@@ -33,7 +32,7 @@ export class UserTable extends React.Component<any, any> {
                <tr>
                   <th scope="col">#</th>
                   <th scope="col">Email</th>
-                  <th scope="col">Admin Access</th>
+                  <th scope="col">Administrator</th>
                   <th scope="col">Date Joined</th>
                </tr>
             </thead>

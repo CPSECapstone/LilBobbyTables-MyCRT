@@ -17,6 +17,7 @@ import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
 import { DeleteModal } from './components/delete_modal_comp';
 import { ErrorBoundary } from './components/error_boundary_comp';
+import { LeaveModal } from './components/leave_env_comp';
 import { ListView } from './components/list_view_comp';
 import { Pagination } from './components/pagination_comp';
 import { ReplayModal } from './components/replay_modal_comp';
@@ -32,6 +33,8 @@ class DashboardApp extends React.Component<any, any> {
         super(props);
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
+        this.leaveEnv = this.leaveEnv.bind(this);
+        this.sendMessage = this.sendMessage.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
         this.userSetup = this.userSetup.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
@@ -118,8 +121,31 @@ class DashboardApp extends React.Component<any, any> {
     }
 
     public async deleteEnv(id: number, deleteLogs: boolean) {
+      const name = this.state.env.envName;
       const result = await mycrt.deleteEnvironment(id, deleteLogs);
-      window.location.assign('./environments');
+      if (result) {
+         window.location.assign('./environments');
+         this.sendMessage(`You have deleted ${name}!`);
+      }
+    }
+
+    public async leaveEnv() {
+      const name = this.state.env.envName;
+      logger.debug(this.state.me);
+      const leave = await mycrt.leaveEnv(this.state.me.id);
+      if (leave) {
+         window.location.assign('./environments');
+         this.sendMessage(`You have left ${name}!`);
+      }
+    }
+
+    public async sendMessage(message: string) {
+      store.dispatch(showAlert({
+         show: true,
+         header: "Success!",
+         success: true,
+         message,
+      }));
     }
 
     public render() {
@@ -175,10 +201,19 @@ class DashboardApp extends React.Component<any, any> {
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
                      {this.state.me.isAdmin ? <h4 className="admin-flag"><i>(Admin)</i></h4> : null}
-                     {this.state.me.isAdmin ? <a role="button" className="btn btn-outline-danger"
+                     {this.state.me.isAdmin ?
+                        <span data-toggle="tooltip" data-placement="bottom" title="Delete Environment">
+                           <a role="button" className="btn btn-outline-danger"
                            data-target="#deleteEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
                            data-backdrop="static" data-keyboard={false}  data-toggle="modal" href="#">
-                           <i className="fa fa-trash fa-lg" aria-hidden="true"></i></a> : null}
+                           <i className="fa fa-trash fa-lg" aria-hidden="true"></i></a></span> : null}
+                     <span data-toggle="tooltip" data-placement="bottom" title="Leave Environment">
+                        <a role="button" className="btn btn-outline-danger"
+                           data-target="#leaveEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
+                           data-backdrop="static" data-keyboard={false}  data-toggle="modal" href="#">
+                           <i className="fa fa-sign-out fa-lg" aria-hidden="true"></i>
+                        </a>
+                     </span>
                      <br/><br/>
                      <div className="myCRT-overflow-col" style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>
@@ -203,6 +238,7 @@ class DashboardApp extends React.Component<any, any> {
                      </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.envId}
                            name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
+                        <LeaveModal id="leaveEnvModal" leaveEnv={this.leaveEnv} name={this.state.env.envName}/>
                         <ShareModal id="shareEnvModal" name={this.state.env.envName} envId={this.state.envId}/>
                   </div>
                </div>
@@ -264,10 +300,12 @@ class DashboardApp extends React.Component<any, any> {
                   </div>
                   <div className="tab-pane" id="userTab" role="tabpanel">
                      <br/><h2 style={{display: "inline"}}>Users</h2>
-                     {this.state.me.isAdmin ? <a role="button" className="btn btn-outline-primary"
+                     {this.state.me.isAdmin ?
+                        <span data-toggle="tooltip" data-placement="right" title="Invite User">
+                        <a role="button" className="btn btn-outline-primary"
                            data-target="#shareEnvModal" style={{marginBottom: "15px", marginLeft: "15px"}}
                            data-backdrop="static" data-keyboard={false} data-toggle="modal" href="#">
-                           <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i></a> : null}
+                           <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i></a></span> : null}
                      <br/><br/>
                      <UserTable users={this.state.users}/>
                   </div>

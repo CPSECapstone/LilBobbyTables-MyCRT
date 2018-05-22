@@ -61,6 +61,22 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
          },
       ));
 
+      this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
+            this.handleHttpErrors(async (request, response) => {
+
+         const userInvite = await inviteDao.getInvite(request.params.id);
+         if (!userInvite) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         if (userInvite.userId !== request.user!.id) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const inviteDel = await inviteDao.delInvite(request.params.id);
+         response.json(inviteDel);
+      }));
+
       this.router.put('/accept',
          check.validBody(schema.acceptBody),
          this.handleHttpErrors(async (request, response) => {

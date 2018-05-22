@@ -233,6 +233,10 @@ export class MyCrtClient {
       return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/users/list`);
    }
 
+   public async leaveEnv(envUserId: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/environments/invites/${envUserId}`);
+   }
+
    /**
     * Create an invitation to an environment. The response will have an inviteCode on the body.
     * The given user must then accept the invitation with that invite code.
