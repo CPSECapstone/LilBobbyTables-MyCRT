@@ -12,13 +12,13 @@ import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startReplay} from '../common/launching';
+import { ReplayCreator } from '../common/replay-creator';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import { noReplaysOnTargetDb } from '../middleware/replay';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/replay-schema';
 import { settings } from '../settings';
-import { ReplayCreator } from './replay-creator';
 import SelfAwareRouter from './self-aware-router';
 
 export default class ReplayRouter extends SelfAwareRouter {

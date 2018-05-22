@@ -10,13 +10,13 @@ import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 import { Template } from '@lbt-mycrt/gui/dist/main';
 
 import * as session from '../auth/session';
+import { CaptureCreator } from '../common/capture-creator';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startCapture } from '../common/launching';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
-import { CaptureCreator } from './capture-creator';
 import SelfAwareRouter from './self-aware-router';
 
 export default class CaptureRouter extends SelfAwareRouter {
