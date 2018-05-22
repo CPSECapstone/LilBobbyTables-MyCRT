@@ -63,7 +63,7 @@ class AccountApp extends React.Component<{}, State> {
                   </div>
                   <br/>
                   <UserInfo email={this.state.user.email} />
-                     <button type="button" className="btn btn-primary" onClick={this.handleSignout}>
+                     <button type="button" className="btn btn-outline-danger" onClick={this.handleSignout}>
                         Logout
                      </button>
                   </div>

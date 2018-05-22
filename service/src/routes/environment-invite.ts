@@ -77,6 +77,28 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
          response.json(inviteDel);
       }));
 
+      this.router.put('/promote', check.validBody(schema.promoteBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const envUser = await inviteDao.getInvite(request.body.envUserId);
+         if (!envUser) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const environment = await environmentDao.getEnvironment(envUser.environmentId!);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment);
+         if (isUserMember.isAdmin) {
+            const promoteToAdmin = inviteDao.promoteToAdmin(request.body.envUserId);
+            response.json();
+         } else {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+      }));
+
       this.router.put('/accept',
          check.validBody(schema.acceptBody),
          this.handleHttpErrors(async (request, response) => {

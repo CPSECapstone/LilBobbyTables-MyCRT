@@ -65,6 +65,11 @@ export class EnvironmentInviteDao extends Dao {
       return;
    }
 
+   public async promoteToAdmin(envUserId: number): Promise<any> {
+      const updateRow = await this.query('UPDATE EnvironmentUser SET isAdmin = 1 WHERE id = ?', [envUserId]);
+      return updateRow;
+   }
+
    public async getUserMembership(user: IUser, environment: IEnvironment):
          Promise<IEnvironmentMember> {
 
