@@ -132,7 +132,7 @@ export default class ReplayRouter extends SelfAwareRouter {
          this.handleHttpErrors(async (request, response) => {
             const replayCreator = new ReplayCreator(request, response);
             replayCreator.scheduledChecks();
-            replayCreator.createReplayTemplate(request, response);
+            await replayCreator.createReplayTemplate(request, response);
          },
       ));
 

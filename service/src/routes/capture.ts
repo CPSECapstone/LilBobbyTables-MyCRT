@@ -189,7 +189,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          this.handleHttpErrors(async (request, response) => {
             const captureCreator = new CaptureCreator(request, response, this.ipcNode);
             captureCreator.scheduledChecks();
-            captureCreator.createCaptureTemplate(request, response);
+            await captureCreator.createCaptureTemplate(request, response);
          },
       ));
 

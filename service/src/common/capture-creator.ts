@@ -56,12 +56,11 @@ export class CaptureCreator extends SubProcessCreator {
    public async createCaptureTemplate(request: any, response: any) {
       this.env = await environmentDao.getEnvironment(request.body.envId);
       if (!this.env) {
-         throw new HttpError(http.BAD_REQUEST, `Environment ${request.body.envId} does not exist`);
+         throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
       }
       this.checkScheduledStatus(request);
 
       // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
-      // Replay: dbId, captureId
       // create capture template
       this.createTemplate(request, ChildProgramType.CAPTURE);
       // add attributes to capture template
