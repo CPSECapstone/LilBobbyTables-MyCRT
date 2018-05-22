@@ -2,6 +2,7 @@ import React = require('react');
 import ReactDom = require('react-dom');
 
 import * as $ from 'jquery';
+import * as moment from 'moment';
 
 import { BrowserLogger as logger } from '../../logging';
 import { ErrorModal } from './error_modal_comp';
@@ -15,12 +16,13 @@ export class UserTable extends React.Component<any, any> {
       const users: JSX.Element[] = [];
       let count = 1;
       for (const user of this.props.users) {
+         logger.info(user.acceptedAt);
          users.push(
             <tr>
                <th scope="row">{count}</th>
                <td>{user.username}</td>
                <td>{String(user.isAdmin)}</td>
-               <td>{user.acceptedAt}</td>
+               <td>{moment(user.acceptedAt).format('MM/DD/YY - h:mm A')}</td>
             </tr>,
          );
          count += 1;

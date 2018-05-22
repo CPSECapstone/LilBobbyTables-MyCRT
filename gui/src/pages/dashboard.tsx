@@ -64,7 +64,6 @@ class DashboardApp extends React.Component<any, any> {
                      + " before creating a capture or running a replay.",
          }));
       }
-      $(`#dashboardTabs a[href="#dashboardTab"]`).tab('show');
     }
 
    public async userSetup() {
@@ -72,7 +71,6 @@ class DashboardApp extends React.Component<any, any> {
       if (user) {
          this.setState({me: user});
       }
-      logger.info(JSON.stringify(user));
       const allUsers = await mycrt.getEnvUsers(this.state.envId);
       this.setState({users: allUsers});
    }
@@ -210,14 +208,14 @@ class DashboardApp extends React.Component<any, any> {
                <br></br>
                <ul className="nav nav-tabs" role="tablist" id="dashboardTabs">
                   <li className="nav-item">
-                     <a className="nav-link" data-toggle="tab" href="#dashboardTab" role="tab">Dashboard</a>
+                     <a className="nav-link show active" data-toggle="tab" href="#dashboardTab" role="tab">Dashboard</a>
                   </li>
                   <li className="nav-item">
                      <a className="nav-link" data-toggle="tab" href="#userTab" role="tab">Users</a>
                   </li>
                </ul>
                <div className = "tab-content">
-                  <div className="tab-pane" id="dashboardTab" role="tabpanel">
+                  <div className="tab-pane show active" id="dashboardTab" role="tabpanel">
                      <div className="row">
                         <div className="col-xs-12 col-md-5 mb-r">
                            <div><br/>
