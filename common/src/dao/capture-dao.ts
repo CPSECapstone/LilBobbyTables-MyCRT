@@ -10,13 +10,15 @@ export class CaptureDao extends Dao {
    // TODO: should we paginate this?
    public async getAllCaptures(user?: data.IUser): Promise<data.ICapture[]> {
       const rawCaptures = user ?
-         await this.query<any[]>('SELECT * FROM Capture WHERE ownerId = ?', [user.id]) :
-         await this.query<any[]>('SELECT * FROM Capture', []);
+         await this.query<any[]>('SELECT c.*, u.email FROM Capture AS c JOIN User AS u on c.ownerId = u.id ' +
+          'WHERE ownerId = ?', [user.id]) :
+         await this.query<any[]>('SELECT c.*, u.email FROM Capture AS c JOIN User AS u on c.ownerId = u.id', []);
       return rawCaptures.map(this.rowToICapture);
    }
 
    public async getCapture(id: number): Promise<data.ICapture | null> {
-      const result = await this.query<any[]>('SELECT * FROM Capture WHERE id = ?', [id]);
+      const result = await this.query<any[]>('SELECT * FROM Capture AS c JOIN User AS u on c.ownerId = u.id ' +
+         'WHERE c.id = ?', [id]);
       if (result.length === 0) {
          return null;
       }
@@ -24,12 +26,14 @@ export class CaptureDao extends Dao {
    }
 
    public async getCapturesForEnvironment(envId: number): Promise<data.ICapture[] | null> {
-      const rawCaptures = await this.query<any[]>('SELECT * FROM Capture WHERE envId = ?', [envId]);
+      const rawCaptures = await this.query<any[]>('SELECT * FROM Capture AS c JOIN User AS u on c.ownerId = u.id ' +
+         'WHERE envId = ?', [envId]);
       return rawCaptures.map(this.rowToICapture);
    }
 
    public async getCapturesForEnvByName(envId: number, name: string): Promise<data.ICapture[] | null> {
-      const rawCaptures = await this.query<any[]>('SELECT * FROM Capture WHERE envId = ? AND name = ?', [envId, name]);
+      const rawCaptures = await this.query<any[]>('SELECT * FROM Capture AS c JOIN User AS u on c.ownerId = u.id ' +
+         'WHERE envId = ? AND c.name = ?', [envId, name]);
       if (rawCaptures.length === 0) {
          return null;
       }
@@ -50,11 +54,8 @@ export class CaptureDao extends Dao {
             'scheduledStart > ?' :
             'scheduledStart <= ?';
          const rawCaptures = await this.query<any[]>(
-            `SELECT * FROM Capture WHERE scheduledStart IS NOT NULL AND status = "SCHEDULED" ` +
-               `AND ${when}`,
-            [
-               now,
-            ],
+            `SELECT * FROM Capture AS c JOIN User AS u on c.ownerId = c.id ` +
+            `WHERE scheduledStart IS NOT NULL AND status = "SCHEDULED" AND ${when}`, [now],
          );
          return rawCaptures.map(this.rowToICapture);
       } catch (e) {
@@ -115,6 +116,7 @@ export class CaptureDao extends Dao {
       return {
          id: captureData.id,
          name: captureData.name,
+         username: captureData.email,
          start: captureData.start,
          scheduledStart: captureData.scheduledStart,
          scheduledEnd: captureData.scheduledEnd,
