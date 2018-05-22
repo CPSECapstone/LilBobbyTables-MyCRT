@@ -93,8 +93,8 @@ export class EnvironmentInviteDao extends Dao {
 
    public async getAllEnvironmentsWithMembership(user: IUser): Promise<IEnvironment[]> {
       const invited = await this.query<any[]>(
-         'SELECT e.* FROM Environment as e JOIN EnvironmentUser as eu ON e.id = eu.environmentId '
-         + 'WHERE eu.accepted = 1 AND eu.userId = ?', [user.id]);
+         'SELECT e.*, u.email FROM Environment AS e JOIN EnvironmentUser AS eu ON e.id = eu.environmentId ' +
+         'JOIN User AS u ON e.ownerId = u.id WHERE eu.accepted = 1 AND eu.userId = ?', [user.id]);
 
       return invited.map(this.rowtoIEnvironment);
    }
