@@ -101,7 +101,13 @@ export class UserRouter extends SelfAwareRouter {
          },
       ));
 
-      this.router.put('/password', session.loggedInOrForbidden,
+      this.router.put('/forgotPassword', session.loggedInOrForbidden,
+         this.handleHttpErrors(async (request, response) => {
+            // TODO: implement
+         },
+      ));
+
+      this.router.put('/changePassword', session.loggedInOrForbidden,
          check.validBody(schema.newPasswordBody),
          this.handleHttpErrors(async (request, response) => {
 
