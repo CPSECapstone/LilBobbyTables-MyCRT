@@ -101,6 +101,29 @@ export class UserRouter extends SelfAwareRouter {
          },
       ));
 
+      this.router.put('/password', session.loggedInOrForbidden,
+         check.validBody(schema.newPasswordBody),
+         this.handleHttpErrors(async (request, response) => {
+
+            const user = request.user!;
+
+            const oldPassMatch = await auth.compareHash(request.body.oldPassword, user.passwordHash!);
+            const newPassHash = await auth.encrypt(request.body.newPassword);
+            const newPassHashMatch = await auth.compareHash(request.body.newPasswordAgain, newPassHash);
+
+            if (!oldPassMatch) {
+               throw new HttpError(http.BAD_REQUEST, "Old password does not match your current password");
+            }
+
+            if (!newPassHashMatch) {
+               throw new HttpError(http.BAD_REQUEST, "New passwords do not match");
+            }
+
+            await userDao.updateUserPassword(user.id!, newPassHash);
+            response.status(http.OK).end();
+
+      }));
+
       this.router.delete('/:id(\\d+)',
          session.adminLoggedInOrForbidden,
          this.handleHttpErrors(async (request, response) => {
