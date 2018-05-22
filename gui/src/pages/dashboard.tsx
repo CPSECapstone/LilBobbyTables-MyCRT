@@ -174,12 +174,13 @@ class DashboardApp extends React.Component<any, any> {
                <div className="row">
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
+                     {this.state.me.isAdmin ? <h4 className="admin-flag"><i>(Admin)</i></h4> : null}
                      {this.state.me.isAdmin ? <a role="button" className="btn btn-outline-danger"
                            data-target="#deleteEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
                            data-backdrop="static" data-keyboard={false}  data-toggle="modal" href="#">
                            <i className="fa fa-trash fa-lg" aria-hidden="true"></i></a> : null}
                      <br/><br/>
-                     <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
+                     <div className="myCRT-overflow-col" style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>
                         <div className="row">
                            <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
