@@ -37,6 +37,7 @@ CREATE TABLE EnvironmentUser (
    isAdmin TINYINT(1) DEFAULT 0,
    inviteCode VARCHAR(8) NOT NULL,
    accepted TINYINT(1) DEFAULT 0,
+   acceptedAt BIGINT(11),
    createdAt BIGINT(11) NOT NULL,
    CONSTRAINT environmentIdKey
       FOREIGN KEY (environmentId)
