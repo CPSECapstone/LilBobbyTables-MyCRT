@@ -216,6 +216,11 @@ export class MyCrtClient {
       return this.makeRequest<IUser>(HttpMethod.PUT, '/users/forgotPassword', null, email);
    }
 
+   /** Change the User's Password to MyCRT */
+   public async changePassword(user: types.ChangePasswordBody): Promise<IUser | null> {
+      return this.makeRequest<IUser>(HttpMethod.PUT, '/users/changePassword', null, user);
+   }
+
    /** Get info about the current user */
    public async aboutMe(): Promise<IUser | null> {
       return this.makeRequest<IUser>(HttpMethod.GET, '/users/me', null);

@@ -7,3 +7,8 @@ export interface LoginBody {
 export interface SignupBody extends LoginBody {
    agreeToTerms: boolean;
 }
+
+export interface ChangePasswordBody {
+   oldPassword: string;
+   password: string;
+}
