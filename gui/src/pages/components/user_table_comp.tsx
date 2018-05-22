@@ -12,6 +12,19 @@ export class UserTable extends React.Component<any, any> {
    }
 
    public render() {
+      const users: JSX.Element[] = [];
+      let count = 1;
+      for (const user of this.props.users) {
+         users.push(
+            <tr>
+               <th scope="row">{count}</th>
+               <td>{user.username}</td>
+               <td>{String(user.isAdmin)}</td>
+               <td>{user.acceptedAt}</td>
+            </tr>,
+         );
+         count += 1;
+      }
       return (
          <table className="table">
             <thead className="thead-light">
@@ -22,26 +35,7 @@ export class UserTable extends React.Component<any, any> {
                   <th scope="col">Date Joined</th>
                </tr>
             </thead>
-            <tbody>
-               <tr>
-                  <th scope="row">1</th>
-                  <td>hilaryschulz@gmail.com</td>
-                  <td>true</td>
-                  <td>5/5/18</td>
-               </tr>
-               <tr>
-                  <th scope="row">2</th>
-                  <td>ctaylo36@calpoly.edu</td>
-                  <td>false</td>
-                  <td>5/18/18</td>
-               </tr>
-               <tr>
-                  <th scope="row">3</th>
-                  <td>hils124@yahoo.com</td>
-                  <td>false</td>
-                  <td>5/19/18</td>
-               </tr>
-            </tbody>
+            <tbody>{users}</tbody>
          </table>
       );
    }

@@ -33,15 +33,16 @@ class DashboardApp extends React.Component<any, any> {
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
+        this.userSetup = this.userSetup.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
         if (match) {
             id = match[1];
         }
-        this.state = { envId: id, env: null, captures: [], replays: [], error: "",
-         pastCSearch: "", scheduleCSearch: "", liveCSearch: "",
-         pastRSearch: "", scheduleRSearch: "", liveRSearch: ""};
+        this.state = { envId: id, env: null, me: null, captures: [], replays: [], error: "", users: [],
+                       pastCSearch: "", scheduleCSearch: "", liveCSearch: "",
+                       pastRSearch: "", scheduleRSearch: "", liveRSearch: ""};
     }
 
     public async componentWillMount() {
@@ -51,6 +52,7 @@ class DashboardApp extends React.Component<any, any> {
          });
       }
       this.setCaptures();
+      this.userSetup();
       const bucketExists = await mycrt.validateStorage(this.state.envId);
       if (!bucketExists) {
          logger.error("Bucket no longer exists.");
@@ -64,6 +66,16 @@ class DashboardApp extends React.Component<any, any> {
       }
       $(`#dashboardTabs a[href="#dashboardTab"]`).tab('show');
     }
+
+   public async userSetup() {
+      const user = await mycrt.envAboutMe(this.state.envId);
+      if (user) {
+         this.setState({me: user});
+      }
+      logger.info(JSON.stringify(user));
+      const allUsers = await mycrt.getEnvUsers(this.state.envId);
+      this.setState({users: allUsers});
+   }
 
    public async setCaptures() {
        const capturesResponse = await mycrt.getCapturesForEnvironment(this.state.envId);
@@ -113,7 +125,7 @@ class DashboardApp extends React.Component<any, any> {
     }
 
     public render() {
-        if (!this.state.env) { return (<div></div>); }
+        if (!this.state.me) { return (<div></div>); }
         const liveCaptures: JSX.Element[] = [];
         const scheduledCaptures: JSX.Element[] = [];
         const pastCaptures: JSX.Element[] = [];
@@ -164,11 +176,11 @@ class DashboardApp extends React.Component<any, any> {
                <div className="row">
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
-                     <a role="button" className="btn btn-outline-danger" data-toggle="modal" href="#"
+                     {this.state.me.isAdmin ? <a role="button" className="btn btn-outline-danger"
                            data-target="#deleteEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
-                           data-backdrop="static" data-keyboard={false}>
-                            <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
-                     </a><br/><br/>
+                           data-backdrop="static" data-keyboard={false}  data-toggle="modal" href="#">
+                           <i className="fa fa-trash fa-lg" aria-hidden="true"></i></a> : null}
+                     <br/><br/>
                      <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>
                         <div className="row">
@@ -253,13 +265,12 @@ class DashboardApp extends React.Component<any, any> {
                   </div>
                   <div className="tab-pane" id="userTab" role="tabpanel">
                      <br/><h2 style={{display: "inline"}}>Users</h2>
-                     <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
+                     {this.state.me.isAdmin ? <a role="button" className="btn btn-outline-primary"
                            data-target="#shareEnvModal" style={{marginBottom: "15px", marginLeft: "15px"}}
-                           data-backdrop="static" data-keyboard={false}>
-                            <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i>
-                     </a>
+                           data-backdrop="static" data-keyboard={false} data-toggle="modal" href="#">
+                           <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i></a> : null}
                      <br/><br/>
-                     <UserTable />
+                     <UserTable users={this.state.users}/>
                   </div>
                </div>
             </div>

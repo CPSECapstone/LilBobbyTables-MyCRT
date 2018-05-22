@@ -7,7 +7,7 @@ export class EnvironmentPanel extends React.Component<any, any>  {
     public constructor(props: any) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
-        this.state = {captureNum: null, replayNum: null};
+        this.state = {captureNum: null, replayNum: null, userCount: null};
     }
 
     public async componentWillMount() {
@@ -25,6 +25,11 @@ export class EnvironmentPanel extends React.Component<any, any>  {
             }
         }
         this.setState({replayNum});
+        const result = await mycrt.getEnvCount(this.props.env.id);
+        if (result) {
+           this.setState({userCount: result.count});
+        }
+
     }
 
     public handleClick(event: any): void {
@@ -32,13 +37,16 @@ export class EnvironmentPanel extends React.Component<any, any>  {
     }
 
     public render() {
-        if (this.state.replayNum === null) {return <div></div>; }
+        if (this.state.userCount === null) {return <div></div>; }
         return (
             <div className="myCRT-panel">
                 <div className="card mt-3 w-100 myCRT-card">
                     <div className="card-header myCRT-env-card">
-                        <h5 className="hover-text" role="button" onClick={ (e) => this.handleClick(e)}>
+                        <h5 className="hover-text" role="button" style={{display: "inline"}}
+                           onClick={ (e) => this.handleClick(e)}>
                            {this.props.title}</h5>
+                        <i className="fa fa-users fa-lg" style={{float: "right", marginTop: "3px"}}></i>
+                        <p style={{float: "right", paddingRight: "10px"}}>{this.state.userCount}</p>
                     </div>
                     <div className="card-body">
                         <p>Captures: <b>{this.state.captureNum}</b></p>
