@@ -5,7 +5,15 @@ const childProcessTypeToString = (type?: ChildProgramType): string => {
    if (!type) {
       throw new Error(`Bad Child Program Type: ${type}`);
    }
-   return type.toLowerCase();
+
+   switch (type) {
+      case ChildProgramType.REPLAY:
+         return 'replay';
+      case ChildProgramType.CAPTURE:
+      case ChildProgramType.MIMIC:
+      default:
+         return 'capture';
+   }
 };
 
 /**

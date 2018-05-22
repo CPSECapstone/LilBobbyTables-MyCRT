@@ -15,7 +15,7 @@ import { Replay } from './replay';
 
 const DBIdentifier: string = 'DBInstanceIdentifier';
 
-async function validReplay(config: ReplayConfig): Promise<boolean> {
+export async function validReplay(config: ReplayConfig): Promise<boolean> {
 
    const logger = Logging.defaultLogger(__dirname);
    if (!config) { return false; }

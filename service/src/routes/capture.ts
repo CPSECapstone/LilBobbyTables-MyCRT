@@ -214,6 +214,7 @@ export default class CaptureRouter extends SelfAwareRouter {
             // make all of the replays
             const replays: IReplay[] = [];
             for (const replay of (request.body.replays as IReplayFull[])) {
+
                let db: IDbReference | null = {
                   name: replay.dbName,
                   host: replay.host,

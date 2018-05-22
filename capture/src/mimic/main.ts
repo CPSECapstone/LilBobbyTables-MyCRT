@@ -7,6 +7,8 @@ import { ChildProgramStatus, ChildProgramType, CloudWatchMetricsBackend, Logging
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
+import { validReplay } from '@lbt-mycrt/replay';
+import { ReplayConfig } from '@lbt-mycrt/replay/dist/args';
 
 import { captureDao, environmentDao } from '../dao';
 import { validCapture } from '../main';
@@ -21,9 +23,25 @@ const logger = Logging.defaultLogger(__dirname);
 async function validMimic(config: MimicConfig): Promise<boolean> {
 
    const captureValid = await validCapture(config);
-   if (!captureValid) { return false; }
+   if (!captureValid) {
+      logger.warn("Invalid Capture");
+      return false;
+   }
 
-   // TODO: validate the replays
+   const checked: {[id: number]: boolean} = {};
+   for (const replayId of config.replayIds) {
+      if (checked[replayId]) {
+         logger.warn(`Duplicate Replay Id: ${replayId}`);
+         return false;
+      }
+      const replayConfig = new ReplayConfig(replayId, config.id, -1);
+      const replayValid = await validReplay(replayConfig);
+      if (!replayValid) {
+         logger.warn("Invalid Replay, id =  " + replayId);
+         return false;
+      }
+      checked[replayId] = true;
+   }
 
    return true;
 }
@@ -37,7 +55,7 @@ async function runMimic(): Promise<void> {
    const valid = await validMimic(config);
    if (!valid) {
       logger.warn(`This Mimic is invalid...`);
-      process.exit();
+      process.exit(1);
    }
 
    const env = await environmentDao.getEnvironmentFull(config.envId);
