@@ -54,33 +54,25 @@ export class ReplayCreator extends SubProcessCreator {
          throw new HttpError(http.BAD_REQUEST, "DB reference was not properly created");
       }
 
-      let replayTemplate: IReplay | null = {
-         name: request.body.name,
-         captureId: request.body.captureId,
-         status: this.initialStatus === ChildProgramStatus.SCHEDULED ?
-            ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-         dbId: db!.id,
-         type: ChildProgramType.REPLAY,
-      };
+      this.createTemplate(request, ChildProgramType.REPLAY);
+      this.template.captureId = request.body.captureId;
+      this.template.dbId = db!.id;
 
       // if status is scheduled, start at a scheduled time
       if (this.initialStatus === ChildProgramStatus.SCHEDULED) {
-         replayTemplate.scheduledStart = this.inputTime;
+         this.template.scheduledStart = this.inputTime;
       }
 
-      replayTemplate = await replayDao.makeReplay(replayTemplate);
+      this.template = await replayDao.makeReplay(this.template);
 
-      if (replayTemplate === null) {
-         throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating replay in db`);
-      }
+      this.checkTemplateInDB();
 
-      response.json(replayTemplate);
+      response.json(this.template);
 
-      // logger.debug(initialStatus.toString());
       if (this.initialStatus === ChildProgramStatus.SCHEDULED) {
-         schedule.scheduleJob(this.inputTime!, () => { this.startReplay(replayTemplate!); });
+         schedule.scheduleJob(this.inputTime!, () => { this.startReplay(this.template!); });
       } else {
-         this.startReplay(replayTemplate);
+         this.startReplay(this.template);
       }
 
       logger.info(`Successfully created replay!`);

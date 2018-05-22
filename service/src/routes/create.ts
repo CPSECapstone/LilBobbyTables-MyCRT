@@ -10,8 +10,6 @@ export abstract class SubProcessCreator {
    public initialStatus: string | undefined;
    public inputTime: Date | undefined;
    public template: any;
-   // private endTime: Date | undefined;
-   // private duration: number | undefined;
    // TODO: REQUEST AND RESPONSE IN PARENT
 
    constructor(request: any, response: any) {
@@ -32,24 +30,18 @@ export abstract class SubProcessCreator {
    }
 
    public createTemplate(request: any, type: any): any {
-      logger.debug("type: " + type);
       if (type === ChildProgramType.CAPTURE) {
          this.template = this.template as ICapture;
-         this.template = {
-            name: request.body.name,
-            status: this.initialStatus === ChildProgramStatus.SCHEDULED ?
-               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-            type: ChildProgramType.CAPTURE,
-         };
       } else {
          this.template = this.template as IReplay;
-         this.template = {
-            name: request.body.name,
-            status: this.initialStatus === ChildProgramStatus.SCHEDULED ?
-               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-            type: ChildProgramType.REPLAY,
-         };
       }
+
+      this.template = {
+         name: request.body.name,
+         status: this.initialStatus === ChildProgramStatus.SCHEDULED ?
+            ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+         type: ChildProgramType.CAPTURE,
+      };
    }
 
    public checkScheduledStartTime() {
