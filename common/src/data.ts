@@ -19,6 +19,8 @@ export interface IEnvironmentUser {
    inviteCode?: string;
    accepted?: boolean;
    createdAt?: number;
+   acceptedAt?: number;
+   username?: string;
 }
 
 export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }

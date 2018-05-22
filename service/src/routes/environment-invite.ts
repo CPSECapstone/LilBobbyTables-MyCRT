@@ -97,7 +97,5 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
 
          },
       ));
-
    }
-
 }
