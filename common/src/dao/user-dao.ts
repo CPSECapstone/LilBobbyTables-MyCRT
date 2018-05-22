@@ -16,6 +16,12 @@ export class UserDao extends Dao {
       }
    }
 
+   public async updateUserPassword(id: string | number, newPassHash: string): Promise<void> {
+
+      const constriant: string = typeof id === 'string' ?  'email = ?' : 'id = ?';
+      return this.query<void>(`UPDATE User SET passwordHash = '${newPassHash}' WHERE ${constriant}`, [id]);
+   }
+
    public async getUser(id: string | number, includePasswordHash?: boolean): Promise<IUser | null> {
       const fields: string = includePasswordHash ? '*' : 'id, email, isAdmin';
       const constriant: string = typeof id === 'string' ?  'email = ?' : 'id = ?';
