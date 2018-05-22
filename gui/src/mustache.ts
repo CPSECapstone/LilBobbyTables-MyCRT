@@ -88,6 +88,8 @@ const basePartials = [baseHeader, baseNeck, baseFooter];
 // pages
 const signup = new Template('signup', 'html/pages/signup.mustache', {}, basePartials, true);
 const login = new Template('login', 'html/pages/login.mustache', {}, basePartials, true);
+const forgotPassword = new Template('forgotPassword', 'html/pages/forgotPassword.mustache', {}, basePartials, true);
+const changePassword = new Template('changePassword', 'html/pages/changePassword.mustache', {}, basePartials, true);
 const account = new Template('account', 'html/pages/account.mustache', {}, basePartials, true);
 const index = new Template('index', 'html/pages/index.mustache', {}, basePartials, true);
 const environments = new Template('environment', 'html/pages/environments.mustache', {}, basePartials, true);
@@ -100,6 +102,8 @@ const metrics = new Template('metrics', 'html/pages/metrics.mustache', {}, baseP
 export const Pages = {
    signup,
    login,
+   forgotPassword,
+   changePassword,
    account,
    capture,
    captures,
