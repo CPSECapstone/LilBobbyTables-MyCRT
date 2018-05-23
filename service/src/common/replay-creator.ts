@@ -9,6 +9,7 @@ import { SubProcessCreator } from "./create";
 
 import { HttpError } from '../http-error';
 import { settings } from '../settings';
+// import { IReplay } from '@lbt-mycrt/common/dist/data';
 
 const logger = Logging.defaultLogger(__dirname);
 
@@ -44,6 +45,8 @@ export class ReplayCreator extends SubProcessCreator {
    }
 
    public async createReplayTemplate(request: any, response: any) {
+      // let replayTemplate: IReplay | null;
+
       const cap = await captureDao.getCapture(request.body.captureId);
       if (cap == null) {
             throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
@@ -63,7 +66,12 @@ export class ReplayCreator extends SubProcessCreator {
          this.template.scheduledStart = this.inputTime;
       }
 
+      logger.debug("before: ");
+      logger.debug(this.template);
+
       this.template = await replayDao.makeReplay(this.template);
+      logger.debug("this.template: ");
+      logger.debug(this.template);
 
       this.checkTemplateInDB();
 

@@ -74,7 +74,7 @@ export class CaptureCreator extends SubProcessCreator {
       // assign capture, insert into db
       this.template = await captureDao.makeCapture(this.template);
 
-      this.checkTemplateInDB();
+      await this.checkTemplateInDB();
 
       response.json(this.template);
 

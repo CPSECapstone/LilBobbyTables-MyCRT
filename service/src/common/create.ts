@@ -29,8 +29,8 @@ export abstract class SubProcessCreator {
       }
    }
 
-   public createTemplate(request: any, type: any): any {
-      if (type === ChildProgramType.CAPTURE) {
+   public createTemplate(request: any, templateType: any): any {
+      if (templateType === ChildProgramType.CAPTURE) {
          this.template = this.template as ICapture;
       } else {
          this.template = this.template as IReplay;
@@ -40,7 +40,7 @@ export abstract class SubProcessCreator {
          name: request.body.name,
          status: this.initialStatus === ChildProgramStatus.SCHEDULED ?
             ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-         type: ChildProgramType.CAPTURE,
+         type: templateType,
       };
    }
 
