@@ -124,7 +124,7 @@ export class ReplayManager {
 
       // first, get the delta time until the command should be run
       let t: moment.Moment = moment(command.event_time);
-      if (!this.config.mock) { t = t.add(7, 'hours'); }
+      if (!this.config.mock) { t = t.subtract(7, 'hours'); }
 
       const queryOffset = t.diff(capture.start);
       if (queryOffset < 0) {
@@ -147,8 +147,8 @@ export class ReplayManager {
    })
 
    protected async doQuery(command?: ICommand) {
-      const cmdInfo = command ? command.argument.substr(0, 20) + '...' : 'connect';
-      logger.info(`--- Replay ${this.replayId} is performing command ${cmdInfo} ---`);
+      const cmdInfo = command ? command.argument.substr(0, 30) + '...' : 'connect';
+      logger.info(`--- Replay ${this.replayId} is performing command "${cmdInfo}" ---`);
       const conn = mysql.createConnection(this.dbConfig);
       return new Promise<void>((resolve, reject) => {
          conn.connect((connErr) => {

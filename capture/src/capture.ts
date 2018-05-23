@@ -25,6 +25,8 @@ export class Capture extends Subprocess<IWorkload> implements ICaptureIpcNodeDel
 
    protected ipcNode: IpcNode;
 
+   private metricsPromises: Array<Promise<void>> = [];
+
    constructor(public config: CaptureConfig, private workloadLogger: WorkloadLogger, storage: StorageBackend,
          metrics: MetricsBackend, env: IEnvironmentFull) {
       super(storage, metrics);
@@ -121,11 +123,12 @@ export class Capture extends Subprocess<IWorkload> implements ICaptureIpcNodeDel
       logger.info('-< Process Metrics >--------------');
       const metricsDelay = this.config.metricsDelay;
       logger.info(`   * waiting ${metricsDelay}ms before gathering metrics`);
-      await utils.syncTimeout(async () => {
+      this.metricsPromises.push(utils.syncTimeout(async () => {
          await this.sendMetricsToS3(start, end);
-      }, metricsDelay);
-      logger.info(`   * metrics sent`);
+         logger.info(`   * metrics sent`);
+      }, metricsDelay));
 
+      logger.info('---------==[ END LOOP ]==---------');
       return workloadFragment;
    }
 
@@ -143,6 +146,7 @@ export class Capture extends Subprocess<IWorkload> implements ICaptureIpcNodeDel
             await workloadStorage.buildFinalWorkloadFile(this.asIChildProgram());
 
             logger.info("building final metrics file");
+            await Promise.all(this.metricsPromises); // wait for all of the metrics to be ready
             const metricsStorage = new MetricsStorage(this.storage);
             await metricsStorage.read(this.asIChildProgram(), false);
 
