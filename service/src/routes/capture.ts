@@ -15,6 +15,7 @@ import { getMetrics } from '../common/capture-replay-metrics';
 import { startCapture, startMimic } from '../common/launching';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
+import { noMimicReplaysOnSameDb } from '../middleware/replay';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
 import SelfAwareRouter from './self-aware-router';
@@ -187,22 +188,27 @@ export default class CaptureRouter extends SelfAwareRouter {
       this.router.post('/mimic',
          check.validBody(schema.mimicBody),
          this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.body.envId)),
+         this.handleHttpErrors(noMimicReplaysOnSameDb),
          this.handleHttpErrors(async (request, response) => {
-
-            // TODO make this production ready. For now, just enough to launch and test.
 
             const environment = await environmentDao.getEnvironment(request.body.envId);
             if (!environment) {
                throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
             }
 
+            let endTime: Date | undefined;
+            if (request.body.duration) {
+               endTime = this.createEndDate(request.body.scheduledStart || new Date(),
+                  request.body.duration);
+            }
+
             // make the capture
-            const endTime = this.createEndDate(new Date(), request.body.duration);
             let capture: ICapture | null = {
                type: ChildProgramType.CAPTURE,
                ownerId: request.user!.id,
                envId: environment.id,
-               status: ChildProgramStatus.STARTED,
+               status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+               scheduledStart: request.body.scheduledStart ? request.body.scheduledStart : undefined,
                name: request.body.name,
                scheduledEnd: endTime,
             };
@@ -252,11 +258,21 @@ export default class CaptureRouter extends SelfAwareRouter {
                replays,
             };
 
-            // For now, we will start them now, and require that they run for a duration.
-            startMimic(mimic);
-            schedule.scheduleJob(endTime!, () => {
-               this.stopScheduledCapture(capture!);
-            });
+            // Start it
+            if (request.body.scheduledStart) {
+               schedule.scheduleJob(request.body.scheduledStart, () => {
+                  startMimic(mimic);
+               });
+            } else {
+               startMimic(mimic);
+            }
+
+            // End it
+            if (request.body.duration) {
+               schedule.scheduleJob(endTime!, () => {
+                  this.stopScheduledCapture(capture!);
+               });
+            }
 
             response.json(mimic);
          }),

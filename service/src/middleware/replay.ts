@@ -21,3 +21,11 @@ export const noReplaysOnTargetDb = async (request: Request, response: Response, 
    }
 
 };
+
+export const noMimicReplaysOnSameDb = async (request: Request, response: Response, next: NextFunction) => {
+
+   // TODO: check that none of these replays are on the same DB and that none of
+   // them are targeting a database that is currently being replayed on.
+   next();
+
+};
