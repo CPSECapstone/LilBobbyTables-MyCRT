@@ -17,8 +17,8 @@ export class CaptureDao extends Dao {
    }
 
    public async getCapture(id: number): Promise<data.ICapture | null> {
-      const result = await this.query<any[]>('SELECT * FROM Capture AS c JOIN User AS u on c.ownerId = u.id ' +
-         'WHERE c.id = ?', [id]);
+      const result = await this.query<any[]>('SELECT c.*, u.email, u.isAdmin '
+         + 'FROM Capture AS c JOIN User AS u on c.ownerId = u.id WHERE c.id = ?', [id]);
       if (result.length === 0) {
          return null;
       }
@@ -26,14 +26,14 @@ export class CaptureDao extends Dao {
    }
 
    public async getCapturesForEnvironment(envId: number): Promise<data.ICapture[] | null> {
-      const rawCaptures = await this.query<any[]>('SELECT * FROM Capture AS c JOIN User AS u on c.ownerId = u.id ' +
-         'WHERE envId = ?', [envId]);
+      const rawCaptures = await this.query<any[]>('SELECT c.*, u.email, u.isAdmin '
+         + ' FROM Capture AS c JOIN User AS u on c.ownerId = u.id WHERE envId = ?', [envId]);
       return rawCaptures.map(this.rowToICapture);
    }
 
    public async getCapturesForEnvByName(envId: number, name: string): Promise<data.ICapture[] | null> {
-      const rawCaptures = await this.query<any[]>('SELECT * FROM Capture AS c JOIN User AS u on c.ownerId = u.id ' +
-         'WHERE envId = ? AND c.name = ?', [envId, name]);
+      const rawCaptures = await this.query<any[]>('SELECT c.*, u.email, u.isAdmin '
+         + 'FROM Capture AS c JOIN User AS u on c.ownerId = u.id WHERE envId = ? AND c.name = ?', [envId, name]);
       if (rawCaptures.length === 0) {
          return null;
       }
@@ -54,7 +54,7 @@ export class CaptureDao extends Dao {
             'scheduledStart > ?' :
             'scheduledStart <= ?';
          const rawCaptures = await this.query<any[]>(
-            `SELECT * FROM Capture AS c JOIN User AS u on c.ownerId = c.id ` +
+            `SELECT c.*, u.isAdmin, u.email FROM Capture AS c JOIN User AS u on c.ownerId = c.id ` +
             `WHERE scheduledStart IS NOT NULL AND status = "SCHEDULED" AND ${when}`, [now],
          );
          return rawCaptures.map(this.rowToICapture);

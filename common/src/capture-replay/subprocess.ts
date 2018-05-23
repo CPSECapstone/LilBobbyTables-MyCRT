@@ -7,7 +7,7 @@ import { StorageBackend } from '../storage/backend';
 
 const logger = defaultLogger(__dirname);
 
-export abstract class Subprocess {
+export abstract class Subprocess<L> {
 
    protected startTime: Date | null = null;
    protected endTime: Date | null = null;
@@ -20,7 +20,11 @@ export abstract class Subprocess {
    public run(): void {
       this.setup();
       this.loopTimeoutId = setInterval(() => {
-         this.runLoop();
+         try {
+            this.runLoop();
+         } catch (e) {
+            this.selfDestruct(e);
+         }
       }, this.interval);
    }
 
@@ -43,7 +47,7 @@ export abstract class Subprocess {
    abstract get interval(): number;
 
    protected abstract async setup(): Promise<void>;
-   protected abstract async loop(): Promise<void>;
+   protected abstract async loop(): Promise<L>;
    protected abstract async teardown(): Promise<void>;
    protected abstract async dontPanic(reason: string): Promise<void>;
 
@@ -54,7 +58,7 @@ export abstract class Subprocess {
          if (firstTry) {
             logger.warn(`Failed to ${desc}: ${error}`);
             logger.warn(`Trying again...`);
-            this.tryTwice(action, desc, false);
+            await this.tryTwice(action, desc, false);
          } else {
             logger.error(`Failed to ${desc} the second time: ${error}`);
             // TODO: handle?

@@ -1,0 +1,26 @@
+{
+
+   "name": "MyCRT Server",
+
+   "ssl": false,
+
+   "sessionTokenName": "MyCRTAuthToken",
+   "sessionDuration": 7200000,
+
+   "captures": {
+      "mock": false,
+      "interval": 120000,
+      "intervalOverlap": 10000,
+      "metricsDelay": 120000,
+      "filePrepDelay": 5000
+   },
+
+   "replays": {
+      "mock": false,
+      "interval": 120000,
+      "intervalOverlap": 10000,
+      "metricsDelay": 120000,
+      "filePrepDelay": 5000
+   }
+
+}

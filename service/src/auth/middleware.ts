@@ -17,13 +17,13 @@ export const makeSureUserIsEnvironmentMember = (envIdGetter: EnvironmentIdGetter
    const environment = await environmentDao.getEnvironment(envId);
    if (!environment) {
       logger.warn(`Environment ${request.query.envId} does not exist`);
-      throw new HttpError(http.NOT_FOUND);
+      throw new HttpError(http.NOT_FOUND, "Environment does not exist");
    }
 
    const membership = await inviteDao.getUserMembership(request.user!, environment);
    if (!membership.isMember && environment.ownerId !== request.user!.id) {
       logger.warn(`User ${request.user!.email} is not part of environment`);
-      throw new HttpError(http.NOT_FOUND);
+      throw new HttpError(http.NOT_FOUND, "Environment does not exist");
    }
 
    next();

@@ -10,15 +10,15 @@ export class ReplayDao extends Dao {
 
    public async getAllReplays(user?: data.IUser): Promise<data.IReplay[]> {
       const rawReplays = user ?
-         await this.query<any[]>('SELECT * FROM Replay AS r JOIN User AS u ON r.ownerId = u.id ' +
+         await this.query<any[]>('SELECT r.*, u.isAdmin, u.email FROM Replay AS r JOIN User AS u ON r.ownerId = u.id ' +
             'WHERE ownerId = ?', [user.id]) :
          await this.query<any[]>('SELECT * FROM Replay AS r JOIN User AS u ON r.ownerId = u.id', []);
       return rawReplays.map(this.resultToIReplay);
    }
 
    public async getReplay(id: number): Promise<data.IReplay | null> {
-      const result = await this.query<any[]>('SELECT * FROM Replay AS r JOIN User AS u ON r.ownerId = u.id ' +
-         'WHERE r.id = ?', [id]);
+      const result = await this.query<any[]>('SELECT r.*, u.email, u.isAdmin '
+         + ' FROM Replay AS r JOIN User AS u ON r.ownerId = u.id WHERE r.id = ?', [id]);
       if (result.length === 0) {
          return null;
       }
@@ -26,14 +26,14 @@ export class ReplayDao extends Dao {
    }
 
    public async getReplaysForCapture(captureId: number): Promise<data.IReplay[]> {
-      const rawReplays = await this.query<any[]>('SELECT * FROM Replay AS r JOIN User AS u ON r.ownerId = u.id ' +
-         'WHERE captureId = ?', [captureId]);
+      const rawReplays = await this.query<any[]>('SELECT r.*, u.isAdmin, u.email '
+         + ' FROM Replay AS r JOIN User AS u ON r.ownerId = u.id WHERE captureId = ?', [captureId]);
       return rawReplays.map(this.resultToIReplay);
    }
 
    public async getReplaysForCapByName(captureId: number, name: string): Promise<data.IReplay[] | null> {
-      const rawReplays = await this.query<any[]>('SELECT * FROM Replay AS r JOIN User AS u ON r.ownerId = u.id ' +
-         'WHERE captureId = ? and r.name = ?',
+      const rawReplays = await this.query<any[]>('SELECT r.*, u.isAdmin, u.email '
+         + ' FROM Replay AS r JOIN User AS u ON r.ownerId = u.id WHERE captureId = ? and r.name = ?',
          [captureId, name]);
       if (rawReplays.length === 0) {
          return null;

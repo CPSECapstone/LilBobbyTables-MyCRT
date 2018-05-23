@@ -2,7 +2,7 @@ import * as http from 'http-status-codes';
 
 import { Check } from '@lbt-mycrt/common';
 import { IAwsKeys, ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull,
-   IEnvironmentUser, IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
+   IEnvironmentUser, IMetricsList, IMimic, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
    } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
@@ -13,6 +13,24 @@ export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELE
 export interface ServiceError {
    ok: boolean;
    message: string;
+}
+
+export interface IMimicCapture {
+   envId: number;
+   name: string;
+   status?: "SCHEDULED";
+   scheduledStart?: Date;
+   duration?: number; // seconds
+}
+
+export interface IMimicReplay {
+   name: string;
+   dbName: string;
+   host: string;
+   user: string;
+   pass: string;
+   instance: string;
+   parameterGroup: string;
 }
 
 /** General Client class for accessing the MyCRT service */
@@ -36,6 +54,16 @@ export class MyCrtClient {
    /** Create a new Capture */
    public async startCapture(capture: IChildProgram): Promise<IChildProgram | null> {
       return this.makeRequest<IChildProgram>(HttpMethod.POST, '/captures', null, capture);
+   }
+
+   /**
+    * Create a new Mimic. Before this is called, it is assumed that the replay databases have
+    * already been validated.
+    */
+   public async startMimic(capture: IMimicCapture, replays: IMimicReplay[]): Promise<IMimic | null> {
+      return this.makeRequest<IMimic>(HttpMethod.POST, '/captures/mimic', null, {
+         ...capture, replays,
+      });
    }
 
    /** Stop a specific capture */
@@ -221,17 +249,34 @@ export class MyCrtClient {
       return this.makeRequest<any>(HttpMethod.PUT, '/users/logout');
    }
 
+   public async envAboutMe(envId: number): Promise<IUser | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/users/me`);
+   }
+
+   public async getEnvCount(envId: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/users/count`);
+   }
+
+   public async getEnvUsers(envId: number): Promise<IUser[] | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/users/list`);
+   }
+
+   public async leaveEnv(envUserId: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/environments/invites/${envUserId}`);
+   }
+
    /**
     * Create an invitation to an environment. The response will have an inviteCode on the body.
     * The given user must then accept the invitation with that invite code.
     * @param environmentId The id of the environment to invite the user to
     * @param userEmail The email address of the user to invite
     */
-   public async environmentInvite(environmentId: number, userEmail: string):
+   public async environmentInvite(environmentId: number, userEmail: string, isAdmin: boolean):
          Promise<IEnvironmentUser | null> {
       return this.makeRequest<IEnvironmentUser>(HttpMethod.POST, '/environments/invites', null, {
          environmentId,
          userEmail,
+         isAdmin,
       });
    }
 

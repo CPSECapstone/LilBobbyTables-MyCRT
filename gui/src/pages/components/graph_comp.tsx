@@ -33,10 +33,12 @@ export class Graph extends React.Component<any, any>  {
       return (
          <div className="graph">
             <h3 className="graphName" id={this.props.data.displayName}>{this.props.data.displayName}</h3>
-            <a role="button" href={downloadStr} className="btn btn-primary downloadBtn"
-               download={downloadName}>
-               <i className="fa fa-download" aria-hidden="true"></i> Download
-            </a>
+            <span data-toggle="tooltip" data-placement="top" title="Download Metrics">
+               <a role="button" href={downloadStr} className="btn btn-outline-primary downloadBtn"
+                  download={downloadName}>
+                  <i className="fa fa-download" aria-hidden="true"></i>
+               </a>
+            </span>
             <ChartType width={1000} height={400} data={this.props.data.dataPoints}
                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                <XAxis dataKey="Timestamp" />
