@@ -96,6 +96,7 @@ CREATE TABLE Replay (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
    ownerId INT(11) REFERENCES User(id),
    captureId INT(11),
+   mimicked TINYINT(1) DEFAULT 0,
    dbId INT(11) REFERENCES DBReference(id),
    name VARCHAR(32),
    start DATETIME,
