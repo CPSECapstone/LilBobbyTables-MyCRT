@@ -249,17 +249,34 @@ export class MyCrtClient {
       return this.makeRequest<any>(HttpMethod.PUT, '/users/logout');
    }
 
+   public async envAboutMe(envId: number): Promise<IUser | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/users/me`);
+   }
+
+   public async getEnvCount(envId: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/users/count`);
+   }
+
+   public async getEnvUsers(envId: number): Promise<IUser[] | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/users/list`);
+   }
+
+   public async leaveEnv(envUserId: number): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.DELETE, `/environments/invites/${envUserId}`);
+   }
+
    /**
     * Create an invitation to an environment. The response will have an inviteCode on the body.
     * The given user must then accept the invitation with that invite code.
     * @param environmentId The id of the environment to invite the user to
     * @param userEmail The email address of the user to invite
     */
-   public async environmentInvite(environmentId: number, userEmail: string):
+   public async environmentInvite(environmentId: number, userEmail: string, isAdmin: boolean):
          Promise<IEnvironmentUser | null> {
       return this.makeRequest<IEnvironmentUser>(HttpMethod.POST, '/environments/invites', null, {
          environmentId,
          userEmail,
+         isAdmin,
       });
    }
 

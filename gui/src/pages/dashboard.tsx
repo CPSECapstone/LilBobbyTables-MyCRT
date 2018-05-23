@@ -3,6 +3,7 @@ import ReactDom = require('react-dom');
 
 import { ChildProgramStatus, IChildProgram } from '@lbt-mycrt/common/dist/data';
 
+import * as $ from 'jquery';
 import './common';
 
 import '../../static/css/index.css';
@@ -16,12 +17,14 @@ import { CaptureModal } from './components/capture_modal_comp';
 import { CapturePanel } from './components/capture_panel_comp';
 import { DeleteModal } from './components/delete_modal_comp';
 import { ErrorBoundary } from './components/error_boundary_comp';
+import { LeaveModal } from './components/leave_env_comp';
 import { ListView } from './components/list_view_comp';
 import { Pagination } from './components/pagination_comp';
 import { ReplayModal } from './components/replay_modal_comp';
 import { ReplayPanel } from './components/replay_panel_comp';
 import { Search } from './components/search_comp';
 import { ShareModal } from './components/share_modal_comp';
+import { UserTable } from './components/user_table_comp';
 import { mycrt } from './utils/mycrt-client'; // client for interacting with the service
 
 class DashboardApp extends React.Component<any, any> {
@@ -30,17 +33,50 @@ class DashboardApp extends React.Component<any, any> {
         super(props);
         this.componentWillMount = this.componentWillMount.bind(this);
         this.deleteEnv = this.deleteEnv.bind(this);
+        this.leaveEnv = this.leaveEnv.bind(this);
+        this.sendMessage = this.sendMessage.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
+        this.userSetup = this.userSetup.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
         if (match) {
             id = match[1];
         }
-        this.state = { envId: id, env: null, captures: [], replays: [], error: "",
-         pastCSearch: "", scheduleCSearch: "", liveCSearch: "",
-         pastRSearch: "", scheduleRSearch: "", liveRSearch: ""};
+        this.state = { envId: id, env: null, me: null, captures: [], replays: [], error: "", users: [],
+                       pastCSearch: "", scheduleCSearch: "", liveCSearch: "",
+                       pastRSearch: "", scheduleRSearch: "", liveRSearch: ""};
     }
+
+    public async componentWillMount() {
+      if (this.state.envId) {
+         this.setState({
+            env: await mycrt.getEnvironment(this.state.envId),
+         });
+      }
+      this.setCaptures();
+      this.userSetup();
+      const bucketExists = await mycrt.validateStorage(this.state.envId);
+      if (!bucketExists) {
+         logger.error("Bucket no longer exists.");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Missing Storage Bucket",
+            message: "The bucket associated with this environment does not exist. "
+                     + "Please create a bucket in S3 named " + this.state.env.bucket
+                     + " before creating a capture or running a replay.",
+         }));
+      }
+    }
+
+   public async userSetup() {
+      const user = await mycrt.envAboutMe(this.state.envId);
+      if (user) {
+         this.setState({me: user});
+      }
+      const allUsers = await mycrt.getEnvUsers(this.state.envId);
+      this.setState({users: allUsers});
+   }
 
    public async setCaptures() {
        const capturesResponse = await mycrt.getCapturesForEnvironment(this.state.envId);
@@ -84,33 +120,36 @@ class DashboardApp extends React.Component<any, any> {
        this.setState({[type]: searchText});
     }
 
-    public async componentWillMount() {
-      if (this.state.envId) {
-         this.setState({
-            env: await mycrt.getEnvironment(this.state.envId),
-         });
-      }
-      this.setCaptures();
-      const bucketExists = await mycrt.validateStorage(this.state.envId);
-      if (!bucketExists) {
-         logger.error("Bucket no longer exists.");
-         store.dispatch(showAlert({
-            show: true,
-            header: "Missing Storage Bucket",
-            message: "The bucket associated with this environment does not exist. "
-                     + "Please create a bucket in S3 named " + this.state.env.bucket
-                     + " before creating a capture or running a replay.",
-         }));
+    public async deleteEnv(id: number, deleteLogs: boolean) {
+      const name = this.state.env.envName;
+      const result = await mycrt.deleteEnvironment(id, deleteLogs);
+      if (result) {
+         window.location.assign('./environments');
+         this.sendMessage(`You have deleted ${name}!`);
       }
     }
 
-    public async deleteEnv(id: number, deleteLogs: boolean) {
-      const result = await mycrt.deleteEnvironment(id, deleteLogs);
-      window.location.assign('./environments');
+    public async leaveEnv() {
+      const name = this.state.env.envName;
+      logger.debug(this.state.me);
+      const leave = await mycrt.leaveEnv(this.state.me.id);
+      if (leave) {
+         window.location.assign('./environments');
+         this.sendMessage(`You have left ${name}!`);
+      }
+    }
+
+    public async sendMessage(message: string) {
+      store.dispatch(showAlert({
+         show: true,
+         header: "Success!",
+         success: true,
+         message,
+      }));
     }
 
     public render() {
-        if (!this.state.env) { return (<div></div>); }
+        if (!this.state.me) { return (<div></div>); }
         const liveCaptures: JSX.Element[] = [];
         const scheduledCaptures: JSX.Element[] = [];
         const pastCaptures: JSX.Element[] = [];
@@ -161,17 +200,22 @@ class DashboardApp extends React.Component<any, any> {
                <div className="row">
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
-                     <a role="button" className="btn btn-danger" data-toggle="modal" href="#"
+                     {this.state.me.isAdmin ? <h4 className="admin-flag"><i>(Admin)</i></h4> : null}
+                     {this.state.me.isAdmin ?
+                        <span data-toggle="tooltip" data-placement="bottom" title="Delete Environment">
+                           <a role="button" className="btn btn-outline-danger"
                            data-target="#deleteEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
-                           data-backdrop="static" data-keyboard={false}>
-                            <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
-                     </a>
-                     <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
-                           data-target="#shareEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
-                           data-backdrop="static" data-keyboard={false}>
-                            <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i>
-                     </a><br/><br/>
-                     <div className="myCRT-overflow-col"style={{padding: 0, paddingTop: "10px",
+                           data-backdrop="static" data-keyboard={false}  data-toggle="modal" href="#">
+                           <i className="fa fa-trash fa-lg" aria-hidden="true"></i></a></span> : null}
+                     <span data-toggle="tooltip" data-placement="bottom" title="Leave Environment">
+                        <a role="button" className="btn btn-outline-danger"
+                           data-target="#leaveEnvModal" style={{marginTop: "15px", marginLeft: "12px", float: "right"}}
+                           data-backdrop="static" data-keyboard={false}  data-toggle="modal" href="#">
+                           <i className="fa fa-sign-out fa-lg" aria-hidden="true"></i>
+                        </a>
+                     </span>
+                     <br/><br/>
+                     <div className="myCRT-overflow-col" style={{padding: 0, paddingTop: "10px",
                         paddingLeft: "20px", width: "1050px"}}>
                         <div className="row">
                            <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
@@ -194,50 +238,76 @@ class DashboardApp extends React.Component<any, any> {
                      </div>
                         <DeleteModal id="deleteEnvModal" deleteId={this.state.envId}
                            name={this.state.env.envName} delete={this.deleteEnv} type="Environment"/>
+                        <LeaveModal id="leaveEnvModal" leaveEnv={this.leaveEnv} name={this.state.env.envName}/>
                         <ShareModal id="shareEnvModal" name={this.state.env.envName} envId={this.state.envId}/>
                   </div>
                </div>
                <br></br>
-               <div className="row">
-                  <div className="col-xs-12 col-md-5 mb-r">
-                     <div><br/>
-                        <h2 style={{display: "inline"}}>Captures</h2>
-                        <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
-                           data-backdrop="static" data-keyboard={false}
-                           data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
-                            <i className="fa fa-plus" aria-hidden="true"></i>
-                        </a>
-                        <CaptureModal id="captureModal" envId={this.state.envId} bucket={this.state.env.bucket}
-                        update={this.componentWillMount}/>
+               <ul className="nav nav-tabs" role="tablist" id="dashboardTabs">
+                  <li className="nav-item">
+                     <a className="nav-link show active" data-toggle="tab" href="#dashboardTab" role="tab">Dashboard</a>
+                  </li>
+                  <li className="nav-item">
+                     <a className="nav-link" data-toggle="tab" href="#userTab" role="tab">Users</a>
+                  </li>
+               </ul>
+               <div className = "tab-content">
+                  <div className="tab-pane show active" id="dashboardTab" role="tabpanel">
+                     <div className="row">
+                        <div className="col-xs-12 col-md-5 mb-r">
+                           <div><br/>
+                              <h2 style={{display: "inline"}}>Captures</h2>
+                              <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
+                                 data-backdrop="static" data-keyboard={false}
+                                 data-target="#captureModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                                 <i className="fa fa-plus" aria-hidden="true"></i>
+                              </a>
+                              <CaptureModal id="captureModal" envId={this.state.envId} bucket={this.state.env.bucket}
+                              update={this.componentWillMount}/>
+                           </div>
+                           <br></br>
+                           <ListView name="Active" list={liveCaptures} update={this.updateSearch}
+                              display="No currently active captures." type="liveCSearch"
+                              stateVar={this.state.liveCSearch}/>
+                           <ListView name="Scheduled" list={scheduledCaptures} update={this.updateSearch}
+                              display="No currently scheduled captures." type="scheduleCSearch"
+                              stateVar={this.state.scheduleCSearch}/>
+                           <ListView name="Past" list={pastCaptures} update={this.updateSearch}
+                              display="No past captures exist." type="pastCSearch" stateVar={this.state.pastCSearch}/>
+                        </div>
+                        <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
+                           <div><br/>
+                              <h2 style={{display: "inline"}}>Replays</h2>
+                              <a role="button" className="btn btn-outline-primary" data-toggle="modal" href="#"
+                                 data-backdrop="static" data-keyboard={false}
+                                 data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
+                                 <i className="fa fa-plus" aria-hidden="true"></i>
+                              </a>
+                              <ReplayModal id="replayModal" captures={this.state.captures}
+                                 env = {this.state.env} update={this.componentWillMount}/>
+                           </div>
+                           <br></br>
+                           <ListView name="Active" list={liveReplays} update={this.updateSearch}
+                              display="No currently active replays." type="liveRSearch"
+                              stateVar={this.state.liveRSearch}/>
+                           <ListView name="Scheduled" list={scheduledReplays} update={this.updateSearch}
+                              display="No currently scheduled replays." type="scheduleRSearch"
+                              stateVar={this.state.scheduleRSearch}/>
+                           <ListView name="Past" list={pastReplays} update={this.updateSearch}
+                              display="No past replays exist." type="pastRSearch" stateVar={this.state.pastRSearch}/>
+                        </div>
                      </div>
-                     <br></br>
-                     <ListView name="Active" list={liveCaptures} update={this.updateSearch}
-                        display="No currently active captures." type="liveCSearch" stateVar={this.state.liveCSearch}/>
-                     <ListView name="Scheduled" list={scheduledCaptures} update={this.updateSearch}
-                        display="No currently scheduled captures." type="scheduleCSearch"
-                        stateVar={this.state.scheduleCSearch}/>
-                     <ListView name="Past" list={pastCaptures} update={this.updateSearch}
-                        display="No past captures exist." type="pastCSearch" stateVar={this.state.pastCSearch}/>
                   </div>
-                  <div className="col-xs-12 col-md-5 offset-md-1 mb-r">
-                     <div><br/>
-                        <h2 style={{display: "inline"}}>Replays</h2>
-                        <a role="button" className="btn btn-primary" data-toggle="modal" href="#"
-                           data-backdrop="static" data-keyboard={false}
-                           data-target="#replayModal" style={{marginBottom: "12px", marginLeft: "12px"}}>
-                            <i className="fa fa-plus" aria-hidden="true"></i>
-                        </a>
-                        <ReplayModal id="replayModal" captures={this.state.captures}
-                            env = {this.state.env} update={this.componentWillMount}/>
-                     </div>
-                     <br></br>
-                     <ListView name="Active" list={liveReplays} update={this.updateSearch}
-                        display="No currently active replays." type="liveRSearch" stateVar={this.state.liveRSearch}/>
-                     <ListView name="Scheduled" list={scheduledReplays} update={this.updateSearch}
-                        display="No currently scheduled replays." type="scheduleRSearch"
-                        stateVar={this.state.scheduleRSearch}/>
-                     <ListView name="Past" list={pastReplays} update={this.updateSearch}
-                        display="No past replays exist." type="pastRSearch" stateVar={this.state.pastRSearch}/>
+                  <div className="tab-pane" id="userTab" role="tabpanel">
+                     <br/><h2 style={{display: "inline"}}>Users</h2>
+                     {this.state.me.isAdmin ?
+                        <span data-toggle="tooltip" data-placement="right" title="Invite User">
+                        <a role="button" className="btn btn-outline-primary"
+                           data-target="#shareEnvModal" style={{marginBottom: "15px", marginLeft: "15px"}}
+                           data-backdrop="static" data-keyboard={false} data-toggle="modal" href="#">
+                           <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i></a></span> : null}
+                     <br/><br/>
+                     <UserTable users={this.state.users}/>
                   </div>
                </div>
             </div>

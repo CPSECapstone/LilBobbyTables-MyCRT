@@ -24,7 +24,7 @@ export class GraphSelectDrop extends React.Component<any, any>  {
                 <li key={graph.type}><p className="small" data-value={graph.type} tabIndex={-1}
                     style={{ color: "#3498DB", margin: "10px", marginLeft: "20px"}}>
                 <input type="checkbox" onChange={(e) => this.selectGraphTypes(e)} value={graph.type}
-                    defaultChecked={type === "WRITE" ? true : false}/>
+                    defaultChecked={type === "WRITE IOPS" ? true : false}/>
                     &nbsp;&nbsp;&nbsp;{graph.displayName}</p>
                 </li>);
         }

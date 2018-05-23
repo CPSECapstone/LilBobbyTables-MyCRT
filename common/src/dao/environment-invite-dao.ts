@@ -11,6 +11,7 @@ const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const logger = defaultLogger(__dirname);
 
 export interface IEnvironmentMember {
+   id: number;
    userId: number;
    email: string;
    isMember: boolean;
@@ -27,6 +28,11 @@ export class EnvironmentInviteDao extends Dao {
       return this.rowToInvite(rows[0]);
    }
 
+   public async delInvite(id: number): Promise<any | null> {
+      const delInvite = await this.query<any>('DELETE FROM EnvironmentUser WHERE id = ?', [id]);
+      return delInvite;
+   }
+
    public async getInviteByCode(code: string): Promise<Invite | null> {
       const rows = await this.query<any[]>('SELECT * from EnvironmentUser WHERE inviteCode = ?',
          [code]);
@@ -41,7 +47,7 @@ export class EnvironmentInviteDao extends Dao {
       const invite: Invite = {
          environmentId: environment.id,
          userId: user.id,
-         isAdmin: isAdminUser, // for now, might use later
+         isAdmin: isAdminUser,
          inviteCode,
          accepted: false, // set to true by the user
          createdAt: new Date().getTime(),
@@ -59,30 +65,38 @@ export class EnvironmentInviteDao extends Dao {
       return;
    }
 
+   public async promoteToAdmin(envUserId: number): Promise<any> {
+      const updateRow = await this.query('UPDATE EnvironmentUser SET isAdmin = 1 WHERE id = ?', [envUserId]);
+      return updateRow;
+   }
+
    public async getUserMembership(user: IUser, environment: IEnvironment):
          Promise<IEnvironmentMember> {
 
       let isMember = false;
       let isAdmin = false;
+      let envUserId = 0;
 
       if (environment.ownerId === user.id) {
          logger.info('User owns the environment');
          isMember = true;
          isAdmin = true;
       } else {
-         const query = 'SELECT userId, isAdmin FROM EnvironmentUser WHERE userId = ? '
+         const query = 'SELECT id, userId, isAdmin FROM EnvironmentUser WHERE userId = ? '
             + 'AND environmentId = ? AND accepted = 1';
          const rows = await this.query<any[]>(query, [user.id, environment.id]);
          if (rows.length > 0) {
             logger.info("Found an invite");
             isMember = true;
             isAdmin = !!(rows[0].isAdmin);
+            envUserId = rows[0].id;
          } else {
             logger.info("No membership");
          }
       }
 
       return {
+         id: envUserId,
          userId: user.id!,
          email: user.email!,
          isMember,

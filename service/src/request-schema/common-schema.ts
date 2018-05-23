@@ -71,6 +71,8 @@ export const value = {
    // TODO
    instance: joi.string(),
 
+   isAdmin: joi.boolean(),
+
 };
 
 export const idParams: joi.ObjectSchema = joi.object().keys({
