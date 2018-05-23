@@ -60,6 +60,7 @@ export class ReplayCreator extends SubProcessCreator {
       this.createTemplate(request, ChildProgramType.REPLAY);
       this.template.captureId = request.body.captureId;
       this.template.dbId = db!.id;
+      this.template.ownerId = request.user!.id;
 
       // if status is scheduled, start at a scheduled time
       if (this.initialStatus === ChildProgramStatus.SCHEDULED) {
