@@ -48,7 +48,7 @@ export class EnvironmentPanel extends React.Component<any, any>  {
                         <i className="fa fa-users fa-lg" style={{float: "right", marginTop: "4px"}}></i>
                         <p style={{float: "right", paddingRight: "10px"}}>{this.state.userCount}</p>
                     </div>
-                    <div className="card-body">
+                    <div className="card-body" style={{paddingBottom: "5px", paddingRight: "8px"}}>
                         <p>Captures: <b>{this.state.captureNum}</b></p>
                         <p>Replays: <b>{this.state.replayNum}</b></p>
                     </div>

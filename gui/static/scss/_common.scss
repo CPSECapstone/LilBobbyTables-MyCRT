@@ -55,16 +55,12 @@ $secondary-success: #24e3be;
 }
 
 .admin-flag {
-   padding-left: 5px;
+   padding-left: 8px;
    color: #95a5a6;
    display: inline;
 }
 
-.btn-outline-primary {
-   border-radius: 24px;
-}
-
-.btn-outline-danger {
+.btn-outline-primary, .btn-outline-success, .btn-outline-danger {
    border-radius: 24px;
 }
 

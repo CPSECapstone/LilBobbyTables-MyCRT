@@ -15,6 +15,7 @@ export class ReplayPanel extends React.Component<any, any>  {
         this.handleInfoClick = this.handleInfoClick.bind(this);
         this.timer = this.timer.bind(this);
         this.getDurationDiff = this.getDurationDiff.bind(this);
+        this.formatUsername = this.formatUsername.bind(this);
         this.state = {active: this.props.replay.status === ChildProgramStatus.RUNNING ||
                      this.props.replay.status === ChildProgramStatus.STARTING ||
                      this.props.replay.status === ChildProgramStatus.STARTED,
@@ -92,6 +93,11 @@ export class ReplayPanel extends React.Component<any, any>  {
         return time.toLocaleString();
     }
 
+    public formatUsername() {
+      const email = this.state.replay.username;
+      return email.substring(0, email.lastIndexOf("@"));
+   }
+
     public render() {
       let className = "myCRT-env-card";
        let statusStyle = "myCRT-status-past";
@@ -118,8 +124,8 @@ export class ReplayPanel extends React.Component<any, any>  {
                     </div>
                     {this.state.done ? <button type="button" className="btn btn-success"
                                             onClick={ (e) => this.handleMetricClick(e)}
-                                            style={{zIndex: 10, float: "right"}}>
-                                            <i className="fa fa-line-chart"></i>  Compare</button> : null}
+                                            style={{zIndex: 10, float: "right", borderRadius: "26px"}}>
+                                            <i className="fa fa-line-chart"></i></button> : null}
                 </div>
                 {this.state.live ?
                   <div className="progress" style={{height: "20px", borderRadius: 0}}>
@@ -129,11 +135,12 @@ export class ReplayPanel extends React.Component<any, any>  {
                         {percent}</div>
                   </div> :
                   <div className={`card-footer ${statusStyle}`}>{this.state.replay.status}</div>}
-                <div className="card-body">
+                <div className="card-body" style={{paddingBottom: "5px", paddingRight: "8px"}}>
                   {this.state.failed ? <p className="myCRT-danger-label"><i>{this.state.replay.reason}</i></p> : null}
                   <p><b>DB:</b><i> {this.state.db}</i></p>
                   <p><b>Start:</b><i> {this.formatTimeStamp(this.state.replay.start)}</i></p>
-                  <p style={{margin: 0}}><b>End:</b><i> {this.formatTimeStamp(this.state.replay.end)}</i></p>
+                  <p><b>End:</b><i> {this.formatTimeStamp(this.state.replay.end)}</i></p>
+                  <i style={{float: "right", color: "#95a5a6"}}> {this.formatUsername()}</i>
                 </div>
             </div>
         );

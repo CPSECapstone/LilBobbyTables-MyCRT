@@ -17,6 +17,7 @@ export class CapturePanel extends React.Component<any, any>  {
         this.stopCapture = this.stopCapture.bind(this);
         this.endTimer = this.endTimer.bind(this);
         this.getCurrDuration = this.getCurrDuration.bind(this);
+        this.formatUsername = this.formatUsername.bind(this);
         this.state = {active: this.props.capture.status === ChildProgramStatus.RUNNING ||
             this.props.capture.status === ChildProgramStatus.STARTING ||
             this.props.capture.status === ChildProgramStatus.STARTED,
@@ -89,6 +90,11 @@ export class CapturePanel extends React.Component<any, any>  {
         return time.toLocaleString();
     }
 
+    public formatUsername() {
+       const email = this.state.capture.username;
+       return email.substring(0, email.lastIndexOf("@"));
+    }
+
     public render() {
        let className = "myCRT-env-card";
        let statusStyle = "myCRT-status-past";
@@ -111,12 +117,12 @@ export class CapturePanel extends React.Component<any, any>  {
                         onClick={ (e) => this.handleInfoClick(e)}>{this.props.title}</h5>
                     {this.state.live && !this.state.capture.scheduledEnd ?
                         <button type="button" className="btn btn-danger"
-                           style={{zIndex: 10, float: "right"}}
-                           onClick={(e) => this.stopCapture(e)}>Stop</button> : null}
+                           style={{zIndex: 10, float: "right", borderRadius: "26px"}}
+                           onClick={(e) => this.stopCapture(e)}><i className="fa fa-stop fa-md"></i></button> : null}
                     {this.state.done ? <button type="button"
-                        className="btn btn-success" style={{zIndex: 10, float: "right"}}
+                        className="btn btn-success" style={{zIndex: 10, float: "right", borderRadius: "26px"}}
                            onClick={ (e) => this.handleMetricClick(e)}>
-                        <i className="fa fa-line-chart"></i>  View</button> : null}
+                        <i className="fa fa-line-chart"></i></button> : null}
                 </div>
                 {this.state.capture.scheduledEnd && this.state.live ?
                   <div className="progress" style={{height: "20px", borderRadius: 0}}>
@@ -126,7 +132,7 @@ export class CapturePanel extends React.Component<any, any>  {
                         {percent}</div>
                   </div> :
                   <div className={`card-footer ${statusStyle}`}>{this.state.capture.status}</div>}
-                <div className="card-body">
+                <div className="card-body" style={{paddingBottom: "5px", paddingRight: "8px"}}>
                   {this.state.failed ? <p className="myCRT-danger-label"><i>{this.state.capture.reason}</i></p> : null}
                   {this.state.scheduled ?
                      <p><b>Scheduled Start:</b><i> {this.formatTimeStamp(this.state.capture.scheduledStart)}</i></p> :
@@ -134,6 +140,7 @@ export class CapturePanel extends React.Component<any, any>  {
                   {this.state.capture.scheduledEnd && !this.state.done ?
                      <p><b>Scheduled Stop:</b><i> {this.formatTimeStamp(this.state.capture.scheduledEnd)}</i></p> :
                      <p><b>Stop:</b><i> {this.formatTimeStamp(this.state.capture.end)}</i></p>}
+                  <i style={{float: "right", color: "#95a5a6"}}> {this.formatUsername()}</i>
                 </div>
             </div>
         );
