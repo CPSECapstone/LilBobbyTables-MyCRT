@@ -2,7 +2,7 @@ import * as http from 'http-status-codes';
 
 import { Check } from '@lbt-mycrt/common';
 import { IAwsKeys, ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull,
-   IEnvironmentUser, IMetricsList, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
+   IEnvironmentUser, IMetricsList, IMimic, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
    } from '@lbt-mycrt/common/dist/data';
 
 import { IMyCrtClientDelegate } from './client-delegate';
@@ -13,6 +13,24 @@ export enum HttpMethod { GET = 'GET', POST = 'POST', PUT = 'PUT', DELETE = 'DELE
 export interface ServiceError {
    ok: boolean;
    message: string;
+}
+
+export interface IMimicCapture {
+   envId: number;
+   name: string;
+   status?: "SCHEDULED";
+   scheduledStart?: Date;
+   duration?: number; // seconds
+}
+
+export interface IMimicReplay {
+   name: string;
+   dbName: string;
+   host: string;
+   user: string;
+   pass: string;
+   instance: string;
+   parameterGroup: string;
 }
 
 /** General Client class for accessing the MyCRT service */
@@ -36,6 +54,16 @@ export class MyCrtClient {
    /** Create a new Capture */
    public async startCapture(capture: IChildProgram): Promise<IChildProgram | null> {
       return this.makeRequest<IChildProgram>(HttpMethod.POST, '/captures', null, capture);
+   }
+
+   /**
+    * Create a new Mimic. Before this is called, it is assumed that the replay databases have
+    * already been validated.
+    */
+   public async startMimic(capture: IMimicCapture, replays: IMimicReplay[]): Promise<IMimic | null> {
+      return this.makeRequest<IMimic>(HttpMethod.POST, '/captures/mimic', null, {
+         ...capture, replays,
+      });
    }
 
    /** Stop a specific capture */

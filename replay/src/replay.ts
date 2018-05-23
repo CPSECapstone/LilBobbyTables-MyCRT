@@ -17,7 +17,7 @@ import { settings } from './settings';
 
 const logger = Logging.defaultLogger(__dirname);
 
-export class Replay extends Subprocess implements IReplayIpcNodeDelegate {
+export class Replay extends Subprocess<void> implements IReplayIpcNodeDelegate {
 
    private ipcNode: IpcNode;
    private capture: ICapture | null = null;

@@ -15,13 +15,19 @@ export abstract class Config {
       if (value === null || value === undefined) {
           throw Error(`Please provide a value for ${option.name}`);
       }
-      if (option.type !== Boolean) {
-         return [key, value.toString()];
-      } else if (value) {
-         return [key];
-      } else {
-         return [];
+
+      // boolean flags
+      if (option.type === Boolean) {
+         return value ? [key] : [];
       }
+
+      // arrays
+      if (option.multiple && Array.isArray(value)) {
+         return value.reduce((prev: string[], val) => prev.concat([key, val.toString()]), []);
+      }
+
+      // all other options
+      return [key, value.toString()];
    }
 
    public toArgList(): string[] {
