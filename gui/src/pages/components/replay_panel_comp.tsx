@@ -1,7 +1,7 @@
 import React = require('react');
 import ReactDom = require('react-dom');
 
-import { ChildProgramStatus } from '@lbt-mycrt/common/dist/data';
+import { ChildProgramStatus, ChildProgramType } from '@lbt-mycrt/common/dist/data';
 import { BrowserLogger as logger } from '../../logging';
 
 import * as moment from 'moment';
@@ -21,25 +21,28 @@ export class ReplayPanel extends React.Component<any, any>  {
                      this.props.replay.status === ChildProgramStatus.STARTED,
                      live: this.props.replay.status === ChildProgramStatus.RUNNING,
                      replay: this.props.replay, capture: this.props.capture,
+                     mimic: this.props.replay.type === ChildProgramType.MIMIC,
                      done: this.props.replay.status === ChildProgramStatus.DONE,
                      scheduled: this.props.replay.status === ChildProgramStatus.SCHEDULED,
                      failed: this.props.replay.status === ChildProgramStatus.FAILED};
     }
 
     public async componentWillMount() {
-       const replayDB = await mycrt.getReplayDB(this.props.replay.dbId);
-       if (replayDB) {
-          this.setState({db: replayDB.name});
-       }
-       const startCaptureTime = new Date(this.props.capture.start);
-       const endCaptureTime = new Date(this.props.capture.end);
-       const duration = endCaptureTime.getTime() - startCaptureTime.getTime();
-       this.setState({totalDuration: duration});
-       this.setState({currentDuration: this.getDurationDiff()});
+      const replayDB = await mycrt.getReplayDB(this.props.replay.dbId);
+      if (replayDB) {
+         this.setState({db: replayDB.name});
+      }
+      if (this.state.mimic) {
+         const startCaptureTime = new Date(this.props.capture.start);
+         const endCaptureTime = new Date(this.props.capture.end);
+         const duration = endCaptureTime.getTime() - startCaptureTime.getTime();
+         this.setState({totalDuration: duration});
+         this.setState({currentDuration: this.getDurationDiff()});
+      }
     }
 
     public componentDidMount() {
-      if (this.state.live) {
+      if (this.state.live && !this.state.mimic) {
          const intervalId = setInterval(this.timer, 1000);
          // store intervalId in the state so it can be accessed later:
          this.setState({intervalId});
@@ -99,18 +102,25 @@ export class ReplayPanel extends React.Component<any, any>  {
    }
 
     public render() {
+      status = this.state.replay.status;
       let className = "myCRT-env-card";
-       let statusStyle = "myCRT-status-past";
-       if (this.state.active) {
-          className = "myCRT-panel-running";
-          statusStyle = "myCRT-status-running";
-       } else if (this.state.scheduled) {
-          className = "myCRT-panel-scheduled";
-          statusStyle = "myCRT-status-scheduled";
-       } else if (this.state.failed) {
-          className = "myCRT-panel-failed";
-          statusStyle = "myCRT-status-failed";
-       }
+      let statusStyle = "myCRT-status-past";
+      if (this.state.active && this.state.mimic) {
+      className = "myCRT-panel-mimic";
+      statusStyle = "myCRT-status-mimic";
+      } else if (this.state.active) {
+         className = "myCRT-panel-running";
+         statusStyle = "myCRT-status-running";
+      } else if (this.state.scheduled) {
+         className = "myCRT-panel-scheduled";
+         statusStyle = "myCRT-status-scheduled";
+      } else if (this.state.failed) {
+         className = "myCRT-panel-failed";
+         statusStyle = "myCRT-status-failed";
+      }
+      if (!this.state.done && this.state.mimic) {
+         status = status + " - CONCURRENT";
+      }
       if (!this.props.replay) { return (<div></div>); }
         const percent = `${((this.state.currentDuration / this.state.totalDuration) * 100).toFixed(0)}%`;
         return (
@@ -127,14 +137,14 @@ export class ReplayPanel extends React.Component<any, any>  {
                                             style={{zIndex: 10, float: "right", borderRadius: "26px"}}>
                                             <i className="fa fa-line-chart"></i></button> : null}
                 </div>
-                {this.state.live ?
+                {this.state.live && !this.state.mimic ?
                   <div className="progress" style={{height: "20px", borderRadius: 0}}>
                      <div className="progress-bar progress-bar-striped progress-bar-animated myCRT-progress-bar"
                         role="progressbar" aria-valuenow={this.state.currentDuration} aria-valuemin={0}
                         style={{width: percent}} aria-valuemax={this.state.totalDuration}>
                         {percent}</div>
                   </div> :
-                  <div className={`card-footer ${statusStyle}`}>{this.state.replay.status}</div>}
+                  <div className={`card-footer ${statusStyle}`}>{status}</div>}
                 <div className="card-body" style={{paddingBottom: "5px", paddingRight: "8px"}}>
                   {this.state.failed ? <p className="myCRT-danger-label"><i>{this.state.replay.reason}</i></p> : null}
                   <p><b>DB:</b><i> {this.state.db}</i></p>

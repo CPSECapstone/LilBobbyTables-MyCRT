@@ -4,6 +4,7 @@ $secondary-danger: #ed7669;
 $secondary-info: #5faee3;
 $secondary-warning: #f5b043;
 $secondary-success: #24e3be;
+$secondary-mimic: #8040bf;
 
 .myCRT-env-navbar {
     display: flex;
@@ -141,6 +142,12 @@ input:focus {
    color: white;
 }
 
+.myCRT-panel-mimic {
+   background-image: none;
+   background-color: #663399;
+   color: white;
+}
+
 .myCRT-panel-failed {
    background-image: none;
    background-color: #E74C3C;
@@ -156,6 +163,11 @@ input:focus {
 .myCRT-status-running {
    @extend %myCRT-status;
    background-color: $secondary-success;
+}
+
+.myCRT-status-mimic {
+   @extend %myCRT-status;
+   background-color: $secondary-mimic;
 }
 
 .myCRT-progress-bar {

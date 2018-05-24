@@ -267,7 +267,7 @@ class DashboardApp extends React.Component<any, any> {
                                  <i className="fa fa-plus" aria-hidden="true"></i>
                               </a>
                               <CaptureModal id="captureModal" envId={this.state.envId} bucket={this.state.env.bucket}
-                              update={this.componentWillMount}/>
+                              update={this.componentWillMount} sourceDB={this.state.env.dbName}/>
                            </div>
                            <br></br>
                            <ListView name="Active" list={liveCaptures} update={this.updateSearch}
