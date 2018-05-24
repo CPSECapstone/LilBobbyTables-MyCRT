@@ -20,6 +20,7 @@ import { noMimicReplaysOnSameDb } from '../middleware/replay';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
 import SelfAwareRouter from './self-aware-router';
+import { MimicCreator } from '../common/mimic-creator';
 
 export default class CaptureRouter extends SelfAwareRouter {
    public name: string = 'capture';
@@ -199,91 +200,8 @@ export default class CaptureRouter extends SelfAwareRouter {
          this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.body.envId)),
          this.handleHttpErrors(noMimicReplaysOnSameDb),
          this.handleHttpErrors(async (request, response) => {
-
-            const environment = await environmentDao.getEnvironment(request.body.envId);
-            if (!environment) {
-               throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
-            }
-
-            let endTime: Date | undefined;
-            if (request.body.duration) {
-               endTime = this.createEndDate(request.body.scheduledStart || new Date(),
-                  request.body.duration);
-            }
-
-            // make the capture
-            let capture: ICapture | null = {
-               type: ChildProgramType.CAPTURE,
-               ownerId: request.user!.id,
-               envId: environment.id,
-               status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-               scheduledStart: request.body.scheduledStart ? request.body.scheduledStart : undefined,
-               name: request.body.name,
-               scheduledEnd: endTime,
-            };
-            capture = await captureDao.makeCapture(capture);
-            if (capture === null) {
-               throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to create capture in DB");
-            }
-
-            // make all of the replays
-            const replays: IReplay[] = [];
-            for (const replay of (request.body.replays as IReplayFull[])) {
-
-               let db: IDbReference | null = {
-                  name: replay.dbName,
-                  host: replay.host,
-                  user: replay.user,
-                  pass: replay.pass,
-                  instance: replay.instance,
-                  parameterGroup: replay.parameterGroup,
-               };
-               db = await environmentDao.makeDbReference(db);
-               if (!db) {
-                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "DB reference could not be created");
-               }
-
-               let replayTemplate: IReplay | null = {
-                  type: ChildProgramType.REPLAY,
-                  name: replay.name,
-                  captureId: capture!.id,
-                  status: ChildProgramStatus.STARTED,
-                  dbId: db!.id,
-                  ownerId: request.user!.id,
-                  scheduledEnd: endTime,
-               };
-               replayTemplate = await replayDao.makeReplay(replayTemplate);
-               if (!replayTemplate) {
-                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to create replay in the DB");
-               }
-
-               replays.push(replayTemplate);
-            }
-
-            // make the mimic
-            const mimic: IMimic = {
-               ...capture,
-               type: ChildProgramType.MIMIC,
-               replays,
-            };
-
-            // Start it
-            if (request.body.scheduledStart) {
-               schedule.scheduleJob(request.body.scheduledStart, () => {
-                  startMimic(mimic);
-               });
-            } else {
-               startMimic(mimic);
-            }
-
-            // End it
-            if (request.body.duration) {
-               schedule.scheduleJob(endTime!, () => {
-                  this.stopScheduledCapture(capture!);
-               });
-            }
-
-            response.json(mimic);
+            const mimicCreator = new MimicCreator(request, response, this.ipcNode);
+            await mimicCreator.createMimicTemplate(request, response);
          }),
       );
 

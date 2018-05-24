@@ -14,8 +14,8 @@ import { settings } from '../settings';
 const logger = Logging.defaultLogger(__dirname);
 
 export class ReplayCreator extends SubProcessCreator {
-   public dbReference: IDbReference;
-   public captureId: any;
+   private dbReference: IDbReference;
+   private captureId: any;
 
    constructor(request: any, response: any) {
       super(request, response);
