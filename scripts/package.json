@@ -43,6 +43,7 @@
     "webpack": "^3.8.1"
   },
   "dependencies": {
+    "bcrypt": "^2.0.1",
     "define-property": "^2.0.2"
   }
 }
