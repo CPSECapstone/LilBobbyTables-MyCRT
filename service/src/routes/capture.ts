@@ -206,6 +206,7 @@ export default class CaptureRouter extends SelfAwareRouter {
             let capture: ICapture | null = {
                type: ChildProgramType.CAPTURE,
                ownerId: request.user!.id,
+               isMimic: true,
                envId: environment.id,
                status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
                scheduledStart: request.body.scheduledStart ? request.body.scheduledStart : undefined,
@@ -238,7 +239,8 @@ export default class CaptureRouter extends SelfAwareRouter {
                   type: ChildProgramType.REPLAY,
                   name: replay.name,
                   captureId: capture!.id,
-                  status: ChildProgramStatus.STARTED,
+                  isMimic: true,
+                  status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
                   dbId: db!.id,
                   ownerId: request.user!.id,
                   scheduledEnd: endTime,
