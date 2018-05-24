@@ -4,7 +4,7 @@ $secondary-danger: #ed7669;
 $secondary-info: #5faee3;
 $secondary-warning: #f5b043;
 $secondary-success: #24e3be;
-$secondary-mimic: #8040bf;
+$secondary-mimic: #b38cd9;
 
 .myCRT-env-navbar {
     display: flex;
@@ -144,7 +144,7 @@ input:focus {
 
 .myCRT-panel-mimic {
    background-image: none;
-   background-color: #663399;
+   background-color: #9966cc;
    color: white;
 }
 
@@ -172,6 +172,10 @@ input:focus {
 
 .myCRT-progress-bar {
    background-color: $secondary-success;
+}
+
+.myCRT-mimic-progress-bar {
+   background-color: $secondary-mimic;
 }
 
 p {

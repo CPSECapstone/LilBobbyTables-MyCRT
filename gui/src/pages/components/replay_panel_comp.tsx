@@ -20,8 +20,7 @@ export class ReplayPanel extends React.Component<any, any>  {
                      this.props.replay.status === ChildProgramStatus.STARTING ||
                      this.props.replay.status === ChildProgramStatus.STARTED,
                      live: this.props.replay.status === ChildProgramStatus.RUNNING,
-                     replay: this.props.replay, capture: this.props.capture,
-                     mimic: this.props.replay.type === ChildProgramType.MIMIC,
+                     replay: this.props.replay, capture: this.props.capture, mimic: this.props.replay.isMimic,
                      done: this.props.replay.status === ChildProgramStatus.DONE,
                      scheduled: this.props.replay.status === ChildProgramStatus.SCHEDULED,
                      failed: this.props.replay.status === ChildProgramStatus.FAILED};
@@ -106,8 +105,8 @@ export class ReplayPanel extends React.Component<any, any>  {
       let className = "myCRT-env-card";
       let statusStyle = "myCRT-status-past";
       if (this.state.active && this.state.mimic) {
-      className = "myCRT-panel-mimic";
-      statusStyle = "myCRT-status-mimic";
+         className = "myCRT-panel-mimic";
+         statusStyle = "myCRT-status-mimic";
       } else if (this.state.active) {
          className = "myCRT-panel-running";
          statusStyle = "myCRT-status-running";
