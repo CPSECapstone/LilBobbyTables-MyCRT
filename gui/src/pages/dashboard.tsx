@@ -254,6 +254,10 @@ class DashboardApp extends React.Component<any, any> {
                      <a className="nav-link" data-toggle="tab" href="#userTab" role="tab">
                         Users ({this.state.users.length})</a>
                   </li>
+                  {this.state.me.isAdmin ? <li className="nav-item">
+                     <a className="nav-link" data-toggle="tab" href="#notifyTab" role="tab">
+                        Notifications</a>
+                  </li> : null}
                </ul>
                <div className = "tab-content">
                   <div className="tab-pane show active" id="dashboardTab" role="tabpanel">
@@ -312,6 +316,9 @@ class DashboardApp extends React.Component<any, any> {
                            <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i></a></span> : null}
                      <br/><br/>
                      <UserTable users={this.state.users}/>
+                  </div>
+                  <div className="tab-pane" id="notifyTab" role="tabpanel">
+                     <br/><h2 style={{display: "inline"}}>Notifications</h2>
                   </div>
                </div>
             </div>
