@@ -17,6 +17,7 @@ import * as schema from '../request-schema/environment-schema';
 import InviteRouter from './environment-invite';
 import EnvironmentUserRouter from './environment-user';
 import SelfAwareRouter from './self-aware-router';
+import SlackRouter from './slack';
 
 export default class EnvironmentRouter extends SelfAwareRouter {
    public name: string = 'environment';
@@ -227,5 +228,8 @@ export default class EnvironmentRouter extends SelfAwareRouter {
 
       const envUserRouter = new EnvironmentUserRouter(this.ipcNode);
       this.router.use(envUserRouter.urlPrefix, envUserRouter.router);
+
+      const slackRouter = new SlackRouter(this.ipcNode);
+      this.router.use(slackRouter.urlPrefix, slackRouter.router);
    }
 }

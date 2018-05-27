@@ -78,14 +78,21 @@ export  class EnvironmentDao extends Dao {
    }
 
    public async getSlackConfig(slackId: number): Promise<data.ISlackConfig | null> {
-      const row = await this.query<any>('SELECT * FROM SlackConfig WHERE id = ?', slackId);
-      return this.rowToSlackConfig(row);
+      const row = await this.query<any>('SELECT * FROM SlackConfig WHERE id = ?', [slackId]);
+      return this.rowToSlackConfig(row[0]);
+   }
 
+   public async getSlackConfigByEnv(envId: number): Promise<data.ISlackConfig | null> {
+      const rows = await this.query<any>('SELECT * FROM SlackConfig WHERE environmentId = ?', envId);
+      if (rows.length === 0) {
+         return null;
+      }
+      return this.rowToSlackConfig(rows[0]);
    }
 
    public async makeSlackConfig(slackConfig: data.ISlackConfig): Promise<data.ISlackConfig | null> {
       const row = await this.query<any>('INSERT INTO SlackConfig SET ?', slackConfig);
-      return await this.getSlackConfig(row.id);
+      return await this.getSlackConfig(row.insertId);
    }
 
    public async editSlackConfig(slackId: number, changes: data.ISlackConfig): Promise<data.ISlackConfig | null> {
