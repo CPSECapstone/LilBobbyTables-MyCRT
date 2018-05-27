@@ -41,3 +41,6 @@ export * from './dao/environment-invite-dao';
 export * from './dao/replay-dao';
 export * from './dao/session-dao';
 export * from './dao/user-dao';
+
+/* Notifications */
+export * from './notifications/slack-bot';
