@@ -95,8 +95,8 @@ export  class EnvironmentDao extends Dao {
       return await this.getSlackConfig(row.insertId);
    }
 
-   public async editSlackConfig(slackId: number, changes: data.ISlackConfig): Promise<data.ISlackConfig | null> {
-      return this.query<any>('UPDATE SlackConfig SET ? WHERE ID = ?', [changes, slackId]);
+   public async editSlackConfig(envId: number, changes: data.ISlackConfig): Promise<data.ISlackConfig | null> {
+      return this.query<any>('UPDATE SlackConfig SET ? WHERE environmentId = ?', [changes, envId]);
    }
 
    public async deleteSlackConfig(slackId: number): Promise<data.ISlackConfig | null> {

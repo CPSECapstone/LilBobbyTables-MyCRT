@@ -49,5 +49,22 @@ export default class SlackRouter extends SelfAwareRouter {
          const slack = await environmentDao.makeSlackConfig(slackConfig);
          response.json(slack);
       }));
+
+      this.router.put('/:id(\\d+)/slack', check.validBody(schema.slackPutBody),
+            this.handleHttpErrors(async (request, response) => {
+
+         const environment = await environmentDao.getEnvironment(request.params.id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${request.params.id} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (!isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const slackPut = await environmentDao.editSlackConfig(request.params.id, request.body);
+         response.status(http.OK).end();
+      }));
    }
 }
