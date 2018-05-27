@@ -22,6 +22,24 @@ export default class SlackRouter extends SelfAwareRouter {
    protected mountRoutes(): void {
       const logger = Logging.defaultLogger(__dirname);
 
+      this.router.get('/:id(\\d+)/slack', this.handleHttpErrors(async (request, response) => {
+         const environment = await environmentDao.getEnvironment(request.params.id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND, `Environment ${request.params.id} does not exist`);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (!isUserMember.isMember) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const slack = await environmentDao.getSlackConfigByEnv(request.params.id);
+         if (!slack) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+         response.json(slack);
+      }));
+
       this.router.post('/:id(\\d+)/slack', check.validBody(schema.slackBody),
             this.handleHttpErrors(async (request, response) => {
 
@@ -64,6 +82,26 @@ export default class SlackRouter extends SelfAwareRouter {
          }
 
          const slackPut = await environmentDao.editSlackConfig(request.params.id, request.body);
+         response.status(http.OK).end();
+      }));
+
+      this.router.delete('/:id(\\d+)/slack', this.handleHttpErrors(async (request, response) => {
+         const environment = await environmentDao.getEnvironment(request.params.id);
+         if (!environment) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
+         if (!isUserMember.isAdmin) {
+            throw new HttpError(http.UNAUTHORIZED);
+         }
+
+         const slack = await environmentDao.getSlackConfigByEnv(request.params.id);
+         if (!slack) {
+            throw new HttpError(http.NOT_FOUND);
+         }
+
+         const slackDel = await environmentDao.deleteSlackConfig(slack.id!);
          response.status(http.OK).end();
       }));
    }
