@@ -19,7 +19,6 @@
     "@types/fs-extra": "^5.0.0",
     "@types/mocha": "^2.2.44",
     "@types/mysql": "^2.15.2",
-    "@types/node": "8.0.53",
     "@types/node-ipc": "^9.1.0",
     "@types/uuid": "^3.4.3",
     "@types/winston": "^2.3.7",
@@ -31,6 +30,8 @@
     "typescript": "^2.5.3"
   },
   "dependencies": {
+    "@slack/client": "^4.2.2",
+    "@types/node": "9.6.18",
     "aws-sdk": "^2.188.0",
     "bcrypt": "^1.0.3",
     "child_process": "^1.0.2",
