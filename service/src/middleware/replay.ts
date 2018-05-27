@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response} from 'express';
 import * as http from 'http-status-codes';
 
-import { IMimicReplay } from '../../../cli/dist/mycrt-client/client';
+import { IMimicReplay } from '@lbt-mycrt/cli/dist/mycrt-client/client';
 
 import { replayDao } from '../dao/mycrt-dao';
 
@@ -28,9 +28,9 @@ export const noMimicReplaysOnSameDb = async (request: Request, response: Respons
 
    const replays: IMimicReplay[] = request.body.replays;
    let errors: boolean = false;
-   const dbNames = replays.map(((replay) => replay.dbName));
+   const targetDbs = replays.map(((replay) => replay.host + replay.dbName));
 
-   const replaysOnSameDB = dbNames.length !== new Set(dbNames).size;
+   const replaysOnSameDB = targetDbs.length !== new Set(targetDbs).size;
    if (replaysOnSameDB) {
       response.status(http.BAD_REQUEST).json({
          code: http.BAD_REQUEST,
