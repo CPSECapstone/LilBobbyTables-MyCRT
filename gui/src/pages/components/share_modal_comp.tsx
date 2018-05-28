@@ -15,11 +15,12 @@ export class ShareModal extends React.Component<any, any>  {
 
    constructor(props: any) {
       super(props);
-      this.state = { disabled: true, email: "", errorMsg: "", step: "1", inviteCode: ""};
+      this.state = { disabled: true, email: "", errorMsg: "", step: "1", inviteCode: "", isAdmin: false};
       this.baseState = this.state;
       this.cancelModal = this.cancelModal.bind(this);
       this.handleEmailChange = this.handleEmailChange.bind(this);
       this.handleClick = this.handleClick.bind(this);
+      this.handleIsAdminChange = this.handleIsAdminChange.bind(this);
    }
 
    public handleEmailChange(event: any) {
@@ -33,18 +34,23 @@ export class ShareModal extends React.Component<any, any>  {
 
    public cancelModal(event: any) {
       this.setState(this.baseState);
+      $('#isAdminCheck').prop("checked", false);
       $('#shareWizard a[href="#step1"]').tab('show');
       this.render();
    }
 
    public async handleClick(event: any) {
-      const result = await mycrt.environmentInvite(this.props.envId, this.state.email);
+      const result = await mycrt.environmentInvite(this.props.envId, this.state.email, this.state.isAdmin);
       if (!result) {
          this.setState({errorMsg: "User email does not exist. Please try again with a valid email."});
          return;
       }
       this.setState({inviteCode: result.inviteCode, step: "2"});
       $('#shareWizard a[href="#step2"]').tab('show');
+   }
+
+   public handleIsAdminChange(event: any) {
+      this.setState({isAdmin: event.target.checked});
    }
 
    public render() {
@@ -76,38 +82,47 @@ export class ShareModal extends React.Component<any, any>  {
                         <div className="tab-pane myCRT-tab-pane fade show active" id="step1">
                            <div className="card card-body bg-light">
                               <label><b>Enter User Email to Share:</b></label>
-                                 <input type="name" id="shareEnv" className={`form-control`}
-                                    value={this.state.email} onChange={this.handleEmailChange}
-                                    aria-describedby="shareEnv" placeholder="Enter email"></input>
-                                 <small id="shareEnv" className="form-text text-muted"></small>
-                              </div>
+                              <input type="name" id="shareEnv" className={`form-control`}
+                                 value={this.state.email} onChange={this.handleEmailChange}
+                                 aria-describedby="shareEnv" placeholder="Enter email"></input>
+                              <small id="shareEnv" className="form-text text-muted"></small>
                               <br/>
-                              <div className="text-danger">
-                                 {this.state.errorMsg}
+                              <div className="form-check">
+                                 <label className="form-check-label">
+                                 <input type="checkbox" className="form-check-input" id="isAdminCheck"
+                                    onChange={this.handleIsAdminChange}
+                                    defaultChecked={this.state.isAdmin}/>
+                                    Grant Admin Privileges
+                                 </label>
                               </div>
                            </div>
-                           <div className="tab-pane myCRT-tab-pane fade" id="step2">
-                              <div className="card card-body bg-light">
-                                 <h4>User has been verified!</h4>
-                                 <br/>
-                                 <h6>Please share the following invite code with <i>{this.state.email} </i>
-                                     within the next 24 hours.</h6><br/>
-                                 <h6>Invite Code: <span style={{fontWeight: "bold", display: "inline"}}>
-                                    {this.state.inviteCode}</span></h6>
-                              </div>
-                           </div>
-                           <div className="modal-footer">
-                              <button className="btn btn-secondary" data-dismiss="modal" id="cancelShareBtn"
-                                    aria-hidden="true" onClick={this.cancelModal}>Close</button>
-                              {this.state.step === "1" ? <button className="btn btn-info"
-                                 onClick={this.handleClick.bind(this)}
-                                 disabled={this.state.disabled}>Get Invite Code</button> : null}
+                           <br/>
+                           <div className="text-danger">
+                              {this.state.errorMsg}
                            </div>
                         </div>
-                    </div>
-                </div>
+                        <div className="tab-pane myCRT-tab-pane fade" id="step2">
+                           <div className="card card-body bg-light">
+                              <h4>User has been verified!</h4>
+                              <br/>
+                              <h6>Please share the following invite code with <i>{this.state.email} </i>
+                                    within the next 24 hours.</h6><br/>
+                              <h6>Invite Code: <span style={{fontWeight: "bold", display: "inline"}}>
+                                 {this.state.inviteCode}</span></h6>
+                           </div>
+                        </div>
+                        <div className="modal-footer">
+                           <button className="btn btn-secondary" data-dismiss="modal" id="cancelShareBtn"
+                                 aria-hidden="true" onClick={this.cancelModal}>Close</button>
+                           {this.state.step === "1" ? <button className="btn btn-info"
+                              onClick={this.handleClick.bind(this)}
+                              disabled={this.state.disabled}>Get Invite Code</button> : null}
+                        </div>
+                     </div>
+                  </div>
+               </div>
             </div>
          </div>
-        );
-    }
+      );
+   }
 }

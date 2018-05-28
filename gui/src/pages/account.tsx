@@ -59,12 +59,12 @@ class AccountApp extends React.Component<{}, State> {
                <div className="row">
                   <div className="col-sm-12 mb-r">
                   <div className="page-header">
-                     <h1 style={{ display: "inline"}}>Account Page</h1>
+                     <h1 style={{ display: "inline"}}>My Account</h1>
                   </div>
                   <br/>
                   <UserInfo email={this.state.user.email} />
-                     <button type="button" className="btn btn-primary" onClick={this.handleSignout}>
-                        Signout
+                     <button type="button" className="btn btn-outline-danger" onClick={this.handleSignout}>
+                        Logout
                      </button>
                   </div>
                </div>

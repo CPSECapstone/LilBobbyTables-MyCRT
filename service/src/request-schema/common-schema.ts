@@ -75,6 +75,8 @@ export const value = {
    // TODO
    token: joi.string(),
 
+   isAdmin: joi.boolean(),
+
 };
 
 export const idParams: joi.ObjectSchema = joi.object().keys({

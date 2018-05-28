@@ -2,18 +2,20 @@ import { S3 } from 'aws-sdk';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
-import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IMetric, IMetricsList,
-   Logging, MetricType, ServerIpcNode, SlackBot} from '@lbt-mycrt/common';
+import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IDbReference, IMetric,
+   IMetricsList, IMimic, IReplay, IReplayFull, Logging, MetricType, ServerIpcNode, SlackBot} from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
 import { Template } from '@lbt-mycrt/gui/dist/main';
 
+import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
-import { startCapture } from '../common/launching';
+import { startCapture, startMimic } from '../common/launching';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
+import { noMimicReplaysOnSameDb } from '../middleware/replay';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
 import SelfAwareRouter from './self-aware-router';
@@ -182,6 +184,99 @@ export default class CaptureRouter extends SelfAwareRouter {
          const updateCapture = await captureDao.updateCaptureName(capture.id!, request.body.name);
          response.status(http.OK).end();
       }));
+
+      this.router.post('/mimic',
+         check.validBody(schema.mimicBody),
+         this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.body.envId)),
+         this.handleHttpErrors(noMimicReplaysOnSameDb),
+         this.handleHttpErrors(async (request, response) => {
+
+            const environment = await environmentDao.getEnvironment(request.body.envId);
+            if (!environment) {
+               throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
+            }
+
+            let endTime: Date | undefined;
+            if (request.body.duration) {
+               endTime = this.createEndDate(request.body.scheduledStart || new Date(),
+                  request.body.duration);
+            }
+
+            // make the capture
+            let capture: ICapture | null = {
+               type: ChildProgramType.CAPTURE,
+               ownerId: request.user!.id,
+               envId: environment.id,
+               status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
+               scheduledStart: request.body.scheduledStart ? request.body.scheduledStart : undefined,
+               name: request.body.name,
+               scheduledEnd: endTime,
+            };
+            capture = await captureDao.makeCapture(capture);
+            if (capture === null) {
+               throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to create capture in DB");
+            }
+
+            // make all of the replays
+            const replays: IReplay[] = [];
+            for (const replay of (request.body.replays as IReplayFull[])) {
+
+               let db: IDbReference | null = {
+                  name: replay.dbName,
+                  host: replay.host,
+                  user: replay.user,
+                  pass: replay.pass,
+                  instance: replay.instance,
+                  parameterGroup: replay.parameterGroup,
+               };
+               db = await environmentDao.makeDbReference(db);
+               if (!db) {
+                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "DB reference could not be created");
+               }
+
+               let replayTemplate: IReplay | null = {
+                  type: ChildProgramType.REPLAY,
+                  name: replay.name,
+                  captureId: capture!.id,
+                  status: ChildProgramStatus.STARTED,
+                  dbId: db!.id,
+                  ownerId: request.user!.id,
+                  scheduledEnd: endTime,
+               };
+               replayTemplate = await replayDao.makeReplay(replayTemplate);
+               if (!replayTemplate) {
+                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to create replay in the DB");
+               }
+
+               replays.push(replayTemplate);
+            }
+
+            // make the mimic
+            const mimic: IMimic = {
+               ...capture,
+               type: ChildProgramType.MIMIC,
+               replays,
+            };
+
+            // Start it
+            if (request.body.scheduledStart) {
+               schedule.scheduleJob(request.body.scheduledStart, () => {
+                  startMimic(mimic);
+               });
+            } else {
+               startMimic(mimic);
+            }
+
+            // End it
+            if (request.body.duration) {
+               schedule.scheduleJob(endTime!, () => {
+                  this.stopScheduledCapture(capture!);
+               });
+            }
+
+            response.json(mimic);
+         }),
+      );
 
       this.router.post('/', check.validBody(schema.captureBody),
             this.handleHttpErrors(async (request, response) => {

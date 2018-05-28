@@ -38,7 +38,7 @@ export class ReplayInfo extends React.Component<any, any>  {
                   style={{marginLeft: "20px", marginBottom: "15px"}} onClick={this.compareReplay}>
                   <i className="fa fa-line-chart"></i>  Compare
                </button>
-               <a role="button" className="btn btn-danger deleteBtn" data-toggle="modal" href="#"
+               <a role="button" className="btn btn-outline-danger deleteBtn" data-toggle="modal" href="#"
                   style={{marginBottom: "15px"}}
                   data-backdrop="static" data-keyboard={false}
                   data-target="#deleteReplayModal">

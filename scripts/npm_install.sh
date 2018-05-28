@@ -36,8 +36,8 @@ install_module() {
 }
 
 install_module $COMMON_DIR build-common
-install_module $CAPTURE_DIR build-capture
 install_module $REPLAY_DIR build-replay
+install_module $CAPTURE_DIR build-capture
 install_module $CLI_DIR build-cli
 install_module $GUI_DIR build-gui
 install_module $SERVICE_DIR build-service

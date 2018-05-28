@@ -23,7 +23,7 @@ export interface IEnvironmentUser {
    username?: string;
 }
 
-export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY' }
+export enum ChildProgramType { CAPTURE = 'CAPTURE', REPLAY = 'REPLAY', MIMIC = 'MIMIC' }
 
 /** The status of a capture/replay */
 export enum ChildProgramStatus {
@@ -54,7 +54,7 @@ export interface IChildProgram {
 
 export interface ICapture extends IChildProgram {
    type: ChildProgramType.CAPTURE;
-   envId?: number;
+   // envId?: number;
 }
 
 export interface IReplay extends IChildProgram {
@@ -73,6 +73,11 @@ export interface IReplayFull extends IChildProgram {
    pass: string;
    instance: string;
    parameterGroup: string;
+}
+
+export interface IMimic extends IChildProgram {
+   type: ChildProgramType.MIMIC;
+   replays?: IReplay[];
 }
 
 /** Interface for Environment objects sent/received from the MyCRT service. */
