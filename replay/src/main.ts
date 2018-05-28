@@ -2,7 +2,7 @@
 
 import { CloudWatch, S3 } from 'aws-sdk';
 
-import { ChildProgramStatus } from '@lbt-mycrt/common';
+import { ChildProgramStatus, IDbReference, IEnvironmentFull } from '@lbt-mycrt/common';
 import { CloudWatchMetricsBackend, Logging, MetricsBackend, MockMetricsBackend } from '@lbt-mycrt/common';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
@@ -15,7 +15,7 @@ import { Replay } from './replay';
 
 const DBIdentifier: string = 'DBInstanceIdentifier';
 
-export async function validReplay(config: ReplayConfig): Promise<boolean> {
+async function validReplay(config: ReplayConfig): Promise<boolean> {
 
    const logger = Logging.defaultLogger(__dirname);
    if (!config) { return false; }
@@ -35,6 +35,39 @@ export async function validReplay(config: ReplayConfig): Promise<boolean> {
    }
 }
 
+function buildMockReplay(config: ReplayConfig, env: IEnvironmentFull, db: IDbReference): Replay {
+   const storage = new LocalBackend(getSandboxPath(), env.prefix);
+   const metrics = new MockMetricsBackend(5);
+   return new Replay(config, storage, metrics, db);
+}
+
+function buildLiveReplay(config: ReplayConfig, env: IEnvironmentFull, db: IDbReference): Replay {
+   const storage = new S3Backend(
+      new S3({
+         region: env.region,
+         accessKeyId: env.accessKey,
+         secretAccessKey: env.secretKey}), env.bucket, env.prefix);
+   const metrics = new CloudWatchMetricsBackend(
+      new CloudWatch({ region: env.region,
+                        accessKeyId: env.accessKey,
+                        secretAccessKey: env.secretKey }),
+      DBIdentifier, db.instance!, 60, ['Maximum']);
+   return new Replay(config, storage, metrics, db);
+}
+
+async function buildReplay(config: ReplayConfig): Promise<Replay | null> {
+   const capture = await captureDao.getCapture(config.captureId);
+
+   if (capture && capture.envId) {
+      const capEnv = await environmentDao.getEnvironmentFull(capture.envId);
+      const db = await environmentDao.getDbReference(config.dbId);
+
+      if (capEnv && db && db.instance !== null) {
+         return config.mock ? buildMockReplay(config, capEnv, db) : buildLiveReplay(config, capEnv, db);
+      } else { return null; }
+   } else {return null; }
+}
+
 async function runReplay(): Promise<void> {
    const logger = Logging.defaultLogger(__dirname);
 
@@ -48,41 +81,11 @@ async function runReplay(): Promise<void> {
       process.exit();
    }
 
-   const capture = await captureDao.getCapture(config.captureId);
-
-   if (capture && capture.envId) {
-      const capEnv = await environmentDao.getEnvironmentFull(capture.envId);
-      const db = await environmentDao.getDbReference(config.dbId);
-
-      if (capEnv && db && db.instance !== null) {
-
-         const buildReplay = (): Replay => {
-            const storage = new S3Backend(
-               new S3({
-                  region: capEnv.region,
-                  accessKeyId: capEnv.accessKey,
-                  secretAccessKey: capEnv.secretKey}), capEnv.bucket, capEnv.prefix);
-            const metrics = new CloudWatchMetricsBackend(
-               new CloudWatch({ region: capEnv.region,
-                                 accessKeyId: capEnv.accessKey,
-                                 secretAccessKey: capEnv.secretKey }),
-               DBIdentifier, db.instance!, 60, ['Maximum']);
-            return new Replay(config, storage, metrics, db);
-         };
-
-         const buildMockReplay = (): Replay => {
-            const storage = new LocalBackend(getSandboxPath(), capEnv.prefix);
-            const metrics = new MockMetricsBackend(5);
-            return new Replay(config, storage, metrics, db);
-         };
-
-         const replay = config.mock ? buildMockReplay() : buildReplay();
-
-         logger.info("Running MyCRT Replay Program");
-         replay.run();
-      }
+   const replay = await buildReplay(config);
+   if (replay) {
+      logger.info("Running MyCRT Replay Program");
+      replay.run();
    }
-
 }
 
 if (typeof(require) !== 'undefined' && require.main === module) {
