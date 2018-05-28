@@ -3,12 +3,7 @@ import { ICommand, IWorkload, Logging } from '@lbt-mycrt/common';
 const logger = Logging.defaultLogger(__dirname);
 
 const mockFilter = (command: ICommand): boolean => {
-   let good = true;
-   ["UPDATE CAPTURE", "UPDATE DBREFERENCE", "UPDATE ENVIRONMENT", "UPDATE IAMREFERENCE",
-         "UPDATE REPLAY", "UPDATE S3REFERENCE"].forEach((segment) => {
-      good = good && command.argument.toUpperCase().indexOf(segment) < 0;
-   });
-   return good;
+   return !!command.argument.toUpperCase().match(/^UPDATE LILBOBBYTABLES/);
 };
 
 const convertTime = (command: ICommand): ICommand => {

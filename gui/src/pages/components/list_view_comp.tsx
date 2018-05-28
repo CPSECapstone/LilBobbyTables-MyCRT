@@ -1,6 +1,8 @@
 import React = require('react');
 import ReactDom = require('react-dom');
 
+import * as $ from 'jquery';
+
 import { BrowserLogger as logger } from '../../logging';
 import { Pagination } from './pagination_comp';
 import { Search } from './search_comp';
@@ -11,6 +13,13 @@ export class ListView extends React.Component<any, any>  {
       super(props);
       this.state = {arrow: "right", collapsed: true};
       this.updateCollapse = this.updateCollapse.bind(this);
+   }
+
+   public componentDidMount() {
+      if (this.props.name === "Active") {
+         this.updateCollapse();
+         $(`#${this.props.type}`).collapse("show");
+      }
    }
 
    public filterSearch(text: string) {

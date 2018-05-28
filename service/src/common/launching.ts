@@ -1,5 +1,7 @@
 import { CaptureConfig, launch as launchCapture } from '@lbt-mycrt/capture';
-import { ICapture, IReplay, Logging } from "@lbt-mycrt/common";
+import { launch as launchMimic } from '@lbt-mycrt/capture/dist/mimic/launch';
+import { MimicConfig } from '@lbt-mycrt/capture/dist/mimic/main';
+import { ICapture, IMimic, IReplay, Logging } from "@lbt-mycrt/common";
 import { launch as launchReplay, ReplayConfig } from '@lbt-mycrt/replay';
 
 import { settings } from '../settings';
@@ -30,4 +32,21 @@ export function startReplay(replay: IReplay): void {
    config.filePrepDelay = settings.replays.filePrepDelay;
 
    launchReplay(config);
+}
+
+export function startMimic(mimic: IMimic): void {
+   logger.info(`Launching mimic with id ${mimic.id}`);
+   mimic.replays!.forEach((replay) => {
+      logger.info(` - replay ${replay.id}`);
+   });
+
+   const replayIds: number[] = mimic.replays!.map((replay) => replay.id!);
+
+   const config = new MimicConfig(mimic.id!, mimic.envId!, replayIds);
+   config.mock = settings.captures.mock;
+   config.interval = settings.captures.interval;
+   config.intervalOverlap = settings.captures.intervalOverlap;
+   config.metricsDelay = settings.captures.metricsDelay;
+   config.filePrepDelay = settings.captures.filePrepDelay;
+   launchMimic(config);
 }
