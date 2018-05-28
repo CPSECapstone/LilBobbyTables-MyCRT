@@ -25,6 +25,11 @@ export class CloudWatchMetricsBackend extends MetricsBackend {
       this.statistics = statistics;
    }
 
+   public cloneForInstance(instance: string): MetricsBackend {
+      return new CloudWatchMetricsBackend(this.cloudwatch, this.dimName, instance, this.period,
+         this.statistics);
+   }
+
    protected getMetrics(metric: Metric, startTime: Date, endTime: Date): Promise<IMetricsList> {
       return new Promise<IMetricsList>((resolve, reject) => {
          const request = this.buildMetricRequest(metric, startTime, endTime);
