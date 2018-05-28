@@ -14,22 +14,23 @@ const web = new WebClient(token);
 
 export class SlackBot {
    public static async postMessage(message: string, envId: number): Promise<any> {
-      const shit = await this.getSlackConfig(envId);
-
-      web.chat.postMessage({
-         channel: channelId,
-         text: message,
-      })
-      .then((res) => {
-         logger.info("Message sent to slack!");
-      })
-      .catch(() => {
-         logger.error("Message failed to send to slack");
-      });
+      const slackConfig = await this.getSlackConfig(envId);
+      if (slackConfig.length !== 0) {
+         web.chat.postMessage({
+            channel: slackConfig[0].channel,
+            text: message,
+         })
+         .then((res) => {
+            logger.info("Message sent to slack!");
+         })
+         .catch(() => {
+            logger.error("Message failed to send to slack");
+         });
+      }
    }
 
    private static async getSlackConfig(envId: number): Promise<any> {
-      const query = 'SELECT token, channel FROM Slackbot WHERE id = ?';
+      const query = mysql.format('SELECT token, channel FROM SlackConfig WHERE environmentId = ?', [envId]);
       const conn = await mysql.createConnection(mycrtDbConfig);
       return new Promise((resolve, reject) => {
          conn.connect((connErr, myConn) => {
@@ -37,8 +38,8 @@ export class SlackBot {
                logger.error(`Error getting connection: ${connErr}`);
                reject(connErr);
             } else {
-               myConn.query(query, (queryErr: any, results: any, fields: any) => {
-                  myConn.close();
+               conn.query(query, (queryErr: any, results: any, fields: any) => {
+                  conn.destroy();
                   if (queryErr) {
                      logger.error(`Error making query: ${queryErr}`);
                      reject(queryErr);
