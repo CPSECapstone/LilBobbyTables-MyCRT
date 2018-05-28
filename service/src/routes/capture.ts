@@ -247,7 +247,11 @@ export default class CaptureRouter extends SelfAwareRouter {
          response.json(captureTemplate);
 
          if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            schedule.scheduleJob(inputTime, () => { startCapture(captureTemplate!); });
+            schedule.scheduleJob(inputTime, () => {
+               startCapture(captureTemplate!);
+               SlackBot.postMessage("It's time to start your scheduled capture " +
+                  captureTemplate!.name + " and I'm on it!", environment.id!);
+            });
          } else {
             startCapture(captureTemplate);
          }
@@ -255,7 +259,11 @@ export default class CaptureRouter extends SelfAwareRouter {
          logger.info(`Successfully created capture!`);
 
          if (duration) {
-            schedule.scheduleJob(endTime!, () => { this.stopScheduledCapture(captureTemplate!); }); // scheduled stop
+            schedule.scheduleJob(endTime!, () => {
+               this.stopScheduledCapture(captureTemplate!);
+               SlackBot.postMessage("Time's up! I just stopped your scheduled capture " +
+                  captureTemplate!.name + " :party-parrot:", environment.id!);
+            });
          }
       },
    ));
