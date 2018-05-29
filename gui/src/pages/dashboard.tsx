@@ -200,7 +200,7 @@ class DashboardApp extends React.Component<any, any> {
                <div className="row">
                   <div className="col-xs-12">
                      <h1 style={{display: "inline"}}>{this.state.env.envName}</h1>
-                     {this.state.me.isAdmin ? <h4 className="admin-flag"><i>(Admin)</i></h4> : null}
+                     {this.state.me.isAdmin ? <h5 className="admin-flag"><i>(Admin)</i></h5> : null}
                      {this.state.me.isAdmin ?
                         <span data-toggle="tooltip" data-placement="bottom" title="Delete Environment">
                            <a role="button" className="btn btn-outline-danger"
@@ -216,9 +216,12 @@ class DashboardApp extends React.Component<any, any> {
                      </span>
                      <br/><br/>
                      <div className="myCRT-overflow-col" style={{padding: 0, paddingTop: "10px",
-                        paddingLeft: "20px", width: "1050px"}}>
+                        paddingLeft: "20px", width: "1070px"}}>
+                        <br></br>
+                        <h5 style={{padding: "0px 5px", margin: "0px", display: "inline"}}>Creator:</h5>
+                        <label>{this.state.env.username}</label>
                         <div className="row">
-                           <div className="col-xs-6" style={{padding: "20px 20px 0px"}}>
+                           <div className="col-xs-6" style={{padding: "10px 20px 0px"}}>
                               <h5>Source Database:</h5>
                               <label><b>&nbsp;&nbsp;&nbsp;Name: </b>{this.state.env.dbName}</label><br/>
                               <label><b>&nbsp;&nbsp;&nbsp;Host: </b>{this.state.env.host}</label><br/>
@@ -228,7 +231,7 @@ class DashboardApp extends React.Component<any, any> {
                               <label><b>&nbsp;&nbsp;&nbsp;User: </b>{this.state.env.user}</label>
                               <br/><br/>
                            </div>
-                           <div className="col-xs-6" style={{padding: "20px 40px 0px"}}>
+                           <div className="col-xs-6" style={{padding: "10px 40px 0px"}}>
                               <h5>S3 File Storage:</h5>
                               <label><b>&nbsp;&nbsp;&nbsp;Bucket: </b>{this.state.env.bucket}</label><br/>
                               <label><b>&nbsp;&nbsp;&nbsp;Prefix: </b>{this.state.env.prefix +
@@ -248,8 +251,13 @@ class DashboardApp extends React.Component<any, any> {
                      <a className="nav-link show active" data-toggle="tab" href="#dashboardTab" role="tab">Dashboard</a>
                   </li>
                   <li className="nav-item">
-                     <a className="nav-link" data-toggle="tab" href="#userTab" role="tab">Users</a>
+                     <a className="nav-link" data-toggle="tab" href="#userTab" role="tab">
+                        Users ({this.state.users.length})</a>
                   </li>
+                  {this.state.me.isAdmin ? <li className="nav-item">
+                     <a className="nav-link" data-toggle="tab" href="#notifyTab" role="tab">
+                        Notifications</a>
+                  </li> : null}
                </ul>
                <div className = "tab-content">
                   <div className="tab-pane show active" id="dashboardTab" role="tabpanel">
@@ -263,7 +271,7 @@ class DashboardApp extends React.Component<any, any> {
                                  <i className="fa fa-plus" aria-hidden="true"></i>
                               </a>
                               <CaptureModal id="captureModal" envId={this.state.envId} bucket={this.state.env.bucket}
-                              update={this.componentWillMount}/>
+                              update={this.componentWillMount} sourceDB={this.state.env.dbName}/>
                            </div>
                            <br></br>
                            <ListView name="Active" list={liveCaptures} update={this.updateSearch}
@@ -308,6 +316,9 @@ class DashboardApp extends React.Component<any, any> {
                            <i className="fa fa-user-plus fa-lg" aria-hidden="true"></i></a></span> : null}
                      <br/><br/>
                      <UserTable users={this.state.users}/>
+                  </div>
+                  <div className="tab-pane" id="notifyTab" role="tabpanel">
+                     <br/><h2 style={{display: "inline"}}>Notifications</h2>
                   </div>
                </div>
             </div>
