@@ -14,13 +14,13 @@ import * as session from '../auth/session';
 import { CaptureCreator } from '../common/capture-creator';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startCapture, startMimic } from '../common/launching';
+import { MimicCreator } from '../common/mimic-creator';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import { noMimicReplaysOnSameDb } from '../middleware/replay';
 import * as check from '../middleware/request-validation';
 import * as schema from '../request-schema/capture-schema';
 import SelfAwareRouter from './self-aware-router';
-import { MimicCreator } from '../common/mimic-creator';
 
 export default class CaptureRouter extends SelfAwareRouter {
    public name: string = 'capture';

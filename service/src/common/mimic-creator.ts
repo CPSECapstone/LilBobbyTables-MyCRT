@@ -1,5 +1,6 @@
 import { CaptureConfig, launch as launchCapture } from '@lbt-mycrt/capture';
-import { ChildProgramStatus, ChildProgramType, ICapture, IReplay, Logging, ServerIpcNode, IDbReference, IReplayFull, IMimic } from "@lbt-mycrt/common";
+import { ChildProgramStatus, ChildProgramType, ICapture, IDbReference, IMimic, IReplay,
+   IReplayFull, Logging, ServerIpcNode } from "@lbt-mycrt/common";
 import { launch as launchReplay, ReplayConfig } from '@lbt-mycrt/replay';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
@@ -9,27 +10,15 @@ import { SubProcessCreator } from "./create";
 import { startCapture, startMimic } from '../common/launching';
 import { HttpError } from '../http-error';
 import { settings } from '../settings';
+import { CaptureCreator } from './capture-creator';
 
 const logger = Logging.defaultLogger(__dirname);
 
-export class MimicCreator extends SubProcessCreator {
-   private endTime: Date | undefined;
-   private duration: number;
-   private ipcNode: ServerIpcNode;
-   private env: any;
-   private captureId: any;
-
+export class MimicCreator extends CaptureCreator {
    constructor(request: any, response: any, ipcNode: ServerIpcNode) {
-      super(request, response);
-      this.duration = request.body.duration;
-      this.ipcNode = ipcNode;
+      super(request, response, ipcNode);
    }
 
-   public scheduledChecks(): void {
-      super.scheduledChecks();
-   }
-
-   // tslint:disable-next-line:member-ordering
    public async createMimicTemplate(request: any, response: any) {
       const environment = await environmentDao.getEnvironment(request.body.envId);
       if (!environment) {
@@ -115,24 +104,5 @@ export class MimicCreator extends SubProcessCreator {
       }
 
       response.json(mimic);
-   }
-
-   private checkDuration() {
-      if (this.duration) {
-         schedule.scheduleJob(this.endTime!, () => { this.stopScheduledCapture(this.template!); }); // scheduled stop
-      }
-   }
-
-   private createEndDate(startTime: Date, seconds: number): Date {
-      const endTime = new Date(startTime.getTime());
-      endTime.setSeconds(startTime.getSeconds() + seconds);
-      return endTime;
-   }
-
-   private async stopScheduledCapture(capture: ICapture): Promise<void> {
-      // TODO: Query database to check if capture is running,
-      //       if yes, send "await this.ipcNode.stopCapture(capture.id!);"
-      await this.ipcNode.stopCapture(capture.id!);
-      logger.info(`Capture ${capture.id!} stopped`);
    }
 }

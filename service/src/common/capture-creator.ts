@@ -13,10 +13,10 @@ import { settings } from '../settings';
 const logger = Logging.defaultLogger(__dirname);
 
 export class CaptureCreator extends SubProcessCreator {
-   private endTime: Date | undefined;
-   private duration: number;
-   private ipcNode: ServerIpcNode;
-   private env: any;
+   public endTime: Date | undefined;
+   public duration: number;
+   public ipcNode: ServerIpcNode;
+   public env: any;
 
    constructor(request: any, response: any, ipcNode: ServerIpcNode) {
       super(request, response);
@@ -89,19 +89,19 @@ export class CaptureCreator extends SubProcessCreator {
       this.checkDuration();
    }
 
-   private checkDuration() {
+   public checkDuration() {
       if (this.duration) {
          schedule.scheduleJob(this.endTime!, () => { this.stopScheduledCapture(this.template!); }); // scheduled stop
       }
    }
 
-   private createEndDate(startTime: Date, seconds: number): Date {
+   public createEndDate(startTime: Date, seconds: number): Date {
       const endTime = new Date(startTime.getTime());
       endTime.setSeconds(startTime.getSeconds() + seconds);
       return endTime;
    }
 
-   private async stopScheduledCapture(capture: ICapture): Promise<void> {
+   public async stopScheduledCapture(capture: ICapture): Promise<void> {
       // TODO: Query database to check if capture is running,
       //       if yes, send "await this.ipcNode.stopCapture(capture.id!);"
       await this.ipcNode.stopCapture(capture.id!);
