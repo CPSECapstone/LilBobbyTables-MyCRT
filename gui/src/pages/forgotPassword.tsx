@@ -67,23 +67,26 @@ class ForgotPasswordApp extends React.Component<{}, State> {
 
    private recoverLogin = async (e: any) => {
       logger.info("Need to reset password!");
+      const body = {
+         email: this.state.email,
+      };
+      const user = mycrt.forgotPassword(body);
 
       logger.info("Check that the email belongs to a valid user");
       // TODO: Check that the email is valid and is registered to a user in the db
-      const valid = null;
-      const user = null;
+      // const valid = null;
 
-      if (!valid || user === null) {
-         logger.error("Invalid Email");
-         store.dispatch(showAlert({
-            show: true,
-            header: "Invalid Email",
-            message: "The provided email is not registered with MyCRT.",
-         }));
-      } else {
-         logger.info("Done!");
-         // window.location.assign('/');
-      }
+      // if (!valid || user === null) {
+      //    logger.error("Invalid Email");
+      //    store.dispatch(showAlert({
+      //       show: true,
+      //       header: "Invalid Email",
+      //       message: "The provided email is not registered with MyCRT.",
+      //    }));
+      // } else {
+      //    logger.info("Done!");
+      //    // window.location.assign('/');
+      // }
    }
 
 }
