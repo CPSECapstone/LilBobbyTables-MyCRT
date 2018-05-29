@@ -12,6 +12,7 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 
 export interface State {
+   email: string | undefined;
    oldPassword: string;
    password: string;
    confirmPassword: string;
@@ -22,10 +23,21 @@ class ChangePasswordApp extends React.Component<{}, State> {
    constructor(props: {}) {
       super(props);
       this.state = {
+         email: undefined,
          oldPassword: '',
          password: '',
          confirmPassword: '',
       };
+   }
+   public async componentDidMount() {
+      const me = await mycrt.aboutMe();
+      if (me) {
+         this.setState({
+            email: me.email,
+         });
+      } else {
+         logger.error("Failed to load user data");
+      }
    }
 
    public render() {
@@ -107,8 +119,9 @@ class ChangePasswordApp extends React.Component<{}, State> {
       }
 
       const user = await mycrt.changePassword({
-         password: this.state.password,
          oldPassword: this.state.oldPassword,
+         newPassword: this.state.password,
+         newPasswordAgain: this.state.confirmPassword,
       });
 
       if (!valid || user === null) {
@@ -122,7 +135,7 @@ class ChangePasswordApp extends React.Component<{}, State> {
       } else {
          logger.info("Done!");
          logger.info(JSON.stringify(user));
-         // window.location.assign('/login');
+         window.location.assign('/');
       }
    }
 

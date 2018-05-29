@@ -6,7 +6,7 @@ import { showAlert } from '../actions';
 import { store } from '../store';
 import { BrowserLogger as logger } from './../logging';
 import { BasePage } from './components/base_page_comp';
-import { style, validLoginFields } from './utils/auth';
+import { style, validEmail } from './utils/auth';
 import { mycrt } from './utils/mycrt-client';
 
 import * as React from 'react';
@@ -67,26 +67,23 @@ class ForgotPasswordApp extends React.Component<{}, State> {
 
    private recoverLogin = async (e: any) => {
       logger.info("Need to reset password!");
-      const body = {
-         email: this.state.email,
-      };
-      const user = mycrt.forgotPassword(body);
+
+      const valid = validEmail(this.state);
+      const user = mycrt.forgotPassword(this.state);
 
       logger.info("Check that the email belongs to a valid user");
-      // TODO: Check that the email is valid and is registered to a user in the db
-      // const valid = null;
 
-      // if (!valid || user === null) {
-      //    logger.error("Invalid Email");
-      //    store.dispatch(showAlert({
-      //       show: true,
-      //       header: "Invalid Email",
-      //       message: "The provided email is not registered with MyCRT.",
-      //    }));
-      // } else {
-      //    logger.info("Done!");
-      //    // window.location.assign('/');
-      // }
+      if (!valid || user === null) {
+         logger.error("Invalid Email");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Invalid Email",
+            message: "Please enter a valid email.",
+         }));
+      } else {
+         logger.info("Done!");
+         window.location.assign('/');
+      }
    }
 
 }

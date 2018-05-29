@@ -241,7 +241,7 @@ export class MyCrtClient {
 
    /** Forgot Password to MyCRT */
    public async forgotPassword(email: types.ForgotPasswordBody): Promise<IUser | null> {
-      return this.makeRequest<IUser>(HttpMethod.PUT, '/users/forgotPassword', null, email);
+      return this.makeRequest<IUser>(HttpMethod.POST, '/users/forgotPassword', null, email);
    }
 
    /** Change the User's Password to MyCRT */

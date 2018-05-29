@@ -1,6 +1,7 @@
 import { CSSProperties } from 'react';
 
 import { State as changePasswordState } from '../changePassword';
+import { State as forgotPasswordState } from '../forgotPassword';
 import { State as loginState } from '../login';
 import { State as signupState } from '../signup';
 
@@ -32,6 +33,12 @@ export function validSignupFields(state: signupState): boolean {
       && state.password
       && state.password.match(/^.{8,64}$/)
       && state.password === state.confirmPassword
+   );
+}
+
+export function validEmail(state: forgotPasswordState): boolean {
+   return !!(
+      state.email
    );
 }
 

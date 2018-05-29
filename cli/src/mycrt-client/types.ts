@@ -10,7 +10,8 @@ export interface SignupBody extends LoginBody {
 
 export interface ChangePasswordBody {
    oldPassword: string;
-   password: string;
+   newPassword: string;
+   newPasswordAgain: string;
 }
 
 export interface ForgotPasswordBody {
