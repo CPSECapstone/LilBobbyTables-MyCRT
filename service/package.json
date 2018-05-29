@@ -15,6 +15,7 @@
   "dependencies": {
     "@lbt-mycrt/capture": "file:../capture",
     "@lbt-mycrt/common": "file:../common",
+    "@lbt-mycrt/cli": "file:../cli",
     "@lbt-mycrt/gui": "file:../gui",
     "@lbt-mycrt/replay": "file:../replay",
     "async": "^2.6.0",
