@@ -15,6 +15,7 @@ const web = new WebClient(token);
 export class SlackBot {
    public static async postMessage(message: string, envId: number): Promise<any> {
       const slackConfig = await this.getSlackConfig(envId);
+      logger.debug(JSON.stringify(slackConfig));
       if (slackConfig.length !== 0 && slackConfig[0].isOn) {
          web.chat.postMessage({
             channel: slackConfig[0].channel,
@@ -30,7 +31,7 @@ export class SlackBot {
    }
 
    private static async getSlackConfig(envId: number): Promise<any> {
-      const query = mysql.format('SELECT token, channel FROM SlackConfig WHERE environmentId = ?', [envId]);
+      const query = mysql.format('SELECT token, channel, isOn FROM SlackConfig WHERE environmentId = ?', [envId]);
       const conn = await mysql.createConnection(mycrtDbConfig);
       return new Promise((resolve, reject) => {
          conn.connect((connErr, myConn) => {
