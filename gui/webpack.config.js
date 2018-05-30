@@ -8,6 +8,7 @@ const config = {
       login: path.resolve(__dirname, 'dist', 'pages', 'login.js'),
       forgotPassword: path.resolve(__dirname, 'dist', 'pages', 'forgotPassword.js'),
       changePassword: path.resolve(__dirname, 'dist', 'pages', 'changePassword.js'),
+      resetPassword: path.resolve(__dirname, 'dist', 'pages', 'resetPassword.js'),
       account: path.resolve(__dirname, 'dist', 'pages', 'account.js'),
       environments: path.resolve(__dirname, 'dist', 'pages', 'environments.js'),
       dashboard: path.resolve(__dirname, 'dist', 'pages', 'dashboard.js'),
