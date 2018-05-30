@@ -8,7 +8,7 @@ export class EnvironmentPanel extends React.Component<any, any>  {
         super(props);
         this.handleClick = this.handleClick.bind(this);
         this.formatUsername = this.formatUsername.bind(this);
-        this.state = {captureNum: null, replayNum: null, userCount: null};
+        this.state = {captureNum: null, replayNum: null, userCount: null, isOn: false};
     }
 
     public async componentWillMount() {
@@ -30,6 +30,10 @@ export class EnvironmentPanel extends React.Component<any, any>  {
         if (result) {
            this.setState({userCount: result.count});
         }
+        const slackInfo = await mycrt.getSlackInfo(this.props.env.id);
+        if (slackInfo) {
+           this.setState({isOn: slackInfo.isOn});
+        }
 
     }
 
@@ -50,7 +54,10 @@ export class EnvironmentPanel extends React.Component<any, any>  {
                     <div className="card-header myCRT-env-card" style={{paddingBottom: "5px"}}>
                         <h5 className="hover-text" role="button" style={{display: "inline"}}
                            onClick={ (e) => this.handleClick(e)}>
-                           {this.props.title}</h5>
+                           <i className={this.state.isOn ? "fa fa-circle liveCircle" : "fa fa-circle-thin circle"}
+                              style={{paddingRight: "10px"}}></i>
+                           {this.props.title}
+                        </h5>
                         <i className="fa fa-users fa-lg" style={{float: "right", marginTop: "4px"}}></i>
                         <p style={{float: "right", paddingRight: "10px"}}>{this.state.userCount}</p>
                     </div>

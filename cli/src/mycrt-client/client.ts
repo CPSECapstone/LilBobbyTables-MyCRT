@@ -273,6 +273,10 @@ export class MyCrtClient {
       return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/slack`);
    }
 
+   public async modifySlackInfo(envId: number, isOn: boolean): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.PUT, `/environments/${envId}/slack`, null, {isOn});
+   }
+
    /**
     * Create an invitation to an environment. The response will have an inviteCode on the body.
     * The given user must then accept the invitation with that invite code.
