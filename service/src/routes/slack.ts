@@ -65,8 +65,8 @@ export default class SlackRouter extends SelfAwareRouter {
          };
 
          const slack = await environmentDao.makeSlackConfig(slackConfig);
-         SlackBot.postMessage("Heyo it's lil Bobby bot, nice to meet you! " +
-            "Imma let you know what goes down with your captures and replays", environment.id!);
+         SlackBot.postMessage("Heyo it's lil Bobby bot, nice to meet you! Imma let you know what " +
+            "goes down with your captures and replays in *" + environment.name + "*.", environment.id!);
          response.json(slack);
       }));
 

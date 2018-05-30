@@ -56,8 +56,8 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
             logger.info("Creating invite");
             const invite = await inviteDao.inviteUser(environment, user, request.body.isAdmin);
             SlackBot.postMessage("Hey @" + request.body.userEmail + " heads up! @" + request.user!.email +
-               " just invited you to join " + environment.name! +
-               "! You have 24 hours to accept using this invite code `" + invite!.inviteCode + "`", environment!.id!,
+               " just invited you to join *" + environment.name! +
+               "*! You have 24 hours to accept using this invite code `" + invite!.inviteCode + "`", environment!.id!,
             );
 
             logger.info("Invite created!");
@@ -97,6 +97,8 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
          const isUserMember = await inviteDao.getUserMembership(request.user!, environment);
          if (isUserMember.isAdmin) {
             const promoteToAdmin = inviteDao.promoteToAdmin(request.body.envUserId);
+            SlackBot.postMessage("Attention all, *" + envUser.username! + "* has been knighted! " +
+               "They now have admin privileges on *" + environment.name + "*.", environment!.id!);
             response.json();
          } else {
             throw new HttpError(http.UNAUTHORIZED);
@@ -135,6 +137,9 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
 
             logger.info("Getting environment to return");
             const environment = await environmentDao.getEnvironmentFull(invite.environmentId!);
+            SlackBot.postMessage("Heads up everyone, *" + request.user!.email + "* just joined *" +
+               environment!.envName! + "*. Welcome and help em get started with their first capture!",
+               environment!.id!);
             response.json(environment);
 
          },
