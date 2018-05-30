@@ -264,6 +264,8 @@ export default class CaptureRouter extends SelfAwareRouter {
             if (request.body.scheduledStart) {
                schedule.scheduleJob(request.body.scheduledStart, () => {
                   startMimic(mimic);
+                  SlackBot.postMessage("Oi bobby here, the clock struck " + capture!.scheduledStart! +
+                     " so I started your mimicked capture and replays for `" + capture!.name + "`", environment.id!);
                });
             } else {
                startMimic(mimic);
@@ -273,6 +275,8 @@ export default class CaptureRouter extends SelfAwareRouter {
             if (request.body.duration) {
                schedule.scheduleJob(endTime!, () => {
                   this.stopScheduledCapture(capture!);
+                  SlackBot.postMessage("Swiggety swag :party-parrot: your mimicked captures and replays for `" +
+                     capture!.name + "` are complete. How cool was that?!", environment.id!);
                });
             }
 

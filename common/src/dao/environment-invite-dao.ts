@@ -114,7 +114,8 @@ export class EnvironmentInviteDao extends Dao {
    }
 
    public async getEnvUserCount(environment: IEnvironment): Promise<any> {
-      const envUserCt = await this.query<any>('SELECT COUNT(*) AS count FROM EnvironmentUser WHERE environmentId = ?',
+      const envUserCt = await this.query<any>('SELECT COUNT(*) AS count FROM EnvironmentUser ' +
+         'WHERE environmentId = ? AND accepted = 1',
          [environment.id!]);
 
       return envUserCt[0];

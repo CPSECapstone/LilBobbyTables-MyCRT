@@ -77,6 +77,8 @@ export const value = {
 
    isAdmin: joi.boolean(),
 
+   isOn: joi.boolean(),
+
 };
 
 export const idParams: joi.ObjectSchema = joi.object().keys({

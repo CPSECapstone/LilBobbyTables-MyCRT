@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
+import { Logging, ServerIpcNode, SlackBot } from '@lbt-mycrt/common';
 
 import * as session from '../auth/session';
 import { environmentDao, environmentInviteDao as inviteDao } from '../dao/mycrt-dao';
@@ -65,6 +65,8 @@ export default class SlackRouter extends SelfAwareRouter {
          };
 
          const slack = await environmentDao.makeSlackConfig(slackConfig);
+         SlackBot.postMessage("Heyo it's lil Bobby bot, nice to meet you! " +
+            "Imma let you know what goes down with your captures and replays", environment.id!);
          response.json(slack);
       }));
 
