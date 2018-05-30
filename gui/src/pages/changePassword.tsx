@@ -12,10 +12,9 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 
 export interface State {
-   email: string | undefined;
    oldPassword: string;
-   password: string;
-   confirmPassword: string;
+   newPassword: string;
+   newPasswordAgain: string;
 }
 
 class ChangePasswordApp extends React.Component<{}, State> {
@@ -23,21 +22,10 @@ class ChangePasswordApp extends React.Component<{}, State> {
    constructor(props: {}) {
       super(props);
       this.state = {
-         email: undefined,
          oldPassword: '',
-         password: '',
-         confirmPassword: '',
+         newPassword: '',
+         newPasswordAgain: '',
       };
-   }
-   public async componentDidMount() {
-      const me = await mycrt.aboutMe();
-      if (me) {
-         this.setState({
-            email: me.email,
-         });
-      } else {
-         logger.error("Failed to load user data");
-      }
    }
 
    public render() {
@@ -56,11 +44,11 @@ class ChangePasswordApp extends React.Component<{}, State> {
                         </div>
                         <div className="input-group mb-3">
                            <input type="password" className="form-control" placeholder="New Password"
-                              value={this.state.password} onChange={this.handlePasswordChange} />
+                              value={this.state.newPassword} onChange={this.handlePasswordChange} />
                         </div>
                         <div className="input-group mb-3">
                            <input type="password" className="form-control"
-                              placeholder="Confirm New Password" value={this.state.confirmPassword}
+                              placeholder="Confirm New Password" value={this.state.newPasswordAgain}
                               onChange={this.handleConfirmPasswordChange} />
                         </div>
                         <div className="input-group mb-3">
@@ -93,23 +81,34 @@ class ChangePasswordApp extends React.Component<{}, State> {
    private handlePasswordChange = (e: any) => {
       this.setState({
          ...this.state,
-         password: e.target.value,
+         newPassword: e.target.value,
       });
    }
 
    private handleConfirmPasswordChange = (e: any) => {
       this.setState({
          ...this.state,
-         confirmPassword: e.target.value,
+         newPasswordAgain: e.target.value,
       });
    }
 
    private changePassword = async (e: any) => {
       logger.info("Change password!");
-      const valid = validChangePasswordFields(this.state);
+      const me = await mycrt.aboutMe();
+      if (!me) {
+         logger.error("User not found!");
+         store.dispatch(showAlert({
+            show: true,
+            header: "Authentication Error",
+            message: "There was a problem authenticating the user. Please re-log in using your old password"
+                     + " and try again.",
+         }));
+         return;
+      }
 
+      const valid = validChangePasswordFields(this.state);
       if (!valid) {
-         logger.info("Showing alert");
+         logger.error("Bad Password!");
          store.dispatch(showAlert({
             show: true,
             header: "Bad Password",
@@ -118,13 +117,8 @@ class ChangePasswordApp extends React.Component<{}, State> {
          return;
       }
 
-      const user = await mycrt.changePassword({
-         oldPassword: this.state.oldPassword,
-         newPassword: this.state.password,
-         newPasswordAgain: this.state.confirmPassword,
-      });
-
-      if (!valid || user === null) {
+      const user = await mycrt.changePassword(this.state);
+      if (user === null) {
          logger.error("Invalid Credentials");
          store.dispatch(showAlert({
             show: true,
@@ -133,9 +127,8 @@ class ChangePasswordApp extends React.Component<{}, State> {
                + "Please re-enter your old password.",
          }));
       } else {
-         logger.info("Done!");
-         logger.info(JSON.stringify(user));
-         window.location.assign('/');
+         logger.info("Password changed!");
+         window.location.assign('/account');
       }
    }
 

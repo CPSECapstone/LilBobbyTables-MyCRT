@@ -171,7 +171,7 @@ export class UserRouter extends SelfAwareRouter {
             }
 
             await userDao.updateUserPassword(user.id!, newPassHash);
-            response.status(http.OK).end();
+            response.json(user);
 
       }));
 

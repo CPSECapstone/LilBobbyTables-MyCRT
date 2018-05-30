@@ -45,9 +45,9 @@ export function validEmail(state: forgotPasswordState): boolean {
 export function validChangePasswordFields(state: changePasswordState): boolean {
    return !!(
       state.oldPassword
-      && state.password
-      && state.password.match(/^.{8,64}$/)
-      && state.password === state.confirmPassword
+      && state.newPassword
+      && state.newPassword.match(/^.{8,64}$/)
+      && state.newPassword === state.newPasswordAgain
    );
 }
 
