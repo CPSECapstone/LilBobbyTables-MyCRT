@@ -10,6 +10,7 @@ export const slackBody: joi.ObjectSchema = joi.object().keys({
 export const slackPutBody: joi.ObjectSchema = joi.object().keys({
    token: value.token.optional(),
    channel: value.channel.optional(),
+   isOn: value.isOn.optional(),
 });
 
 export * from './common-schema';

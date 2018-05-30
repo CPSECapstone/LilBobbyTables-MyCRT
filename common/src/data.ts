@@ -125,6 +125,7 @@ export interface ISlackConfig {
    environmentId: number;
    channel: string;
    token: string;
+   isOn?: boolean;
 }
 
 /** Database Connection */

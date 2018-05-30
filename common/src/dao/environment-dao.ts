@@ -257,6 +257,7 @@ export  class EnvironmentDao extends Dao {
          channel: row.channel,
          environmentId: row.environmentId,
          token: row.token,
+         isOn: !!row.isOn,
       };
    }
 }

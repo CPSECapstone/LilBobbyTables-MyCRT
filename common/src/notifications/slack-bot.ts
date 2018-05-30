@@ -15,7 +15,7 @@ const web = new WebClient(token);
 export class SlackBot {
    public static async postMessage(message: string, envId: number): Promise<any> {
       const slackConfig = await this.getSlackConfig(envId);
-      if (slackConfig.length !== 0) {
+      if (slackConfig.length !== 0 && slackConfig[0].isOn) {
          web.chat.postMessage({
             channel: slackConfig[0].channel,
             text: message,
