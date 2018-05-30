@@ -35,8 +35,13 @@ class DashboardApp extends React.Component<any, any> {
         this.deleteEnv = this.deleteEnv.bind(this);
         this.leaveEnv = this.leaveEnv.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
+        this.handleBotTok = this.handleBotTok.bind(this);
+        this.handleChannel = this.handleChannel.bind(this);
         this.updateSearch = this.updateSearch.bind(this);
+        this.connectSlack = this.connectSlack.bind(this);
+        this.notifyUser = this.notifyUser.bind(this);
         this.userSetup = this.userSetup.bind(this);
+        this.getSlackInfo = this.getSlackInfo.bind(this);
         this.updateCaptures = this.updateCaptures.bind(this);
         let id: any = null;
         const match = window.location.search.match(/.*\?.*id=(\d+)/);
@@ -44,8 +49,17 @@ class DashboardApp extends React.Component<any, any> {
             id = match[1];
         }
         this.state = { envId: id, env: null, me: null, captures: [], replays: [], error: "", users: [],
-                       pastCSearch: "", scheduleCSearch: "", liveCSearch: "",
-                       pastRSearch: "", scheduleRSearch: "", liveRSearch: ""};
+                       pastCSearch: "", scheduleCSearch: "", liveCSearch: "", liveSlack: false, channel: "", botTok: "",
+                       pastRSearch: "", scheduleRSearch: "", liveRSearch: "", connectedChannel: ""};
+    }
+
+    public notifyUser(success: boolean, header: string, msg: string) {
+      store.dispatch(showAlert({
+         show: true,
+         success,
+         header,
+         message: msg,
+      }));
     }
 
     public async componentWillMount() {
@@ -56,6 +70,7 @@ class DashboardApp extends React.Component<any, any> {
       }
       this.setCaptures();
       this.userSetup();
+      this.getSlackInfo();
       const bucketExists = await mycrt.validateStorage(this.state.envId);
       if (!bucketExists) {
          logger.error("Bucket no longer exists.");
@@ -68,6 +83,35 @@ class DashboardApp extends React.Component<any, any> {
          }));
       }
     }
+
+   public handleBotTok(event: any) {
+      this.setState({botTok: event.target.value});
+   }
+
+   public handleChannel(event: any) {
+      this.setState({channel: event.target.value});
+   }
+
+   public async getSlackInfo() {
+      const slackInfo = await mycrt.getSlackInfo(this.state.envId);
+      if (slackInfo) {
+         this.setState({liveSlack: true, connectedChannel: slackInfo.channel});
+      }
+   }
+
+   public async connectSlack() {
+      const result = await mycrt.connectSlack(this.state.envId, this.state.channel, this.state.botTok);
+      logger.info(result);
+      if (result) {
+         this.setState({liveSlack: true});
+         this.notifyUser(true, "Connection Successful!",
+            `Notifications from this environment will now be sent to Slack channel: #${this.state.channel}.`);
+      } else {
+         this.setState({liveSlack: false});
+         this.notifyUser(false, "Connection Failed!",
+            `There was a problem connecting to Slack. Please try again.`);
+      }
+   }
 
    public async userSetup() {
       const user = await mycrt.envAboutMe(this.state.envId);
@@ -256,7 +300,8 @@ class DashboardApp extends React.Component<any, any> {
                   </li>
                   {this.state.me.isAdmin ? <li className="nav-item">
                      <a className="nav-link" data-toggle="tab" href="#notifyTab" role="tab">
-                        Notifications</a>
+                     <i className={this.state.liveSlack ? "fa fa-circle liveCircle" : "fa fa-circle-thin circle"}>
+                        </i>Notifications</a>
                   </li> : null}
                </ul>
                <div className = "tab-content">
@@ -318,7 +363,33 @@ class DashboardApp extends React.Component<any, any> {
                      <UserTable users={this.state.users}/>
                   </div>
                   <div className="tab-pane" id="notifyTab" role="tabpanel">
-                     <br/><h2 style={{display: "inline"}}>Notifications</h2>
+                     <br/><h2 style={{display: "inline"}}>Integrate Slack</h2><br/><br/>
+                     {this.state.liveSlack ? <h5 className="text-success">
+                        Connected to channel with id <b>{this.state.connectedChannel}</b></h5> : null}
+                     {!this.state.liveSlack ?
+                        <form>
+                           <div className="form-row">
+                              <div className="form-group col-md-4 mr-3">
+                                 <label>Channel ID</label>
+                                 <input className="form-control" type="name" id="slackChannel"
+                                    value={this.state.slackChannel} onChange={this.handleChannel}
+                                    placeholder="Enter Channel ID"></input>
+                              </div>
+                              <div className="form-group col-md-4 mr-2">
+                                 <label>Slackbot Token</label>
+                                 <input className="form-control" type="name" id="botToken"
+                                    value={this.state.botTok} onChange={this.handleBotTok}
+                                    placeholder="Enter Bot Token"></input>
+                              </div>
+                              <div className="form-group col-md-3" style={{paddingTop: "30px"}}>
+                                 <button type="button" className="btn btn-outline-success"
+                                    onClick={this.connectSlack}>Connect</button>
+                              </div>
+                           </div>
+                        </form> :
+                     <label><input type="checkbox" className="form-check-input" id="notifyCheck"/>
+                        Disable Notifications
+                     </label> }
                   </div>
                </div>
             </div>

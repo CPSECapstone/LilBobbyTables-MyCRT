@@ -174,6 +174,17 @@ input:focus {
    background-color: $secondary-success;
 }
 
+.liveCircle {
+   font-size: 12px;
+   padding-right: 7px;
+   color: lightgreen;
+}
+
+.circle {
+   font-size: 12px;
+   padding-right: 7px;
+}
+
 .myCRT-mimic-progress-bar {
    background-color: $secondary-mimic;
 }
