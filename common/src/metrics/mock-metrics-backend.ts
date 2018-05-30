@@ -14,6 +14,10 @@ export class MockMetricsBackend extends MetricsBackend {
       this.period = period;
    }
 
+   public cloneForInstance(instance: string): MockMetricsBackend {
+      return new MockMetricsBackend(this.period);
+   }
+
    protected async getMetrics(metric: Metric, startTime: Date, endTime: Date): Promise<IMetricsList> {
       // min/max values were approximated from metrics samples
       switch (metric.metricType) {
