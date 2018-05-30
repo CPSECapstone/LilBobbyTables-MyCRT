@@ -48,6 +48,7 @@ export interface IChildProgram {
    type?: ChildProgramType;
    id?: number;
    ownerId?: number;
+   isMimic?: boolean;
    username?: string;
    envId?: number;
    name?: string;

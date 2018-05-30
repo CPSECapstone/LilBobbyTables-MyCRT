@@ -7,6 +7,7 @@ export class EnvironmentPanel extends React.Component<any, any>  {
     public constructor(props: any) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
+        this.formatUsername = this.formatUsername.bind(this);
         this.state = {captureNum: null, replayNum: null, userCount: null};
     }
 
@@ -32,6 +33,11 @@ export class EnvironmentPanel extends React.Component<any, any>  {
 
     }
 
+   public formatUsername() {
+      const email = this.props.env.email;
+      return email.substring(0, email.lastIndexOf("@"));
+   }
+
     public handleClick(event: any): void {
         window.location.assign(`./dashboard?id=${this.props.env.id}`);
     }
@@ -48,9 +54,10 @@ export class EnvironmentPanel extends React.Component<any, any>  {
                         <i className="fa fa-users fa-lg" style={{float: "right", marginTop: "4px"}}></i>
                         <p style={{float: "right", paddingRight: "10px"}}>{this.state.userCount}</p>
                     </div>
-                    <div className="card-body">
+                    <div className="card-body" style={{paddingBottom: "5px", paddingRight: "8px"}}>
                         <p>Captures: <b>{this.state.captureNum}</b></p>
                         <p>Replays: <b>{this.state.replayNum}</b></p>
+                        <i style={{float: "right", color: "#95a5a6"}}> {this.formatUsername()}</i>
                     </div>
                 </div>
             </div>
