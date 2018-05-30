@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { Logging, ServerIpcNode } from '@lbt-mycrt/common';
+import { Logging, ServerIpcNode, SlackBot } from '@lbt-mycrt/common';
 
 import * as session from '../auth/session';
 import { environmentDao, environmentInviteDao as inviteDao, userDao } from '../dao/mycrt-dao';
@@ -55,6 +55,10 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
             // good to go!
             logger.info("Creating invite");
             const invite = await inviteDao.inviteUser(environment, user, request.body.isAdmin);
+            SlackBot.postMessage("Hey @" + request.body.userEmail + " heads up! @" + request.user!.email +
+               " just invited you to join " + environment.name! +
+               "! You have 24 hours to accept using this invite code `" + invite!.inviteCode + "`", environment!.id!,
+            );
 
             logger.info("Invite created!");
             response.json(invite);
