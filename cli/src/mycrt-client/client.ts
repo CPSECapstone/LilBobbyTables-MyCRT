@@ -1,6 +1,6 @@
 import * as http from 'http-status-codes';
 
-import { Check } from '@lbt-mycrt/common';
+import { Check, ISlackConfig } from '@lbt-mycrt/common';
 import { IAwsKeys, ICapture, IChildProgram, IDbReference, IEnvironment, IEnvironmentFull,
    IEnvironmentUser, IMetricsList, IMimic, IReplay, IReplayFull, IS3Reference, IUser, MetricType,
    } from '@lbt-mycrt/common/dist/data';
@@ -263,6 +263,18 @@ export class MyCrtClient {
 
    public async leaveEnv(envUserId: number): Promise<any | null> {
       return this.makeRequest<any>(HttpMethod.DELETE, `/environments/invites/${envUserId}`);
+   }
+
+   public async connectSlack(envId: number, channel: string, token: string): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.POST, `/environments/${envId}/slack`, null, {channel, token});
+   }
+
+   public async getSlackInfo(envId: number): Promise<ISlackConfig | null> {
+      return this.makeRequest<any>(HttpMethod.GET, `/environments/${envId}/slack`);
+   }
+
+   public async modifySlackInfo(envId: number, isOn: boolean): Promise<any | null> {
+      return this.makeRequest<any>(HttpMethod.PUT, `/environments/${envId}/slack`, null, {isOn});
    }
 
    /**

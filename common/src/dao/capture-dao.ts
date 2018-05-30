@@ -68,6 +68,7 @@ export class CaptureDao extends Dao {
       const result = await this.query<any>('INSERT INTO Capture SET ?', {
          name: capture.name,
          ownerId: capture.ownerId,
+         isMimic: capture.isMimic,
          status: capture.status,
          envId: capture.envId,
          scheduledStart: capture.scheduledStart,
@@ -118,6 +119,7 @@ export class CaptureDao extends Dao {
          name: captureData.name,
          username: captureData.email,
          start: captureData.start,
+         isMimic: !!captureData.isMimic,
          scheduledStart: captureData.scheduledStart,
          scheduledEnd: captureData.scheduledEnd,
          end: captureData.end,

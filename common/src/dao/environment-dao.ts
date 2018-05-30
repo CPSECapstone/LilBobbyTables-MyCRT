@@ -13,13 +13,22 @@ const logger = Logging.defaultLogger(__dirname);
 
 export  class EnvironmentDao extends Dao {
 
-   public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironment[]> {
+   public async getAllEnvironments(user?: data.IUser): Promise<data.IEnvironmentFull[]> {
       const environmentRows = user ?
-         await this.query<any[]>('SELECT e.*, u.isAdmin, u.email FROM Environment AS e '
-            + ' JOIN User as u ON e.ownerId = u.id WHERE ownerId = ?',
-            [user.id]) :
-         await this.query<any[]>('SELECT * FROM Environment AS e JOIN User as u ON e.ownerId = u.id', []);
-      return environmentRows.map(this.rowToIEnvironment);
+         await this.query<any[]>('SELECT e.id, e.name AS envName, e.ownerId AS ownerId, u.email, ' +
+         'd.name AS dbName, host, user, pass, instance, parameterGroup, ' +
+         'bucket, prefix, accessKey, secretKey, region, a.name as keysName, a.id as keysId ' +
+         'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ' +
+         'JOIN S3Reference AS s ON e.S3Id = s.id JOIN AwsKeys AS a ON e.awsKeysId = a.id ' +
+         'JOIN User AS u ON e.ownerId = u.id ' +
+         'WHERE u.id = ?', [user.id]) :
+         await this.query<any[]>('SELECT e.id, e.name AS envName, e.ownerId AS ownerId, u.email, ' +
+         'd.name AS dbName, host, user, pass, instance, parameterGroup, ' +
+         'bucket, prefix, accessKey, secretKey, region, a.name as keysName, a.id as keysId ' +
+         'FROM Environment AS e JOIN DBReference AS d ON e.dbId = d.id ' +
+         'JOIN S3Reference AS s ON e.S3Id = s.id JOIN AwsKeys AS a ON e.awsKeysId = a.id ' +
+         'JOIN User AS u ON e.ownerId = u.id');
+      return environmentRows.map(this.rowToIEnvironmentFull);
    }
 
    public async getEnvironmentByName(name: string, user?: data.IUser): Promise<data.IEnvironment | null> {

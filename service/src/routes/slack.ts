@@ -84,7 +84,8 @@ export default class SlackRouter extends SelfAwareRouter {
          }
 
          const slackPut = await environmentDao.editSlackConfig(request.params.id, request.body);
-         response.status(http.OK).end();
+         const newSlack = await environmentDao.getSlackConfigByEnv(request.params.id);
+         response.json(newSlack);
       }));
 
       this.router.delete('/:id(\\d+)/slack', this.handleHttpErrors(async (request, response) => {

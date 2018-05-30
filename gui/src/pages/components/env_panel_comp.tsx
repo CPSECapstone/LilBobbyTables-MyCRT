@@ -7,7 +7,8 @@ export class EnvironmentPanel extends React.Component<any, any>  {
     public constructor(props: any) {
         super(props);
         this.handleClick = this.handleClick.bind(this);
-        this.state = {captureNum: null, replayNum: null, userCount: null};
+        this.formatUsername = this.formatUsername.bind(this);
+        this.state = {captureNum: null, replayNum: null, userCount: null, isOn: false};
     }
 
     public async componentWillMount() {
@@ -29,8 +30,17 @@ export class EnvironmentPanel extends React.Component<any, any>  {
         if (result) {
            this.setState({userCount: result.count});
         }
+        const slackInfo = await mycrt.getSlackInfo(this.props.env.id);
+        if (slackInfo) {
+           this.setState({isOn: slackInfo.isOn});
+        }
 
     }
+
+   public formatUsername() {
+      const email = this.props.env.email;
+      return email.substring(0, email.lastIndexOf("@"));
+   }
 
     public handleClick(event: any): void {
         window.location.assign(`./dashboard?id=${this.props.env.id}`);
@@ -44,13 +54,17 @@ export class EnvironmentPanel extends React.Component<any, any>  {
                     <div className="card-header myCRT-env-card" style={{paddingBottom: "5px"}}>
                         <h5 className="hover-text" role="button" style={{display: "inline"}}
                            onClick={ (e) => this.handleClick(e)}>
-                           {this.props.title}</h5>
+                           <i className={this.state.isOn ? "fa fa-circle liveCircle" : "fa fa-circle-thin circle"}
+                              style={{paddingRight: "10px"}}></i>
+                           {this.props.title}
+                        </h5>
                         <i className="fa fa-users fa-lg" style={{float: "right", marginTop: "4px"}}></i>
                         <p style={{float: "right", paddingRight: "10px"}}>{this.state.userCount}</p>
                     </div>
-                    <div className="card-body">
+                    <div className="card-body" style={{paddingBottom: "5px", paddingRight: "8px"}}>
                         <p>Captures: <b>{this.state.captureNum}</b></p>
                         <p>Replays: <b>{this.state.replayNum}</b></p>
+                        <i style={{float: "right", color: "#95a5a6"}}> {this.formatUsername()}</i>
                     </div>
                 </div>
             </div>
