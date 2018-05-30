@@ -302,7 +302,7 @@ export class ReplayModal extends React.Component<any, any>  {
                                  ref={(instance) => { this.startDateChild = instance; }}
                                  default={this.state.defaultDate} reset={this.state.reset}
                                  now="replayNow" scheduled="replayScheduled" id="replayStartDate"
-                                 updateType={this.handleReplayTypeChange}/>
+                                 updateType={this.handleReplayTypeChange} name="replay start options"/>
                               <br/>
                               <div className="text-danger">
                                  {this.state.errorMsg}

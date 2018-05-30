@@ -36,6 +36,7 @@ class CaptureApp extends React.Component<any, any> {
       this.setWorkloadData = this.setWorkloadData.bind(this);
       this.updateReplays = this.updateReplays.bind(this);
       this.setReplayMetrics = this.setReplayMetrics.bind(this);
+      this.userSetup = this.userSetup.bind(this);
       this.removeWorkloadData = this.removeWorkloadData.bind(this);
       this.deleteCapture = this.deleteCapture.bind(this);
       this.updateSearch = this.updateSearch.bind(this);
@@ -67,8 +68,8 @@ class CaptureApp extends React.Component<any, any> {
             envId = envMatch[1];
       }
 
-      this.state = {envId, view, defaultReplay, replayInfo, env: null, captureId: id, capture: null,
-            areaChart: false, allReplays: [], selectedReplays: [], replaySearch: "",
+      this.state = {envId, view, defaultReplay, replayInfo, env: null, captureId: id, capture: null, me: null,
+            areaChart: false, allReplays: [], selectedReplays: [], replaySearch: "", canDelete: false,
             allGraphs: [], selectedGraphs: ["WRITE IOPS"], navTabs: ["Details", "Metrics", "Replays"],
       };
    }
@@ -114,6 +115,8 @@ class CaptureApp extends React.Component<any, any> {
             this.setState({allReplays: this.makeObject(replays, "id")});
          }
 
+         this.userSetup();
+
          if (bucketExists && metricsFileExists) {
             const metrics = await mycrt.getAllCaptureMetrics(this.state.captureId);
             if (metrics) {
@@ -135,6 +138,17 @@ class CaptureApp extends React.Component<any, any> {
          this.setState({replayObj: chosenReplay});
       }
       $(`#captureTabs a[href="#${this.state.view}"]`).tab('show');
+   }
+
+   public async userSetup() {
+      const user = await mycrt.envAboutMe(this.state.envId);
+      if (user) {
+         let canDelete = false;
+         if (user.isAdmin || this.state.capture.username === user.email) {
+            canDelete = true;
+         }
+         this.setState({me: user, canDelete});
+      }
    }
 
    public makeObject(list: any[], field: string): any {
@@ -283,11 +297,11 @@ class CaptureApp extends React.Component<any, any> {
             <div className="container"><div className="row"><div className="col-sm-12 mb-r">
                <div className="page-header">
                   <h1 className="align">{this.state.capture.name}</h1>
-                  <a role="button" className="btn btn-outline-danger deleteBtn" data-toggle="modal" href="#"
+                  {this.state.canDelete ? <a role="button" className="btn btn-outline-danger deleteBtn"
                      data-backdrop="static" data-keyboard={false}
-                     data-target="#deleteCaptureModal">
+                     data-target="#deleteCaptureModal" data-toggle="modal" href="#">
                      <i className="fa fa-trash fa-lg" aria-hidden="true"></i>
-                  </a>
+                  </a> : null}
                   <DeleteModal id="deleteCaptureModal" deleteId={this.state.captureId}
                      name={this.state.capture.name} delete={this.deleteCapture} type="Capture"/>
                </div><br/>
@@ -315,12 +329,12 @@ class CaptureApp extends React.Component<any, any> {
                      {this.state.replayObj ?
                         <ReplayInfo replay={this.state.replayObj} bucket={this.state.env.bucket}
                         envId={this.state.envId} captureId={this.state.captureId} prefix={this.state.env.prefix}
-                        delete={this.deleteReplay}/> : null
+                        delete={this.deleteReplay} me={this.state.me}/> : null
                      }<br/>
                      <div className="page-header">
                         <h2 style={{display: "inline"}}>Replays</h2>
                         <Search length={replays.length} type="replaySearch" update={this.updateSearch}
-                           style={{float: "right", display: "inline-block", margin: "10px",
+                           style={{float: "right", display: "inline-block", margin: "5px",
                            paddingTop: "5px", width: "50%"}}/>
                      </div>
                      <br/>

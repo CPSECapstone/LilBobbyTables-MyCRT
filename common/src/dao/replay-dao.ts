@@ -68,6 +68,7 @@ export class ReplayDao extends Dao {
       const result = await this.query<any>('INSERT INTO Replay SET ?', {
          name: replay.name,
          ownerId: replay.ownerId,
+         isMimic: replay.isMimic,
          status: replay.status,
          captureId: replay.captureId,
          dbId: replay.dbId,
@@ -116,6 +117,7 @@ export class ReplayDao extends Dao {
       return {
          id: replayData.id,
          captureId: replayData.captureId,
+         isMimic: !!replayData.isMimic,
          dbId: replayData.dbId,
          name: replayData.name,
          username: replayData.email,
