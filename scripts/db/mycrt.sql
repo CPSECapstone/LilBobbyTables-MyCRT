@@ -5,6 +5,7 @@ USE LBTMyCRT;
 CREATE TABLE User (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
    email VARCHAR(256) NOT NULL,
+   emailValid TINYINT(1) DEFAULT 0,
    passwordHash VARCHAR(256) NOT NULL,
    isAdmin TINYINT(1) DEFAULT 0,
 
@@ -12,6 +13,16 @@ CREATE TABLE User (
    sessionToken VARCHAR(32) DEFAULT NULL,
    loginTime BIGINT(11) DEFAULT NULL,
    lastTokenCheck BIGINT(11) DEFAULT NULL,
+
+   -- Email Validation
+   emailToken VARCHAR(32) DEFAULT NULL,
+   emailCreatedAt BIGINT(11) DEFAULT NULL,
+   emailUsedAt BIGINT(11) DEFAULT NULL,
+
+   -- Passwrod Reset Stuff
+   resetPassToken VARCHAR(256) DEFAULT NULL,
+   resetCreatedAt BIGINT(11) DEFAULT NULL,
+   resetUsedAt BIGINT(11) DEFAULT NULL,
 
    CONSTRAINT userEmailUnique
       UNIQUE (email)

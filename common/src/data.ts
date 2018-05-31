@@ -7,8 +7,15 @@ export interface ISession {
 export interface IUser extends ISession {
    id?: number;
    email?: string;
+   emailValid?: boolean;
    passwordHash?: string;
    isAdmin?: boolean;
+   emailToken?: string;
+   emailCreatedAt?: number;
+   emailUsedAt?: number;
+   resetPassToken?: string;
+   resetCreatedAt?: number;
+   resetUsedAt?: number;
 }
 
 export interface IEnvironmentUser {
