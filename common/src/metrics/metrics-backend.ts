@@ -18,6 +18,8 @@ export abstract class MetricsBackend {
       return this.getMetrics(metric, startTime, endTime);
    }
 
+   public abstract cloneForInstance(instance: string): MetricsBackend;
+
    protected abstract getMetrics(metric: Metric, startTime: Date, endTime: Date):
       Promise<IMetricsList>;
 

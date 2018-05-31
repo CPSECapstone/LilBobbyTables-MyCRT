@@ -41,7 +41,7 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
 
          logger.info(`Loading Replay Information for ids ${this.config.replayIds}`);
          for (const id of this.config.replayIds) {
-            const replay = new ReplayManager(id, this.config, this.metrics, this.storage);
+            const replay = new ReplayManager(id, this.config, this.storage, this.metrics);
             const loaded = await replay.loadReplay();
             if (loaded) {
                this.replays.push(replay);
@@ -93,35 +93,38 @@ export class Mimic extends Capture implements ICaptureIpcNodeDelegate {
       await super.teardown();
       try {
          logger.info(`Performing teardown for mimic ${this.id}`);
+
+         logger.info(`Waiting for all replays to finish`);
+         await Promise.all(this.replays.map((r) => r.finishAllCommands()));
+
+         logger.info(`Setting replay statuses to STOPPING`);
          for (const replay of this.replays) {
             await replayDao.updateReplayStatus(replay.id, ChildProgramStatus.STOPPING);
          }
 
          logger.info(`Getting the last metrics for the replays`);
-         await this.getFinalReplayMetrics();
+         this.replays.forEach((r) => r.retrieveMetrics());
 
-         logger.info(`Waiting for all replays to finish`);
-         await Promise.all(this.replays.map((r) => r.finishAllCommands()));
+         logger.info(`Waiting for all metrics...`);
+         await Promise.all(this.replays.map((r) => r.finishAllMetrics()));
 
-         logger.info(`Ending replays`);
-         for (const replay of this.replays) {
-            await replay.end();
-         }
+         setTimeout(async () => {
+            logger.info(`Preparing final metrics files`);
+            for (const replay of this.replays) {
+               await replay.prepareFinalMetricsFile();
+            }
 
-         logger.info(`Done!`);
+            logger.info(`Ending replays`);
+            for (const replay of this.replays) {
+               await replay.end();
+            }
+
+            logger.info(`Done!`);
+         }, this.config.filePrepDelay);
 
       } catch (error) {
          this.selfDestruct(`mimic teardown failed: ${error}`);
       }
-   }
-
-   protected getFinalReplayMetrics(): Promise<void> {
-      return new Promise<void>((resolve, reject) => {
-         setTimeout(async () => {
-            this.replays.forEach((r) => r.retrieveMetrics());
-            resolve();
-         }, this.config.filePrepDelay);
-      });
    }
 
    protected async dontPanic(reason: string): Promise<void> {
