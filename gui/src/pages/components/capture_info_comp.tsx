@@ -12,9 +12,12 @@ export class CaptureInfo extends React.Component<any, any>  {
    }
 
    public formatTimeStamp(date: string) {
+      if (!date) {
+          return "Pending";
+      }
       const time = new Date(date);
       return time.toLocaleString();
-   }
+  }
 
    public render() {
       return (

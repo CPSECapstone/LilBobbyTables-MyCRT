@@ -193,6 +193,42 @@ p {
    margin-bottom: 0.7em;
 }
 
+%statusFlag {
+   font-size: 12px;
+   margin-left: 14px;
+   vertical-align: middle;
+   padding: 6px;
+   color: white;
+   letter-spacing: 0.6px;
+   margin-bottom: 18px;
+}
+
+.DONE, .STOPPING {
+   @extend %statusFlag;
+   background-color: #3498DB;
+}
+
+.FAILED {
+   @extend %statusFlag;
+   background-color: #E74C3C;
+}
+
+.STARTING, .STARTED, .RUNNING {
+   @extend %statusFlag;
+   background-color: #18BC9C;
+}
+
+.SCHEDULED {
+   @extend %statusFlag;
+   background-color: #F39C12;
+}
+
+.captureDelete {
+   margin-right: 40px;
+   margin-top: 16px;
+   float: right;
+}
+
 .graphName {
    padding-left: 20px;
    display: inline;

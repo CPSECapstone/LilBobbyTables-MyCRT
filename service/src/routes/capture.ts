@@ -3,7 +3,7 @@ import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
 import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IDbReference, IMetric,
-   IMetricsList, IMimic, IReplay, IReplayFull, Logging, MetricType, ServerIpcNode, SlackBot} from '@lbt-mycrt/common';
+   IMetricsList, IMimic, IReplay, IReplayFull, Logging, MetricType, ServerIpcNode } from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
@@ -11,8 +11,10 @@ import { Template } from '@lbt-mycrt/gui/dist/main';
 
 import { makeSureUserIsEnvironmentMember } from '../auth/middleware';
 import * as session from '../auth/session';
+import { CaptureCreator } from '../common/capture-creator';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startCapture, startMimic } from '../common/launching';
+import { MimicCreator } from '../common/mimic-creator';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import { noMimicReplaysOnSameDb } from '../middleware/replay';
@@ -185,189 +187,24 @@ export default class CaptureRouter extends SelfAwareRouter {
          response.status(http.OK).end();
       }));
 
+      this.router.post('/',
+         check.validBody(schema.captureBody),
+         this.handleHttpErrors(async (request, response) => {
+            const captureCreator = new CaptureCreator(request, response, this.ipcNode);
+            captureCreator.scheduledChecks();
+            await captureCreator.createCaptureTemplate(request, response);
+         },
+      ));
+
       this.router.post('/mimic',
          check.validBody(schema.mimicBody),
          this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.body.envId)),
          this.handleHttpErrors(noMimicReplaysOnSameDb),
          this.handleHttpErrors(async (request, response) => {
-
-            const environment = await environmentDao.getEnvironment(request.body.envId);
-            if (!environment) {
-               throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
-            }
-
-            let endTime: Date | undefined;
-            if (request.body.duration) {
-               endTime = this.createEndDate(request.body.scheduledStart || new Date(),
-                  request.body.duration);
-            }
-
-            // make the capture
-            let capture: ICapture | null = {
-               type: ChildProgramType.CAPTURE,
-               ownerId: request.user!.id,
-               isMimic: true,
-               envId: environment.id,
-               status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-               scheduledStart: request.body.scheduledStart ? request.body.scheduledStart : undefined,
-               name: request.body.name,
-               scheduledEnd: endTime,
-            };
-            capture = await captureDao.makeCapture(capture);
-            if (capture === null) {
-               throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to create capture in DB");
-            }
-
-            // make all of the replays
-            const replays: IReplay[] = [];
-            for (const replay of (request.body.replays as IReplayFull[])) {
-
-               let db: IDbReference | null = {
-                  name: replay.dbName,
-                  host: replay.host,
-                  user: replay.user,
-                  pass: replay.pass,
-                  instance: replay.instance,
-                  parameterGroup: replay.parameterGroup,
-               };
-               db = await environmentDao.makeDbReference(db);
-               if (!db) {
-                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "DB reference could not be created");
-               }
-
-               let replayTemplate: IReplay | null = {
-                  type: ChildProgramType.REPLAY,
-                  name: replay.name,
-                  captureId: capture!.id,
-                  isMimic: true,
-                  status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-                  dbId: db!.id,
-                  ownerId: request.user!.id,
-                  scheduledEnd: endTime,
-               };
-               replayTemplate = await replayDao.makeReplay(replayTemplate);
-               if (!replayTemplate) {
-                  throw new HttpError(http.INTERNAL_SERVER_ERROR, "Failed to create replay in the DB");
-               }
-
-               replays.push(replayTemplate);
-            }
-
-            // make the mimic
-            const mimic: IMimic = {
-               ...capture,
-               type: ChildProgramType.MIMIC,
-               replays,
-            };
-
-            // Start it
-            if (request.body.scheduledStart) {
-               schedule.scheduleJob(request.body.scheduledStart, () => {
-                  startMimic(mimic);
-                  SlackBot.postMessage("Oi bobby here, the clock struck " + capture!.scheduledStart! +
-                     " so I started your mimicked capture and replays for `" + capture!.name + "`", environment.id!);
-               });
-            } else {
-               startMimic(mimic);
-            }
-
-            // End it
-            if (request.body.duration) {
-               schedule.scheduleJob(endTime!, () => {
-                  this.stopScheduledCapture(capture!);
-                  SlackBot.postMessage("Swiggety swag :party-parrot: your mimicked captures and replays for `" +
-                     capture!.name + "` are complete. How cool was that?!", environment.id!);
-               });
-            }
-
-            response.json(mimic);
+            const mimicCreator = new MimicCreator(request, response, this.ipcNode);
+            await mimicCreator.createMimicTemplate(request, response);
          }),
       );
-
-      this.router.post('/', check.validBody(schema.captureBody),
-            this.handleHttpErrors(async (request, response) => {
-
-         const initialStatus: string | undefined = request.body.status;
-         let inputTime: Date = request.body.scheduledStart;  // retrieve scheduled time
-         let endTime: Date | undefined;
-
-         const environment = await environmentDao.getEnvironment(request.body.envId);
-         if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Environment ${request.body.envId} does not exist`);
-         }
-
-         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
-         if (!isUserMember.isMember) {
-            throw new HttpError(http.UNAUTHORIZED);
-         }
-
-         const capWithSameName = await captureDao.getCapturesForEnvByName(request.body.envId, request.body.name);
-         if (capWithSameName !== null) {
-            throw new HttpError(http.BAD_REQUEST, "Capture with same name already exists in this environment");
-         }
-
-         if (!inputTime) {
-            inputTime = new Date();
-         }
-
-         const duration = request.body.duration;
-
-         if (duration && duration < 60) {
-            throw new HttpError(http.BAD_REQUEST, `Duration must be at least 60 seconds`);
-         }
-
-         if (duration) {
-            endTime = this.createEndDate(inputTime, duration);
-         }
-
-         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
-            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
-         }
-
-         // throw new HttpError(http.NOT_IMPLEMENTED, "Cameron, you need to test this!");
-         let captureTemplate: ICapture | null = {
-            type: ChildProgramType.CAPTURE,
-            ownerId: request.user!.id,
-            envId: environment.id,
-            status: initialStatus === ChildProgramStatus.SCHEDULED ?
-               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-            name: request.body.name,
-            scheduledEnd: endTime,
-         };
-
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            captureTemplate.scheduledStart = inputTime;
-         }
-
-         captureTemplate = await captureDao.makeCapture(captureTemplate);
-
-         if (captureTemplate === null) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR, `error creating capture in db`);
-         }
-
-         response.json(captureTemplate);
-
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            schedule.scheduleJob(inputTime, () => {
-               startCapture(captureTemplate!);
-               SlackBot.postMessage("It's time to start your scheduled capture *" +
-                  captureTemplate!.name + "* and I'm on it!", environment.id!);
-            });
-         } else {
-            startCapture(captureTemplate);
-         }
-
-         logger.info(`Successfully created capture!`);
-
-         if (duration) {
-            schedule.scheduleJob(endTime!, () => {
-               this.stopScheduledCapture(captureTemplate!);
-               SlackBot.postMessage("Time's up! I just stopped your scheduled capture *" +
-                  captureTemplate!.name + "* :party-parrot:", environment.id!);
-            });
-         }
-      },
-   ));
 
       this.router.delete('/:id(\\d+)', check.validParams(schema.idParams),
             check.validQuery(schema.deleteLogsQuery),
@@ -410,7 +247,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                await storage.deletePrefix(capturePrefix);
             }
          }
-         response.status(http.OK).end();
+         response.json(captureDel);
       }));
    }
 

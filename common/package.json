@@ -33,7 +33,7 @@
     "@slack/client": "^4.2.2",
     "@types/node": "9.6.18",
     "aws-sdk": "^2.188.0",
-    "bcrypt": "^1.0.3",
+    "bcrypt": "^2.0.1",
     "child_process": "^1.0.2",
     "command-line-args": "^5.0.1",
     "cryptr": "^3.0.0",

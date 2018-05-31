@@ -69,7 +69,10 @@ class AccountApp extends React.Component<{}, State> {
                   <UserInfo email={this.state.user.email} />
                      <button type="button" className="btn btn-outline-danger"
                         onClick={this.handleSignout} style={{marginLeft: "18px"}}>
-                        Log Out
+                        Logout
+                     </button>
+                     <button type="button" className="btn btn-outline-primary" onClick={this.handleChangePassword}>
+                        Change Password
                      </button>
                   </div>
                </div>
@@ -77,6 +80,10 @@ class AccountApp extends React.Component<{}, State> {
             </div>
          </div>
       );
+   }
+
+   private handleChangePassword = async (e: any) => {
+      window.location.assign('/changePassword');
    }
 
    private handleSignout = async (e: any) => {

@@ -28,11 +28,9 @@ export class CapturePanel extends React.Component<any, any>  {
             failed: this.props.capture.status === ChildProgramStatus.FAILED};
     }
 
-    public handleInfoClick(event: any): void {
-       if (this.state.capture.status === ChildProgramStatus.DONE) {
-         window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=details`);
-       }
-    }
+   public handleInfoClick(event: any): void {
+      window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=details`);
+   }
 
     public handleMetricClick(event: any): void {
       window.location.assign(`/capture?id=${this.props.capture.id}&envId=${this.props.envId}&view=metrics`);

@@ -12,6 +12,7 @@ import { launch, ReplayConfig } from '@lbt-mycrt/replay';
 import * as session from '../auth/session';
 import { getMetrics } from '../common/capture-replay-metrics';
 import { startReplay} from '../common/launching';
+import { ReplayCreator } from '../common/replay-creator';
 import { captureDao, environmentDao, environmentInviteDao as inviteDao, replayDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import { noReplaysOnTargetDb } from '../middleware/replay';
@@ -125,85 +126,15 @@ export default class ReplayRouter extends SelfAwareRouter {
          }
       }));
 
-      this.router.post('/', check.validBody(schema.replayBody), noReplaysOnTargetDb,
-            this.handleHttpErrors(async (request, response) => {
-
-         const cap = await captureDao.getCapture(request.body.captureId);
-         if (cap == null) {
-               throw new HttpError(http.BAD_REQUEST, `Capture ${request.body.captureId} does not exist`);
-         }
-
-         const environment = await environmentDao.getEnvironment(cap!.envId!);
-         if (!environment) {
-            throw new HttpError(http.NOT_FOUND, `Capture ${request.body.captureId}'s environment does not exist`);
-         }
-
-         const isUserMember = await inviteDao.getUserMembership(request.user!, environment!);
-         if (!isUserMember.isMember) {
-            throw new HttpError(http.UNAUTHORIZED);
-         }
-
-         const replayWithSameName = await replayDao.getReplaysForCapByName(cap!.id!, request.body.name);
-         if (replayWithSameName) {
-            throw new HttpError(http.BAD_REQUEST, "Replay with same name already exists for this capture");
-         }
-
-         const initialStatus: string | undefined = request.body.status;
-         let inputTime: Date = request.body.scheduledStart;
-
-         if (!inputTime) {
-            inputTime = new Date();
-         }
-
-         if (initialStatus === ChildProgramStatus.SCHEDULED && !request.body.scheduledStart) {
-            throw new HttpError(http.BAD_REQUEST, `Cannot schedule without a start schedule time`);
-         }
-
-         const dbReference: IDbReference = {
-            name: request.body.dbName,
-            host: request.body.host,
-            user: request.body.user,
-            pass: request.body.pass,
-            instance: request.body.instance,
-            parameterGroup: request.body.parameterGroup,
-         };
-
-         const db = await environmentDao.makeDbReference(dbReference);
-         if (!db) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR, "DB reference was not properly created");
-         }
-
-         let replayTemplate: IReplay | null = {
-            name: request.body.name,
-            captureId: request.body.captureId,
-            status: initialStatus === ChildProgramStatus.SCHEDULED ?
-               ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
-            dbId: db!.id,
-            type: ChildProgramType.REPLAY,
-            ownerId: request.user!.id,
-         };
-
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            replayTemplate.scheduledStart = inputTime;
-         }
-
-         replayTemplate = await replayDao.makeReplay(replayTemplate);
-
-         if (replayTemplate === null) {
-            throw new HttpError(http.INTERNAL_SERVER_ERROR, `Replay was not properly created`);
-         }
-
-         response.json(replayTemplate);
-
-         if (initialStatus === ChildProgramStatus.SCHEDULED) {
-            schedule.scheduleJob(inputTime, () => { startReplay(replayTemplate!); });
-         } else {
-            startReplay(replayTemplate);
-         }
-
-         logger.info(`Successfully created replay!`);
-      },
-   ));
+      this.router.post('/',
+         check.validBody(schema.replayBody),
+         noReplaysOnTargetDb,
+         this.handleHttpErrors(async (request, response) => {
+            const replayCreator = new ReplayCreator(request, response);
+            replayCreator.scheduledChecks();
+            await replayCreator.createReplayTemplate(request, response);
+         },
+      ));
 
       this.router.put('/:id(\\d+)', check.validParams(schema.idParams), check.validBody(schema.putReplayBody),
             this.handleHttpErrors(async (request, response) => {
@@ -275,7 +206,7 @@ export default class ReplayRouter extends SelfAwareRouter {
             const replayPrefix = `environment${env.id}/replay${request.params.id}/`;
             await storage.deletePrefix(replayPrefix);
          }
-         response.status(http.OK).end();
+         response.json(replayDel);
       }));
    }
 }

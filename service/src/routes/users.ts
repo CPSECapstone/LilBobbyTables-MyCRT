@@ -17,6 +17,8 @@ export class UserRouter extends SelfAwareRouter {
    public name: string = 'user';
    public urlPrefix: string = '/users';
 
+   private MS_PER_HOUR: number = 1000 * 60 * 60;
+
    protected mountRoutes(): void {
 
       this.router.get('/',
@@ -100,6 +102,78 @@ export class UserRouter extends SelfAwareRouter {
 
          },
       ));
+
+      this.router.post('/forgotPassword', check.validBody(schema.forgotPasswordBody),
+         this.handleHttpErrors(async (request, response) => {
+
+            const user = await userDao.getUser(request.body.email);
+
+            if (!user) {
+               // Send email saying they don't exist in database
+               response.sendStatus(http.OK).json("An email will be sent to the provided address");
+            }
+
+            logger.info(`got here!`);
+            const token = await userDao.getPasswordResetToken(user!.id!);
+            // TODO: implement send email instead of returning token
+            response.status(http.OK).json(token);
+         },
+      ));
+
+      this.router.put('/resetPassword', check.validBody(schema.resetPasswordBody),
+         this.handleHttpErrors(async (request, response) => {
+
+            const now = Date.now();
+            const user = await userDao.getUserByResetToken(request.body.resetToken);
+            const newPassHash = await auth.encrypt(request.body.newPassword);
+            const newPassHashMatch = await auth.compareHash(request.body.newPasswordAgain, newPassHash);
+
+            if (!user) {
+               throw new HttpError(http.BAD_REQUEST, "This password reset token does not exist");
+            }
+
+            if (user.resetUsedAt) {
+               throw new HttpError(http.CONFLICT, "Password reset token has already been used");
+            }
+
+            if (user.resetCreatedAt && (now - user.resetCreatedAt < this.MS_PER_HOUR)) {
+
+               if (!newPassHashMatch) {
+                  throw new HttpError(http.BAD_REQUEST, "New passwords do not match");
+               }
+
+               await userDao.updateUserPassword(user.email!, newPassHash, true);
+               response.status(http.OK).json("Password reset. Please try logging in");
+
+            } else {
+               throw new HttpError(http.BAD_REQUEST, "This password reset token has expired");
+            }
+
+         },
+      ));
+
+      this.router.put('/changePassword', session.loggedInOrForbidden,
+         check.validBody(schema.newPasswordBody),
+         this.handleHttpErrors(async (request, response) => {
+
+            const user = request.user!;
+
+            const oldPassMatch = await auth.compareHash(request.body.oldPassword, user.passwordHash!);
+            const newPassHash = await auth.encrypt(request.body.newPassword);
+            const newPassHashMatch = await auth.compareHash(request.body.newPasswordAgain, newPassHash);
+
+            if (!oldPassMatch) {
+               throw new HttpError(http.BAD_REQUEST, "Old password does not match your current password");
+            }
+
+            if (!newPassHashMatch) {
+               throw new HttpError(http.BAD_REQUEST, "New passwords do not match");
+            }
+
+            await userDao.updateUserPassword(user.id!, newPassHash);
+            response.json(user);
+
+      }));
 
       this.router.delete('/:id(\\d+)',
          session.adminLoggedInOrForbidden,

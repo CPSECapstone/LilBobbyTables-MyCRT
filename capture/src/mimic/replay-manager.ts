@@ -1,8 +1,10 @@
 import * as moment from 'moment';
 import mysql = require('mysql');
 
-import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, ICapture, ICommand, IDbReference, IMetricsList,
-   IReplay, IWorkload, Logging, MetricsBackend, MetricsHash, MetricType, mycrtDbConfig } from '@lbt-mycrt/common';
+import { ByteToMegabyte, ChildProgramStatus, ChildProgramType, ICapture, ICommand, IDbReference,
+   IMetricsList, IReplay, IWorkload, Logging, MetricsBackend, MetricsHash, MetricType,
+   mycrtDbConfig } from '@lbt-mycrt/common';
+import { MetricsStorage } from '@lbt-mycrt/common/dist/metrics/metrics-storage';
 import { StorageBackend } from '@lbt-mycrt/common/dist/storage/backend';
 import { path as schema } from '@lbt-mycrt/common/dist/storage/backend-schema';
 
@@ -19,10 +21,13 @@ export class ReplayManager {
    protected dbConfig: mysql.ConnectionConfig = {};
    protected started: boolean = false;
    protected commandPromises: Array<Promise<void>> = [];
+   protected metricsPromises: Array<Promise<void>> = [];
    protected startTime: moment.Moment = moment();
 
-   constructor(protected replayId: number, protected config: MimicConfig, protected metrics: MetricsBackend,
-      protected storage: StorageBackend) {}
+   protected metrics: MetricsBackend | null = null;
+
+   constructor(protected replayId: number, protected config: MimicConfig,
+      protected storage: StorageBackend, protected captureMetrics: MetricsBackend) {}
 
    public get id() { return this.replayId; }
 
@@ -31,6 +36,7 @@ export class ReplayManager {
    public async loadReplay(): Promise<boolean> {
       const r = await replayDao.getReplay(this.replayId);
       if (r === null) { return false; }
+      r.envId = this.config.envId;
 
       const db = await environmentDao.getDbReference(r.dbId!);
       if (db === null) { return false; }
@@ -43,6 +49,7 @@ export class ReplayManager {
          password: db.pass,
          user: db.user,
       };
+      this.metrics = this.captureMetrics.cloneForInstance(this.db.instance!);
 
       try {
          // test the connection
@@ -93,6 +100,10 @@ export class ReplayManager {
       return Promise.all(this.commandPromises);
    }
 
+   public async finishAllMetrics() {
+      return Promise.all(this.metricsPromises);
+   }
+
    public retrieveMetrics() {
       logger.info(`Getting metrics for replay ${this.replayId}`);
       const end = moment();
@@ -106,7 +117,7 @@ export class ReplayManager {
          logger.info(`   skipping metrics, not enough time has passed`);
       } else {
          logger.info(`   waiting ${this.config.metricsDelay} ms before gathering metrics`);
-         this.commandPromises.push(new Promise<void>((resolve, reject) => {
+         this.metricsPromises.push(new Promise<void>((resolve, reject) => {
             setTimeout(async () => {
                logger.info(`   retrieving metrics from ${start.toDate()} to ${end.toDate()}`);
                try {
@@ -120,7 +131,13 @@ export class ReplayManager {
       }
    }
 
-   protected processCommand = (capture: ICapture, command: ICommand) => new Promise<void>((resolve, reject) => {
+   public async prepareFinalMetricsFile() {
+      const metricsStorage = new MetricsStorage(this.storage);
+      await metricsStorage.read(this.replay, false);
+   }
+
+   protected processCommand = (capture: ICapture, command: ICommand) =>
+         new Promise<void>((resolve, reject) => {
 
       // first, get the delta time until the command should be run
       let t: moment.Moment = moment(command.event_time);
@@ -147,8 +164,8 @@ export class ReplayManager {
    })
 
    protected async doQuery(command?: ICommand) {
-      const cmdInfo = command ? command.argument.substr(0, 30) + '...' : 'connect';
-      logger.info(`--- Replay ${this.replayId} is performing command "${cmdInfo}" ---`);
+      const cmdInfo = command ? command.argument.substr(0, 40).replace('\n', ' ') + '...' : 'connect';
+      logger.info(`--- Replay ${this.replayId} is performing command "${cmdInfo}"`);
       const conn = mysql.createConnection(this.dbConfig);
       return new Promise<void>((resolve, reject) => {
          conn.connect((connErr) => {
@@ -180,7 +197,7 @@ export class ReplayManager {
 
          logger.info(`   * ${metricType.metricName}`);
 
-         const metrics = await this.metrics.getMetricsForType(metricType, start, end);
+         const metrics = await this.metrics!.getMetricsForType(metricType, start, end);
          const datapoints = metrics.dataPoints;
 
          if (metricType.metricType === MetricType.MEMORY) {
