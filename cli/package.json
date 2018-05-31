@@ -22,7 +22,7 @@
     "node-fetch": "^1.7.3"
   },
   "devDependencies": {
-    "@types/node": "8.0.53",
+    "@types/node": "9.6.18",
     "@types/node-fetch": "^1.6.7",
     "tslint": "^5.8.0",
     "typescript": "^2.6.1"

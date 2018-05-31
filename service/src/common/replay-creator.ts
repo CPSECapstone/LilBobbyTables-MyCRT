@@ -2,7 +2,8 @@ import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
 import { CaptureConfig, launch as launchCapture } from '@lbt-mycrt/capture';
-import { ChildProgramStatus, ChildProgramType, ICapture, IDbReference, IReplay, Logging } from "@lbt-mycrt/common";
+import { ChildProgramStatus, ChildProgramType, ICapture, IDbReference, IReplay,
+   Logging, SlackBot } from "@lbt-mycrt/common";
 import { launch as launchReplay, ReplayConfig } from '@lbt-mycrt/replay';
 import { captureDao, environmentDao, replayDao } from '../dao/mycrt-dao';
 import { SubProcessCreator } from "./create";
@@ -79,7 +80,12 @@ export class ReplayCreator extends SubProcessCreator {
       response.json(this.template);
 
       if (this.initialStatus === ChildProgramStatus.SCHEDULED) {
-         schedule.scheduleJob(this.inputTime!, () => { this.startReplay(this.template!); });
+         schedule.scheduleJob(this.inputTime!, () => {
+            this.startReplay(this.template!);
+            const replay = this.template as IReplay;
+            SlackBot.postMessage(`It's time to start your scheduled replay *${replay.name!}* and I'm on it!`,
+               cap.envId!);
+         });
       } else {
          this.startReplay(this.template);
       }

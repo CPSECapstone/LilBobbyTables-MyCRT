@@ -60,6 +60,14 @@ CREATE TABLE EnvironmentUser (
       ON DELETE CASCADE
 );
 
+CREATE TABLE SlackConfig (
+   id INT(11) AUTO_INCREMENT PRIMARY KEY,
+   environmentId INT(11) NOT NULL REFERENCES Environment(id),
+   token VARCHAR(256),
+   channel VARCHAR(64),
+   isOn TINYINT(1) DEFAULT 1
+);
+
 CREATE TABLE AwsKeys (
    id INT(11) AUTO_INCREMENT PRIMARY KEY,
    accessKey VARCHAR(256),

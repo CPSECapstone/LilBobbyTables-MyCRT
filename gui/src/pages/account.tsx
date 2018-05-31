@@ -17,7 +17,11 @@ interface State {
 
 function UserInfo(props: {email?: string}): JSX.Element {
    if (props.email) {
-      return <div><p>email: {props.email} </p></div>;
+      return(
+         <div style={{display: "inline-block", paddingLeft: "25px"}}>
+            <h5>You are logged in as <i>{props.email}</i></h5>
+         </div>
+      );
    } else {
       return <div><p>Loading User Info...</p></div>;
    }
@@ -63,11 +67,12 @@ class AccountApp extends React.Component<{}, State> {
                   </div>
                   <br/>
                   <UserInfo email={this.state.user.email} />
+                     <button type="button" className="btn btn-outline-danger"
+                        onClick={this.handleSignout} style={{marginLeft: "18px"}}>
+                        Logout
+                     </button>
                      <button type="button" className="btn btn-outline-primary" onClick={this.handleChangePassword}>
                         Change Password
-                     </button>
-                     <button type="button" className="btn btn-outline-danger" onClick={this.handleSignout}>
-                        Logout
                      </button>
                   </div>
                </div>

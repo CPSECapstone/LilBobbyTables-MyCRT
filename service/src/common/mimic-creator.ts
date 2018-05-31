@@ -1,6 +1,6 @@
 import { CaptureConfig, launch as launchCapture } from '@lbt-mycrt/capture';
 import { ChildProgramStatus, ChildProgramType, ICapture, IDbReference, IMimic, IReplay,
-   IReplayFull, Logging, ServerIpcNode } from "@lbt-mycrt/common";
+   IReplayFull, Logging, ServerIpcNode, SlackBot } from "@lbt-mycrt/common";
 import { launch as launchReplay, ReplayConfig } from '@lbt-mycrt/replay';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
@@ -93,6 +93,8 @@ export class MimicCreator extends CaptureCreator {
       if (request.body.scheduledStart) {
          schedule.scheduleJob(request.body.scheduledStart, () => {
             startMimic(mimic);
+            SlackBot.postMessage("Oi bobby here, the clock struck " + capture!.scheduledStart! +
+               " so I started your mimicked capture and replays for `" + capture!.name + "`", environment.id!);
          });
       } else {
          startMimic(mimic);
@@ -102,6 +104,8 @@ export class MimicCreator extends CaptureCreator {
       if (request.body.duration) {
          schedule.scheduleJob(this.endTime!, () => {
             this.stopScheduledCapture(capture!);
+            SlackBot.postMessage("Swiggety swag :party-parrot: your mimicked captures and replays for `" +
+               capture!.name + "` are complete. How cool was that?!", environment.id!);
          });
       }
 

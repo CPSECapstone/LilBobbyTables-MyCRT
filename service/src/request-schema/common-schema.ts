@@ -70,8 +70,14 @@ export const value = {
 
    // TODO
    instance: joi.string(),
+   // TODO
+   channel: joi.string(),
+   // TODO
+   token: joi.string(),
 
    isAdmin: joi.boolean(),
+
+   isOn: joi.boolean(),
 
 };
 

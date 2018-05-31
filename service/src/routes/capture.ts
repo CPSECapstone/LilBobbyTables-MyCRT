@@ -3,7 +3,7 @@ import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
 
 import { ChildProgramStatus, ChildProgramType, ICapture, IChildProgram, IDbReference, IMetric,
-   IMetricsList, IMimic, IReplay, IReplayFull, Logging, MetricType, ServerIpcNode} from '@lbt-mycrt/common';
+   IMetricsList, IMimic, IReplay, IReplayFull, Logging, MetricType, ServerIpcNode } from '@lbt-mycrt/common';
 import { LocalBackend } from '@lbt-mycrt/common/dist/storage/local-backend';
 import { S3Backend } from '@lbt-mycrt/common/dist/storage/s3-backend';
 import { getSandboxPath } from '@lbt-mycrt/common/dist/storage/sandbox';
@@ -195,6 +195,7 @@ export default class CaptureRouter extends SelfAwareRouter {
             await captureCreator.createCaptureTemplate(request, response);
          },
       ));
+
       this.router.post('/mimic',
          check.validBody(schema.mimicBody),
          this.handleHttpErrors(makeSureUserIsEnvironmentMember((req) => req.body.envId)),

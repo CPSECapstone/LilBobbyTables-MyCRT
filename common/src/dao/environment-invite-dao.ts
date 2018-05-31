@@ -21,7 +21,8 @@ export interface IEnvironmentMember {
 export class EnvironmentInviteDao extends Dao {
 
    public async getInvite(id: number): Promise<Invite | null> {
-      const rows = await this.query<any[]>('SELECT * FROM EnvironmentUser WHERE id = ?', [id]);
+      const rows = await this.query<any[]>('SELECT eu.*, u.email FROM EnvironmentUser AS eu ' +
+         'JOIN User AS u ON eu.userId = u.id WHERE eu.id = ?', [id]);
       if (rows.length < 1) {
          return null;
       }
@@ -114,7 +115,8 @@ export class EnvironmentInviteDao extends Dao {
    }
 
    public async getEnvUserCount(environment: IEnvironment): Promise<any> {
-      const envUserCt = await this.query<any>('SELECT COUNT(*) AS count FROM EnvironmentUser WHERE environmentId = ?',
+      const envUserCt = await this.query<any>('SELECT COUNT(*) AS count FROM EnvironmentUser ' +
+         'WHERE environmentId = ? AND accepted = 1',
          [environment.id!]);
 
       return envUserCt[0];

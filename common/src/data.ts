@@ -128,6 +128,14 @@ export interface IAwsKeys {
    userId?: number;
 }
 
+export interface ISlackConfig {
+   id?: number;
+   environmentId: number;
+   channel: string;
+   token: string;
+   isOn?: boolean;
+}
+
 /** Database Connection */
 export interface IDbReference {
    id?: number;

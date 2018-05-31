@@ -89,6 +89,32 @@ export  class EnvironmentDao extends Dao {
       }
    }
 
+   public async getSlackConfig(slackId: number): Promise<data.ISlackConfig | null> {
+      const row = await this.query<any>('SELECT * FROM SlackConfig WHERE id = ?', [slackId]);
+      return this.rowToSlackConfig(row[0]);
+   }
+
+   public async getSlackConfigByEnv(envId: number): Promise<data.ISlackConfig | null> {
+      const rows = await this.query<any>('SELECT * FROM SlackConfig WHERE environmentId = ?', envId);
+      if (rows.length === 0) {
+         return null;
+      }
+      return this.rowToSlackConfig(rows[0]);
+   }
+
+   public async makeSlackConfig(slackConfig: data.ISlackConfig): Promise<data.ISlackConfig | null> {
+      const row = await this.query<any>('INSERT INTO SlackConfig SET ?', slackConfig);
+      return await this.getSlackConfig(row.insertId);
+   }
+
+   public async editSlackConfig(envId: number, changes: data.ISlackConfig): Promise<data.ISlackConfig | null> {
+      return this.query<any>('UPDATE SlackConfig SET ? WHERE environmentId = ?', [changes, envId]);
+   }
+
+   public async deleteSlackConfig(slackId: number): Promise<data.ISlackConfig | null> {
+      return this.query<any>('DELETE FROM SlackConfig WHERE id = ?', [slackId]);
+   }
+
    /**
     * Remove everything from the database. Be VERY CAREFUL with this.
     */
@@ -231,6 +257,16 @@ export  class EnvironmentDao extends Dao {
          id: row.id,
          bucket: row.bucket,
          prefix: row.prefix,
+      };
+   }
+
+   private rowToSlackConfig(row: any): data.ISlackConfig {
+      return {
+         id: row.id,
+         channel: row.channel,
+         environmentId: row.environmentId,
+         token: row.token,
+         isOn: !!row.isOn,
       };
    }
 }

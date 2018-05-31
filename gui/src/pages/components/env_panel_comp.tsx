@@ -50,7 +50,8 @@ export class EnvironmentPanel extends React.Component<any, any>  {
                     <div className="card-header myCRT-env-card" style={{paddingBottom: "5px"}}>
                         <h5 className="hover-text" role="button" style={{display: "inline"}}
                            onClick={ (e) => this.handleClick(e)}>
-                           {this.props.title}</h5>
+                           {this.props.title}
+                        </h5>
                         <i className="fa fa-users fa-lg" style={{float: "right", marginTop: "4px"}}></i>
                         <p style={{float: "right", paddingRight: "10px"}}>{this.state.userCount}</p>
                     </div>

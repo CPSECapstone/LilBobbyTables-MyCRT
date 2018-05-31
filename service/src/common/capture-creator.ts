@@ -1,5 +1,6 @@
 import { CaptureConfig, launch as launchCapture } from '@lbt-mycrt/capture';
-import { ChildProgramStatus, ChildProgramType, ICapture, IReplay, Logging, ServerIpcNode } from "@lbt-mycrt/common";
+import { ChildProgramStatus, ChildProgramType, ICapture, IReplay, Logging,
+   ServerIpcNode, SlackBot } from "@lbt-mycrt/common";
 import { launch as launchReplay, ReplayConfig } from '@lbt-mycrt/replay';
 import * as http from 'http-status-codes';
 import schedule = require('node-schedule');
@@ -79,7 +80,12 @@ export class CaptureCreator extends SubProcessCreator {
       response.json(this.template);
 
       if (this.initialStatus === ChildProgramStatus.SCHEDULED) {
-         schedule.scheduleJob(this.inputTime!, () => { startCapture(this.template!); });
+         schedule.scheduleJob(this.inputTime!, () => {
+            startCapture(this.template!);
+            const captureTemplate = this.template as ICapture;
+            SlackBot.postMessage("It's time to start your scheduled capture *" +
+               captureTemplate.name + "* and I'm on it!", this.env.id);
+         });
       } else {
          startCapture(this.template);
       }
@@ -91,7 +97,12 @@ export class CaptureCreator extends SubProcessCreator {
 
    public checkDuration() {
       if (this.duration) {
-         schedule.scheduleJob(this.endTime!, () => { this.stopScheduledCapture(this.template!); }); // scheduled stop
+         schedule.scheduleJob(this.endTime!, () => {
+            this.stopScheduledCapture(this.template!);
+            const captureTemplate = this.template as ICapture;
+            SlackBot.postMessage("Time's up! I just stopped your scheduled capture *" +
+               captureTemplate!.name + "* :party-parrot:", this.env.id);
+         });
       }
    }
 

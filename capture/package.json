@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "@lbt-mycrt/common": "file:../common",
+    "@types/node": "9.6.18",
     "@lbt-mycrt/replay": "file:../replay",
-    "@types/node": "8.0.53",
     "aws-sdk": "^2.188.0",
     "command-line-args": "^5.0.1",
     "md5": "^2.2.1",
