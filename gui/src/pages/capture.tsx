@@ -304,7 +304,7 @@ class CaptureApp extends React.Component<any, any> {
             <div className="container"><div className="row"><div className="col-sm-12 mb-r">
                <div className="page-header">
                   <h1 className="align">{this.state.capture.name}</h1>
-                  <label className={this.state.capture.status}>{this.state.capture.status}</label>
+                  <span className={`badge ${this.state.capture.status}`}>{this.state.capture.status}</span>
                   {this.state.canDelete ? <a role="button" className="btn btn-outline-danger deleteBtn"
                      data-backdrop="static" data-keyboard={false}
                      data-target="#deleteCaptureModal" data-toggle="modal" href="#">

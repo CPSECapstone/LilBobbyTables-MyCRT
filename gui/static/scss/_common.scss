@@ -183,15 +183,13 @@ p {
 }
 
 %statusFlag {
-   letter-spacing: 0.6px;
-   margin-bottom: 18px;
-   padding: 3px;
-   color: white;
-   border: 1px solid gray;
-   border-radius: 6px;
    font-size: 12px;
    margin-left: 14px;
    vertical-align: middle;
+   padding: 6px;
+   color: white;
+   letter-spacing: 0.6px;
+   margin-bottom: 18px;
 }
 
 .DONE, .STOPPING {
