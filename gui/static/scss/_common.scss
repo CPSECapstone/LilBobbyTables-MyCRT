@@ -4,6 +4,7 @@ $secondary-danger: #ed7669;
 $secondary-info: #5faee3;
 $secondary-warning: #f5b043;
 $secondary-success: #24e3be;
+$secondary-mimic: #b38cd9;
 
 .myCRT-env-navbar {
     display: flex;
@@ -55,16 +56,12 @@ $secondary-success: #24e3be;
 }
 
 .admin-flag {
-   padding-left: 5px;
+   padding-left: 8px;
    color: #95a5a6;
    display: inline;
 }
 
-.btn-outline-primary {
-   border-radius: 24px;
-}
-
-.btn-outline-danger {
+.btn-outline-primary, .btn-outline-success, .btn-outline-danger {
    border-radius: 24px;
 }
 
@@ -145,6 +142,12 @@ input:focus {
    color: white;
 }
 
+.myCRT-panel-mimic {
+   background-image: none;
+   background-color: #9966cc;
+   color: white;
+}
+
 .myCRT-panel-failed {
    background-image: none;
    background-color: #E74C3C;
@@ -162,8 +165,17 @@ input:focus {
    background-color: $secondary-success;
 }
 
+.myCRT-status-mimic {
+   @extend %myCRT-status;
+   background-color: $secondary-mimic;
+}
+
 .myCRT-progress-bar {
    background-color: $secondary-success;
+}
+
+.myCRT-mimic-progress-bar {
+   background-color: $secondary-mimic;
 }
 
 p {

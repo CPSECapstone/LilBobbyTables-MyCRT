@@ -41,6 +41,7 @@ export abstract class SubProcessCreator {
          status: this.initialStatus === ChildProgramStatus.SCHEDULED ?
             ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
          type: templateType,
+         isMimic: false,
       };
    }
 

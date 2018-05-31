@@ -35,6 +35,7 @@ export class MimicCreator extends CaptureCreator {
          type: ChildProgramType.CAPTURE,
          ownerId: request.user!.id,
          envId: environment.id,
+         isMimic: true,
          status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
          scheduledStart: request.body.scheduledStart ? request.body.scheduledStart : undefined,
          name: request.body.name,
@@ -67,8 +68,9 @@ export class MimicCreator extends CaptureCreator {
             type: ChildProgramType.REPLAY,
             name: replay.name,
             captureId: capture!.id,
-            status: ChildProgramStatus.STARTED,
             dbId: db!.id,
+            isMimic: true,
+            status: request.body.scheduledStart ? ChildProgramStatus.SCHEDULED : ChildProgramStatus.STARTED,
             ownerId: request.user!.id,
             scheduledEnd: this.endTime,
          };
