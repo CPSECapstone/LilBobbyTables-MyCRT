@@ -314,7 +314,7 @@ class DashboardApp extends React.Component<any, any> {
                   {this.state.me.isAdmin ? <li className="nav-item">
                      <a className="nav-link" data-toggle="tab" href="#notifyTab" role="tab">
                      <i className={this.state.isOn ? "fa fa-circle liveCircle" : "fa fa-circle-thin circle"}>
-                        </i>Notifications</a>
+                        </i>Bobby</a>
                   </li> : null}
                </ul>
                <div className = "tab-content">
@@ -376,7 +376,9 @@ class DashboardApp extends React.Component<any, any> {
                      <UserTable users={this.state.users}/>
                   </div>
                   <div className="tab-pane" id="notifyTab" role="tabpanel">
-                     <br/><h2 style={{display: "inline"}}>Integrate Slack</h2><br/><br/>
+                     <br/><h2 style={{display: "inline"}}>
+                        {this.state.connectedChannel === "" ?
+                           "Invite Bobby to Slack" : "Bobby's Connected!"}</h2><br/><br/>
                      {this.state.connectedChannel !== "" ?
                         <h5 className="text-success" style={{paddingLeft: "25px", paddingTop: "10px"}}>
                         Connected to Channel ID: <b>{this.state.connectedChannel}</b></h5> : null}
