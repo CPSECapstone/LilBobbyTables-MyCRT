@@ -379,10 +379,10 @@ export class CaptureModal extends React.Component<any, any>  {
                                     </div><br></br>
                                     <div className="form-check">
                                        <label className="form-check-label">
-                                       <input type="checkbox" className="form-check-input" id="concurrentCheck"
-                                          onChange={this.handleConcurrentChange}
-                                          defaultChecked={this.state.concurrent}/>
-                                          Would you like to run a replay(s) simultaneously?
+                                          <input type="checkbox" className="form-check-input" id="concurrentCheck"
+                                             onChange={this.handleConcurrentChange}
+                                             defaultChecked={this.state.concurrent}/>
+                                             Run replay(s) simultaneously
                                        </label>
                                     </div>
                                     <br></br>

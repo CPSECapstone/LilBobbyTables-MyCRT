@@ -206,7 +206,7 @@ export default class ReplayRouter extends SelfAwareRouter {
             const replayPrefix = `environment${env.id}/replay${request.params.id}/`;
             await storage.deletePrefix(replayPrefix);
          }
-         response.status(http.OK).end();
+         response.json(replayDel);
       }));
    }
 }
