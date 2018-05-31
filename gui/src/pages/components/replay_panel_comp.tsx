@@ -77,10 +77,8 @@ export class ReplayPanel extends React.Component<any, any>  {
     }
 
     public handleInfoClick(event: any): void {
-      if (this.state.replay.status === ChildProgramStatus.DONE) {
          window.location.assign(`/capture?id=${this.props.capture.id}&`
          + `replayId=${this.props.replay.id}envId=${this.props.envId}&view=replays`);
-      }
    }
 
    public handleCaptureClick(event: any): void {
@@ -122,8 +120,12 @@ export class ReplayPanel extends React.Component<any, any>  {
       }
       if (!this.props.replay) { return (<div></div>); }
         const percent = `${((this.state.currentDuration / this.state.totalDuration) * 100).toFixed(0)}%`;
+        let margins = "ml-4 mr-4";
+        if (!this.props.compare) {
+           margins = "ml-2 mr-2";
+        }
         return (
-            <div className="card myCRT-panel mt-4 ml-4 mr-4 myCRT-card">
+            <div className={`card myCRT-panel mt-4 ${margins} myCRT-card`}>
                 <div className={`card-header ${className}`}>
                     <div style={{display: "inline-block"}}>
                     <h5 className="hover-text" style={{display: "inline", verticalAlign: "middle"}}

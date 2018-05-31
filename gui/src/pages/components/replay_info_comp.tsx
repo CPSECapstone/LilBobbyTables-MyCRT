@@ -40,6 +40,7 @@ export class ReplayInfo extends React.Component<any, any>  {
          <div><br/>
             <div className="page-header">
                <h2 style={{display: "inline"}}>{this.props.replay.name}</h2>
+               <label className={this.props.replay.status}>{this.props.replay.status}</label>
                <button type="button" className="btn btn-outline-success"
                   style={{marginLeft: "20px", marginBottom: "15px"}} onClick={this.compareReplay}>
                   <i className="fa fa-line-chart"></i>

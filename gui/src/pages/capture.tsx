@@ -70,7 +70,7 @@ class CaptureApp extends React.Component<any, any> {
 
       this.state = {envId, view, defaultReplay, replayInfo, env: null, captureId: id, capture: null, me: null,
             areaChart: false, allReplays: [], selectedReplays: [], replaySearch: "", canDelete: false,
-            allGraphs: [], selectedGraphs: ["WRITE IOPS"], navTabs: ["Details", "Metrics", "Replays"],
+            allGraphs: [], selectedGraphs: ["WRITE IOPS"], navTabs: [], live: false,
       };
    }
 
@@ -94,9 +94,19 @@ class CaptureApp extends React.Component<any, any> {
       }
 
       if (this.state.captureId) {
+         const capture = await mycrt.getCapture(this.state.captureId);
+         if (capture) {
+            let navTabs = ["Details"];
+            const live = capture.status !== ChildProgramStatus.DONE;
+            if (!live) {
+               navTabs = ["Details", "Metrics", "Replays"];
+            }
+            this.setState({capture, navTabs, live});
+         }
+
          const metricsFileExists = await mycrt.validateMetricsFile(this.state.envId,
             'capture', this.state.captureId);
-         if (bucketExists && !metricsFileExists) {
+         if (bucketExists && !metricsFileExists && !this.state.live) {
             logger.error("Metrics file no longer exists.");
             store.dispatch(showAlert({
                show: true,
@@ -106,10 +116,6 @@ class CaptureApp extends React.Component<any, any> {
             }));
          }
 
-         const capture = await mycrt.getCapture(this.state.captureId);
-         if (capture) {
-            this.setState({capture});
-         }
          const replays = await mycrt.getReplaysForCapture(this.state.captureId);
          if (replays) {
             this.setState({allReplays: this.makeObject(replays, "id")});
@@ -263,7 +269,8 @@ class CaptureApp extends React.Component<any, any> {
    }
 
    public render() {
-      if (this.state.allGraphs.length === 0) { return (<div></div>); }
+      if (!this.state.capture === null) { return (<div></div>); }
+      if (!this.state.live && this.state.allGraphs.length === 0) { return (<div></div>); }
       const graphs: JSX.Element[] = [];
       if (this.state.selectedGraphs) {
          for (const graphType of this.state.selectedGraphs) {
@@ -276,7 +283,7 @@ class CaptureApp extends React.Component<any, any> {
       if (this.state.allReplays) {
          for (const id in this.state.allReplays) {
             const replay = this.state.allReplays[id];
-            if (replay.status === ChildProgramStatus.DONE) {
+            if (replay.status !== ChildProgramStatus.FAILED) {
                replaysToGraph.push(replay);
             }
             const name = replay.name || `replay ${replay.id}`;
@@ -297,6 +304,7 @@ class CaptureApp extends React.Component<any, any> {
             <div className="container"><div className="row"><div className="col-sm-12 mb-r">
                <div className="page-header">
                   <h1 className="align">{this.state.capture.name}</h1>
+                  <label className={this.state.capture.status}>{this.state.capture.status}</label>
                   {this.state.canDelete ? <a role="button" className="btn btn-outline-danger deleteBtn"
                      data-backdrop="static" data-keyboard={false}
                      data-target="#deleteCaptureModal" data-toggle="modal" href="#">
