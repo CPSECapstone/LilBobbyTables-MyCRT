@@ -398,7 +398,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                await storage.deletePrefix(capturePrefix);
             }
          }
-         response.status(http.OK).end();
+         response.json(captureDel);
       }));
    }
 
