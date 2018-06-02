@@ -16,6 +16,7 @@ import { getDbInstances } from '../common/rdsInstances';
 import { environmentDao } from '../dao/mycrt-dao';
 import { HttpError } from '../http-error';
 import * as check from '../middleware/request-validation';
+import * as inviteSchema from '../request-schema/environment-invite-schema';
 import * as schema from '../request-schema/validate-schema';
 import { settings } from '../settings';
 import SelfAwareRouter from './self-aware-router';
@@ -36,6 +37,17 @@ export default class ValidateRouter extends SelfAwareRouter {
    }
 
    protected mountRoutes(): void {
+
+      this.router.post('/invites', check.validBody(inviteSchema.inviteBody),
+            this.handleHttpErrors(async (request, response) => {
+
+            if (request.user!.email === request.body.userEmail) {
+               throw new HttpError(http.CONFLICT,
+               `Cannot invite yourself to environment`);
+            } else {
+               response.json(true);
+            }
+      }));
 
       this.router.post('/credentials/name', check.validBody(schema.credentialsNameBody),
             this.handleHttpErrors(async (request, response) => {

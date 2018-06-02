@@ -216,6 +216,15 @@ export class MyCrtClient {
       return check.value;
    }
 
+   public async validateEnvironmentEmailInvite(environmentId: number, userEmail: string, isAdmin: boolean):
+         Promise<boolean | null> {
+      return this.makeRequest<boolean>(HttpMethod.POST, '/validate/invites', null, {
+         environmentId,
+         userEmail,
+         isAdmin,
+      });
+   }
+
    /** Get database credentials for a replay */
    public async getReplayDB(id: number): Promise<IDbReference | null> {
       return this.makeRequest<IDbReference>(HttpMethod.GET, `/dbReferences/${id}`);
