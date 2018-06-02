@@ -45,6 +45,13 @@ export class ShareModal extends React.Component<any, any>  {
          this.setState({errorMsg: "User email does not exist. Please try again with a valid email."});
          return;
       }
+
+      const isDuplicate = await mycrt.validateEnvironmentEmailInvite(this.props.envId,
+         this.state.email, this.state.isAdmin);
+      if (!isDuplicate) {
+         this.setState({errorMsg: "Cannot invite yourself to environment"});
+         return;
+      }
       this.setState({inviteCode: result.inviteCode, step: "2"});
       $('#shareWizard a[href="#step2"]').tab('show');
    }

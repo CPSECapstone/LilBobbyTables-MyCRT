@@ -12,6 +12,7 @@ import SelfAwareRouter from './self-aware-router';
 const logger = Logging.defaultLogger(__dirname);
 
 export default class EnvironmentInviteRouter extends SelfAwareRouter {
+   // public currentUserEmail: string = '/me';
    public name: string = 'environmentInvite';
    public urlPrefix: string = '/invites';
 
