@@ -216,6 +216,7 @@ export class MyCrtClient {
       return check.value;
    }
 
+   /** Validate environment invite email */
    public async validateEnvironmentEmailInvite(environmentId: number, userEmail: string, isAdmin: boolean):
          Promise<boolean | null> {
       return this.makeRequest<boolean>(HttpMethod.POST, '/validate/invites', null, {
