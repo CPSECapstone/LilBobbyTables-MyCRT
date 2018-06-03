@@ -227,6 +227,14 @@ export default class CaptureRouter extends SelfAwareRouter {
             throw new HttpError(http.UNAUTHORIZED);
          }
 
+         // stop capture on the server
+         const currentCapture = await captureDao.getCapture(request.params.id);
+         if (currentCapture!.status === ChildProgramStatus.STARTED ||
+               currentCapture!.status === ChildProgramStatus.STARTING ||
+               currentCapture!.status === ChildProgramStatus.RUNNING) {
+               this.ipcNode.stopCapture(currentCapture!.id!);
+         }
+
          const captureDel = await captureDao.deleteCapture(request.params.id);
 
          if (isDeleteLogs === true && capture && capture.envId) {
@@ -247,6 +255,7 @@ export default class CaptureRouter extends SelfAwareRouter {
                await storage.deletePrefix(capturePrefix);
             }
          }
+
          response.json(captureDel);
       }));
    }
