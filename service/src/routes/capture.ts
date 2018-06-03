@@ -232,7 +232,7 @@ export default class CaptureRouter extends SelfAwareRouter {
          if (currentCapture!.status === ChildProgramStatus.STARTED ||
                currentCapture!.status === ChildProgramStatus.STARTING ||
                currentCapture!.status === ChildProgramStatus.RUNNING) {
-            await this.ipcNode.stopCapture(currentCapture!.id!);
+               this.ipcNode.stopCapture(currentCapture!.id!);
          }
 
          const captureDel = await captureDao.deleteCapture(request.params.id);
