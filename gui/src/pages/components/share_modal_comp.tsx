@@ -40,16 +40,17 @@ export class ShareModal extends React.Component<any, any>  {
    }
 
    public async handleClick(event: any) {
-      const result = await mycrt.environmentInvite(this.props.envId, this.state.email, this.state.isAdmin);
-      if (!result) {
-         this.setState({errorMsg: "User email does not exist. Please try again with a valid email."});
-         return;
-      }
-
       const isDuplicate = await mycrt.validateEnvironmentEmailInvite(this.props.envId,
          this.state.email, this.state.isAdmin);
       if (!isDuplicate) {
          this.setState({errorMsg: "Cannot invite yourself to environment"});
+         return;
+      }
+
+      const result = await mycrt.environmentInvite(this.props.envId, this.state.email, this.state.isAdmin);
+
+      if (!result) {
+         this.setState({errorMsg: "User email does not exist. Please try again with a valid email."});
          return;
       }
 
