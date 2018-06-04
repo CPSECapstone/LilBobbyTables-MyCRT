@@ -56,6 +56,12 @@ export default class EnvironmentInviteRouter extends SelfAwareRouter {
             // good to go!
             logger.info("Creating invite");
             const invite = await inviteDao.inviteUser(environment, user, request.body.isAdmin);
+            if (invite.accepted) {
+               logger.info("User is already a member");
+               throw new HttpError(http.BAD_REQUEST,
+                  `User ${request.body.userEmail} is already a member of Environment ${environment.name}`);
+            }
+
             SlackBot.postMessage("Hey @" + request.body.userEmail + " heads up! @" + request.user!.email +
                " just invited you to join *" + environment.name! +
                "*! You have 24 hours to accept using this invite code `" + invite!.inviteCode + "`", environment!.id!,

@@ -16,6 +16,8 @@ export interface IEnvironmentMember {
    email: string;
    isMember: boolean;
    isAdmin: boolean;
+   inviteCode?: string;
+   accepted: boolean;
 }
 
 export class EnvironmentInviteDao extends Dao {
@@ -43,7 +45,42 @@ export class EnvironmentInviteDao extends Dao {
       return this.rowToInvite(rows[0]);
    }
 
-   public async inviteUser(environment: IEnvironment, user: IUser, isAdminUser: boolean): Promise<Invite | null> {
+   public async getInviteByEnvUser(environment: IEnvironment, user: IUser): Promise<Invite | null> {
+      const rows = await this.query<any[]>('SELECT * from EnvironmentUser WHERE environmentId = ? AND userId = ?',
+         [environment.id, user.id]);
+      if (rows.length < 1) {
+         return null;
+      }
+      return this.rowToInvite(rows[0]);
+   }
+
+   public async inviteExpired(invite: number | Invite): Promise<boolean> {
+
+      const now = new Date().getTime();
+      let createdAt;
+      if (typeof invite === 'number') {
+         const inv = await this.getInvite(invite);
+         if (!inv) { return true; }
+         createdAt = inv.createdAt;
+      } else { createdAt = invite.createdAt; }
+
+      if (!createdAt) { return true; }
+      if (now - createdAt > MS_PER_DAY) {
+         return true;
+      } else {
+         return false;
+      }
+   }
+
+   public async inviteUser(environment: IEnvironment, user: IUser, isAdminUser: boolean): Promise<Invite> {
+
+      const oldInvite = await this.getInviteByEnvUser(environment, user);
+      if (oldInvite) {
+
+         const expired = await this.inviteExpired(oldInvite);
+         if (oldInvite.accepted || !expired) { return oldInvite; }
+      }
+
       const inviteCode = crypto.randomBytes(4).toString('hex');
       const invite: Invite = {
          environmentId: environment.id,
@@ -54,12 +91,15 @@ export class EnvironmentInviteDao extends Dao {
          createdAt: new Date().getTime(),
       };
       const result = await this.query<any>('INSERT INTO EnvironmentUser SET ?', [invite]);
-      return await this.getInvite(result.insertId);
+      return (await this.getInvite(result.insertId))!;
    }
 
    public async acceptInvite(invite: Invite) {
+
       const now = new Date().getTime();
-      if (now - invite.createdAt! > MS_PER_DAY) {
+      const expired = await this.inviteExpired(invite.id!);
+
+      if (expired) {
          throw new Error("This invite has expired");
       }
       await this.query('UPDATE EnvironmentUser SET accepted = 1, acceptedAt = ? WHERE id = ?', [now, invite.id]);
@@ -77,23 +117,21 @@ export class EnvironmentInviteDao extends Dao {
       let isMember = false;
       let isAdmin = false;
       let envUserId = 0;
+      let inviteCode = null;
+      let accepted = false;
 
-      if (environment.ownerId === user.id) {
-         logger.info('User owns the environment');
+      const query = 'SELECT id, userId, isAdmin, inviteCode, accepted FROM EnvironmentUser WHERE userId = ? '
+         + 'AND environmentId = ? AND accepted = 1';
+      const rows = await this.query<any[]>(query, [user.id, environment.id]);
+      if (rows.length > 0) {
+         logger.info("Found an invite");
          isMember = true;
-         isAdmin = true;
+         isAdmin = !!(rows[0].isAdmin);
+         envUserId = rows[0].id;
+         inviteCode = rows[0].inviteCode;
+         accepted = !!(rows[0].accepted);
       } else {
-         const query = 'SELECT id, userId, isAdmin FROM EnvironmentUser WHERE userId = ? '
-            + 'AND environmentId = ? AND accepted = 1';
-         const rows = await this.query<any[]>(query, [user.id, environment.id]);
-         if (rows.length > 0) {
-            logger.info("Found an invite");
-            isMember = true;
-            isAdmin = !!(rows[0].isAdmin);
-            envUserId = rows[0].id;
-         } else {
-            logger.info("No membership");
-         }
+         logger.info("No membership");
       }
 
       return {
@@ -102,6 +140,8 @@ export class EnvironmentInviteDao extends Dao {
          email: user.email!,
          isMember,
          isAdmin,
+         inviteCode,
+         accepted,
       };
 
    }

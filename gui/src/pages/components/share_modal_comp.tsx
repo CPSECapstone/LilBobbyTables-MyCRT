@@ -52,6 +52,11 @@ export class ShareModal extends React.Component<any, any>  {
          this.setState({errorMsg: "Cannot invite yourself to environment"});
          return;
       }
+
+      if (result.accepted) {
+         this.setState({errorMsg: `${this.state.email} is already a member of this environment`});
+         return;
+      }
       this.setState({inviteCode: result.inviteCode, step: "2"});
       $('#shareWizard a[href="#step2"]').tab('show');
    }
