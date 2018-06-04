@@ -73,6 +73,11 @@ export default class SlackRouter extends SelfAwareRouter {
       this.router.put('/:id(\\d+)/slack', check.validBody(schema.slackPutBody),
             this.handleHttpErrors(async (request, response) => {
 
+         // check for empty slack body
+         if (Object.keys(request.body).length === 0) {
+            response.json(http.OK);
+         }
+
          const environment = await environmentDao.getEnvironment(request.params.id);
          if (!environment) {
             throw new HttpError(http.NOT_FOUND, `Environment ${request.params.id} does not exist`);
