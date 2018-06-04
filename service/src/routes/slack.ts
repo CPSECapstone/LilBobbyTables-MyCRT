@@ -74,7 +74,7 @@ export default class SlackRouter extends SelfAwareRouter {
             this.handleHttpErrors(async (request, response) => {
 
          // check for empty slack body
-         if (schema.slackPutBody.empty()) {
+         if (Object.keys(request.body).length === 0) {
             response.json(http.OK);
          }
 
